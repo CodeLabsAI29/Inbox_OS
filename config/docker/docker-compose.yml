@@ -36,17 +36,17 @@ services:
   # FastAPI Backend
   api:
     build:
-      context: ./apps/api
+      context: ../../apps/api
       dockerfile: Dockerfile
     restart: unless-stopped
-    env_file: .env
+    env_file: ../env/.env
     environment:
       DATABASE_URL: postgresql+asyncpg://inboxos:inboxos_dev@postgres:5432/inboxos
       REDIS_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
     volumes:
-      - ./apps/api:/app
+      - ../../apps/api:/app
     depends_on:
       postgres:
         condition: service_healthy
@@ -57,15 +57,15 @@ services:
   # Celery Worker
   celery:
     build:
-      context: ./apps/api
+      context: ../../apps/api
       dockerfile: Dockerfile
     restart: unless-stopped
-    env_file: .env
+    env_file: ../env/.env
     environment:
       DATABASE_URL: postgresql+asyncpg://inboxos:inboxos_dev@postgres:5432/inboxos
       REDIS_URL: redis://redis:6379/0
     volumes:
-      - ./apps/api:/app
+      - ../../apps/api:/app
     depends_on:
       - redis
       - postgres
@@ -76,7 +76,7 @@ services:
     image: node:18-alpine
     working_dir: /app
     volumes:
-      - ./apps/web:/app
+      - ../../apps/web:/app
       - /app/node_modules
     ports:
       - "5173:5173"
