@@ -6,6 +6,7 @@ import { RegisterForm } from './components/RegisterForm';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { EmailList } from './components/EmailList';
 import { ComposeModal } from './components/ComposeModal';
+import { LandingPage } from './components/LandingPage';
 import { 
   ShieldAlert, 
   CheckCircle2, 
@@ -190,17 +191,18 @@ export default function App() {
   return (
     <>
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route 
-          path="/" 
+          path="/dashboard" 
           element={
             <ProtectedRoute>
               <DashboardContent />
             </ProtectedRoute>
           } 
         />
-        {/* Fallback to dashboard */}
+        {/* Fallback to landing page */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <ComposeModal />

@@ -53,7 +53,7 @@ export const LoginForm: React.FC = () => {
     setIsLoading(true);
     try {
       await login(email, password);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       // Errors are handled globally in AuthContext and rendered below
       console.error('Login error:', err);
