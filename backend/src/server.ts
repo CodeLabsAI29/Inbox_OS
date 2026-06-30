@@ -381,6 +381,41 @@ app.get('/api/integrations/gmail/callback', async (req: Request, res: Response) 
        return res.status(400).json({ error: 'Could not fetch email address from Google' });
     }
 
+    // ── Google Sign-In flow ───────────────────────────────────────────────────
+    // If state is 'google-signin', auto-create or find the user by Gmail address
+    // then set a JWT cookie and redirect to the dashboard.
+    if (userId === 'google-signin') {
+      let user = await prisma.user.findUnique({ where: { email: emailAddress } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            email: emailAddress,
+            passwordHash: crypto.randomBytes(32).toString('hex'), // unusable password — Google is the auth
+          }
+        });
+      }
+
+      const { AuthService } = await import('./services/auth.service');
+      const jwtToken = AuthService.generateToken(user.id, user.email);
+      res.cookie('token', jwtToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+
+      // Also connect their Gmail account
+      const encryptedTokens = encrypt(JSON.stringify(tokens));
+      await prisma.emailAccount.upsert({
+        where: { userId_provider_emailAddress: { userId: user.id, provider: 'gmail', emailAddress } },
+        update: { encryptedTokens, syncState: 'connected', lastSyncAt: new Date() },
+        create: { userId: user.id, provider: 'gmail', emailAddress, encryptedTokens, syncState: 'connected' }
+      });
+
+      return res.redirect('http://localhost:5173/');
+    }
+
+    // ── Connect Gmail to existing account flow ────────────────────────────────
     const encryptedTokens = encrypt(JSON.stringify(tokens));
 
     // Save to Database
@@ -411,6 +446,7 @@ app.get('/api/integrations/gmail/callback', async (req: Request, res: Response) 
     console.error('OAuth callback error:', error);
     return res.status(500).json({ error: 'OAuth integration failed' });
   }
+
 });
 
 /**
@@ -508,7 +544,63 @@ app.delete('/api/webhooks/config/:id', requireAuth, async (req: AuthenticatedReq
   }
 });
 
+
+/**
+ * GET /api/emails
+ * Returns paginated email list for the logged-in user.
+ * Called by frontend EmailList.tsx
+ */
+app.get('/api/emails', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = parseInt(req.query.offset as string) || 0;
+    const category = req.query.category as string | undefined;
+
+    const where: any = { userId };
+    if (category && category !== 'all') where.category = category;
+
+    const [emails, total] = await Promise.all([
+      prisma.email.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+        select: {
+          id: true, messageId: true, sender: true, recipient: true,
+          subject: true, body: true, status: true, category: true,
+          createdAt: true, threadId: true
+        }
+      }),
+      prisma.email.count({ where })
+    ]);
+
+    return res.json({ emails, total, limit, offset });
+  } catch (err) {
+    console.error('GET /api/emails error:', err);
+    return res.status(500).json({ error: 'Failed to fetch emails' });
+  }
+});
+
+/**
+ * GET /api/auth/google
+ * PUBLIC — Generates Google OAuth URL for sign-in/sign-up via Google.
+ * No JWT required. The callback handles user creation automatically.
+ */
+app.get('/api/auth/google', (req: Request, res: Response) => {
+  const url = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['https://mail.google.com/', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
+    prompt: 'consent',
+    state: 'google-signin' // special flag — callback will auto-create user
+  });
+  return res.json({ url });
+});
+
 // Start Server
+
 const server = app.listen(PORT, () => {
   console.log(`Auth service running on port ${PORT}`);
 });
