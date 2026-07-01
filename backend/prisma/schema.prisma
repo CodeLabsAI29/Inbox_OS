@@ -54,6 +54,10 @@ model Email {
   thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
   actionItems ActionItem[]
   embedding String?
+
+  @@index([userId])
+  @@index([threadId])
+  @@index([createdAt])
 }
 
 model ActionItem {

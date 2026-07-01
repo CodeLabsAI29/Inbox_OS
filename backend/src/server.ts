@@ -14,6 +14,7 @@ import { rateLimiter } from './middleware/rate-limiter.middleware';
 import client from './utils/metrics';
 import { logger } from './utils/logger';
 import { EventBus } from './services/event-bus.service';
+import { RedisService } from './services/redis.service';
 import { google } from 'googleapis';
 import crypto from 'crypto';
 import { EmailSenderService } from './services/email-sender.service';
@@ -213,6 +214,61 @@ app.get('/api/auth/me', requireAuth, (req: AuthenticatedRequest, res: Response) 
   return res.status(200).json({
     user: req.user,
   });
+});
+
+/**
+ * GET /api/users/profile
+ * Protected endpoint to fetch current authenticated user profile.
+ */
+app.get('/api/users/profile', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const cacheKey = `user:profile:${userId}`;
+
+    // Try fetching from Redis cache first
+    const cachedProfile = await RedisService.get(cacheKey);
+    if (cachedProfile) {
+      try {
+        const parsedProfile = JSON.parse(cachedProfile);
+        return res.status(200).json(parsedProfile);
+      } catch (parseError) {
+        console.warn('Failed to parse cached user profile JSON:', parseError);
+      }
+    }
+
+    // Fetch from Prisma if not cached
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        createdAt: true,
+        settings: {
+          select: {
+            theme: true,
+            signature: true,
+            autoReply: true,
+          }
+        }
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Store in cache for 300 seconds
+    await RedisService.setex(cacheKey, 300, JSON.stringify(user));
+
+    return res.status(200).json(user);
+  } catch (error) {
+    console.error('Fetch profile error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 /**

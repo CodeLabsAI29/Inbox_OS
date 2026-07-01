@@ -56,6 +56,7 @@ export const Layout: React.FC<LayoutProps> = ({
           <button
             onClick={() => setIsMobileMenuOpen(true)}
             className="md:hidden p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+            aria-label="Open mobile menu"
           >
             <Menu size={20} />
           </button>
@@ -76,12 +77,18 @@ export const Layout: React.FC<LayoutProps> = ({
           <div className="flex items-center gap-4">
             
             {/* Dark Mode toggle visual */}
-            <button className="p-2.5 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-colors">
+            <button 
+              className="p-2.5 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+              aria-label="Toggle dark mode"
+            >
               <Moon size={18} />
             </button>
 
             {/* Notification Bell */}
-            <button className="p-2.5 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-colors relative">
+            <button 
+              className="p-2.5 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white transition-colors relative"
+              aria-label="Notifications"
+            >
               <Bell size={18} />
               <span className="absolute top-2 right-2.5 h-1.5 w-1.5 rounded-full bg-indigo-500"></span>
             </button>

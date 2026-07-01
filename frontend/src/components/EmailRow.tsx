@@ -27,10 +27,10 @@ export interface EmailData {
 
 interface EmailRowProps {
   email: EmailData;
-  onClick?: () => void;
+  onClick?: (id: string) => void;
 }
 
-export const EmailRow: React.FC<EmailRowProps> = ({ email, onClick }) => {
+export const EmailRow = React.memo(function EmailRow({ email, onClick }: EmailRowProps) {
   // Normalize fields between Node and Python backends
   const isUnread = 
     email.is_read === false || 
@@ -48,7 +48,7 @@ export const EmailRow: React.FC<EmailRowProps> = ({ email, onClick }) => {
   
   // Normalize dates
   const rawDate = email.received_at || email.createdAt || email.received || 'Recently';
-  const displayDate = (() => {
+  const displayDate = React.useMemo(() => {
     if (!rawDate) return '';
     if (rawDate.includes('ago') || rawDate.includes('today') || rawDate.includes('PM') || rawDate.includes('AM')) return rawDate;
     try {
@@ -57,7 +57,7 @@ export const EmailRow: React.FC<EmailRowProps> = ({ email, onClick }) => {
     } catch {
       return rawDate;
     }
-  })();
+  }, [rawDate]);
 
   // Visual categorization badge definitions
   const getCategoryStyles = (cat: string) => {
@@ -85,7 +85,7 @@ export const EmailRow: React.FC<EmailRowProps> = ({ email, onClick }) => {
 
   return (
     <div 
-      onClick={onClick}
+      onClick={() => onClick?.(email.id)}
       className={`glass rounded-2xl p-4 border transition-all duration-200 cursor-pointer flex gap-4 ${
         isUnread 
           ? 'border-indigo-500/20 bg-indigo-500/[0.02] shadow-[0_4px_20px_-2px_rgba(99,102,241,0.05)]' 
@@ -192,4 +192,5 @@ export const EmailRow: React.FC<EmailRowProps> = ({ email, onClick }) => {
 
     </div>
   );
-};
+});
+
