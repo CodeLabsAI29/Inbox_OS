@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
@@ -57,7 +57,25 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, isPositiv
 
 // Extracted Dashboard Component to protect via ProtectedRoute
 const DashboardContent: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('inbox');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path.endsWith('/tasks') || path.includes('/tasks/')) return 'tasks';
+    if (path.endsWith('/rules') || path.includes('/rules/')) return 'rules';
+    if (path.endsWith('/settings') || path.includes('/settings/')) return 'settings';
+    return 'inbox';
+  };
+
+  const activeTab = getActiveTab();
+  const setActiveTab = (tab: string) => {
+    if (tab === 'inbox') {
+      navigate('/dashboard');
+    } else {
+      navigate(`/dashboard/${tab}`);
+    }
+  };
 
   // Settings/Preferences states
   const [settingsSubTab, setSettingsSubTab] = useState('profile');
@@ -616,7 +634,7 @@ export default function App() {
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route 
-          path="/dashboard" 
+          path="/dashboard/*" 
           element={
             <ProtectedRoute>
               <DashboardContent />

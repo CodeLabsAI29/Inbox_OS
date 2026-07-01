@@ -1,153 +1,32 @@
 import React, { useState } from 'react';
 import { 
-  Inbox, 
-  CheckSquare, 
-  Zap, 
-  Settings, 
   Search, 
   Bell, 
-  Plus, 
-  Sparkles, 
-  Activity, 
   Moon,
-  Menu,
-  X
+  Menu
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useCompose } from '../context/ComposeContext';
-
-interface SidebarItemProps {
-  icon: React.ReactNode;
-  label: string;
-  count?: number;
-  active?: boolean;
-  onClick?: () => void;
-}
-
-const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, count, active, onClick }) => {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
-        active 
-          ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 text-white border-l-4 border-accent shadow-[0_4px_12px_rgba(99,102,241,0.15)] font-medium' 
-          : 'text-gray-400 hover:text-gray-100 hover:bg-white/5 border-l-4 border-transparent'
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <span className={`${active ? 'text-accent' : 'text-gray-400'}`}>{icon}</span>
-        <span className="text-sm">{label}</span>
-      </div>
-      {count !== undefined && count > 0 && (
-        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-          active 
-            ? 'bg-accent text-white' 
-            : 'bg-white/10 text-gray-300'
-        }`}>
-          {count}
-        </span>
-      )}
-    </button>
-  );
-};
+import { SidebarNav } from './SidebarNav';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
-  children, 
-  activeTab, 
-  setActiveTab
+  children
 }) => {
   const { user, logout } = useAuth();
-  const { openCompose } = useCompose();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const navigationItems = [
-    { id: 'inbox', label: 'Inbox', icon: <Inbox size={18} />, count: 14 },
-    { id: 'tasks', label: 'Dashboard Tasks', icon: <CheckSquare size={18} />, count: 5 },
-    { id: 'rules', label: 'Routing Rules', icon: <Zap size={18} /> },
-    { id: 'settings', label: 'Preferences', icon: <Settings size={18} /> },
-  ];
 
   return (
     <div className="flex min-h-screen bg-bg-base text-gray-100 font-sans selection:bg-indigo-500/30 selection:text-white">
       
       {/* ── Left Sidebar (Desktop) ────────────────────────────────────────────────── */}
       <aside className="hidden md:flex flex-col w-[260px] glass border-r border-white/5 h-screen sticky top-0 z-30 shrink-0">
-        
-        {/* Brand Logo Header */}
-        <div className="flex items-center gap-3 px-6 py-6 border-b border-white/5">
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 glow-accent">
-            <Sparkles size={18} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold tracking-tight bg-gradient-to-r from-white via-gray-100 to-gray-400 bg-clip-text text-transparent">
-              InboxOS
-            </h1>
-            <span className="text-[10px] text-indigo-400/80 font-semibold tracking-wider uppercase block -mt-0.5">
-              Decision Layer
-            </span>
-          </div>
-        </div>
-
-        {/* Compose Button */}
-        <div className="px-4 py-4">
-          <button 
-            onClick={() => openCompose()}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all duration-200 glow-accent-hover active:scale-[0.98]"
-          >
-            <Plus size={16} />
-            <span>Compose Action</span>
-          </button>
-        </div>
-
-        {/* Navigation Section */}
-        <nav className="flex-1 px-3 space-y-1.5 overflow-y-auto">
-          <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest px-4 mb-2">
-            Workspace
-          </div>
-          {navigationItems.map((item) => (
-            <SidebarItem
-              key={item.id}
-              icon={item.icon}
-              label={item.label}
-              count={item.count}
-              active={activeTab === item.id}
-              onClick={() => setActiveTab(item.id)}
-            />
-          ))}
-        </nav>
-
-        {/* System & AI Agent Status Card */}
-        <div className="p-4 border-t border-white/5">
-          <div className="glass-panel rounded-xl p-3 border border-white/5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="text-[11px] font-medium text-gray-300">AI Agent Active</span>
-              </div>
-              <Activity size={12} className="text-indigo-400" />
-            </div>
-            
-            <p className="text-[10px] text-gray-400 leading-normal mb-2">
-              Analyzing incoming streams automatically. Gmail linked.
-            </p>
-            
-            <div className="flex items-center justify-between text-[9px] text-gray-500 border-t border-white/5 pt-2">
-              <span>Provider: OpenAI</span>
-              <span>v1.0.0</span>
-            </div>
-          </div>
-        </div>
-
+        <SidebarNav />
       </aside>
 
       {/* ── Mobile Sidebar Drawer ────────────────────────────────────────────────── */}
@@ -161,47 +40,10 @@ export const Layout: React.FC<LayoutProps> = ({
           
           {/* Mobile drawer container */}
           <aside className="relative flex flex-col w-[260px] bg-bg-base border-r border-white/10 h-full p-4 z-50">
-            <div className="flex items-center justify-between pb-6 border-b border-white/5 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600">
-                  <Sparkles size={16} className="text-white" />
-                </div>
-                <h2 className="text-base font-bold text-white">InboxOS</h2>
-              </div>
-              <button 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <button 
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                openCompose();
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm mb-4 transition-all duration-200"
-            >
-              <Plus size={16} />
-              <span>Compose Action</span>
-            </button>
-
-            <nav className="flex-1 space-y-1">
-              {navigationItems.map((item) => (
-                <SidebarItem
-                  key={item.id}
-                  icon={item.icon}
-                  label={item.label}
-                  count={item.count}
-                  active={activeTab === item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    setIsMobileMenuOpen(false);
-                  }}
-                />
-              ))}
-            </nav>
+            <SidebarNav 
+              isMobile 
+              onCloseMobileMenu={() => setIsMobileMenuOpen(false)} 
+            />
           </aside>
         </div>
       )}
