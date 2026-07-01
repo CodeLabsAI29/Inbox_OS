@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Avatar } from './Avatar';
 import { 
   Sparkles, 
   Inbox, 
@@ -72,6 +73,7 @@ interface MockEmail {
   id: string;
   sender: string;
   avatar: string;
+  avatarUrl?: string;
   time: string;
   subject: string;
   snippet: string;
@@ -89,6 +91,7 @@ const mockEmails: MockEmail[] = [
     id: '1',
     sender: 'Sarah Jenkins (sarah@startup.co)',
     avatar: 'SJ',
+    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
     time: '2 mins ago',
     subject: 'Urgent: Project Sync Schedule Change',
     snippet: 'Hey team, client wants to review the design Wednesday at 2pm instead of Thursday. Can we adjust?',
@@ -107,6 +110,7 @@ const mockEmails: MockEmail[] = [
     id: '2',
     sender: 'AWS Billing (billing@aws.com)',
     avatar: 'AW',
+    avatarUrl: 'https://invalid-image-url-for-testing-purposes.com/broken.jpg',
     time: '1 hour ago',
     subject: 'June 2026 Invoice #8937492',
     snippet: 'Your invoice for June 2026 usage ($1,420.50) is now available. Automatic payment will be processed.',
@@ -867,13 +871,7 @@ export const LandingPage: React.FC = () => {
                       : 'bg-transparent border-slate-100 hover:border-slate-200 hover:bg-slate-50/40'
                   }`}
                 >
-                  <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                    selectedEmail.id === email.id 
-                      ? 'bg-indigo-600 text-white' 
-                      : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {email.avatar}
-                  </div>
+                  <Avatar name={email.sender} imageUrl={email.avatarUrl} size={32} />
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center">
                       <p className="text-xs font-bold text-slate-800 truncate">{email.sender.split(' ')[0]}</p>
@@ -1236,9 +1234,7 @@ export const LandingPage: React.FC = () => {
                 "InboxOS changed everything for us. Critical infrastructure downtime reports from our servers are picked up, analyzed, and escalated to our Slack and WhatsApp teams within 10 seconds. I don't need to check dashboards constantly anymore."
               </p>
               <div className="flex items-center gap-3 mt-6 border-t border-slate-100 pt-4">
-                <div className="h-9 w-9 rounded-full bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-xs">
-                  MH
-                </div>
+                <Avatar name="Mark Henderson" size={36} />
                 <div>
                   <h5 className="text-xs font-bold text-slate-800">Mark Henderson</h5>
                   <p className="text-[10px] text-slate-400">Director of Systems, NetCorp</p>
@@ -1251,9 +1247,7 @@ export const LandingPage: React.FC = () => {
                 "As a recruiter, my inbox gets flooded with hundreds of portfolios. InboxOS parses candidate sheets, calculates candidate match ratios using local Ollama model processing, and populates candidates directly inside my applicant spreadsheet automatically."
               </p>
               <div className="flex items-center gap-3 mt-6 border-t border-slate-100 pt-4">
-                <div className="h-9 w-9 rounded-full bg-violet-50 text-violet-600 font-bold flex items-center justify-center text-xs">
-                  AR
-                </div>
+                <Avatar name="Alisha Robinson" size={36} />
                 <div>
                   <h5 className="text-xs font-bold text-slate-800">Alisha Robinson</h5>
                   <p className="text-[10px] text-slate-400">Lead Recruiting Partner, TalentGrid</p>
@@ -1266,9 +1260,7 @@ export const LandingPage: React.FC = () => {
                 "I run multiple businesses and used to miss invoice payment updates or customer calendar changes constantly. InboxOS routing rules process finance receipts to our accounting channels, while scheduling meetings automatically."
               </p>
               <div className="flex items-center gap-3 mt-6 border-t border-slate-100 pt-4">
-                <div className="h-9 w-9 rounded-full bg-cyan-50 text-cyan-600 font-bold flex items-center justify-center text-xs">
-                  TL
-                </div>
+                <Avatar name="Thomas Loe" size={36} />
                 <div>
                   <h5 className="text-xs font-bold text-slate-800">Thomas Loe</h5>
                   <p className="text-[10px] text-slate-400">Serial Founder & Investor</p>
