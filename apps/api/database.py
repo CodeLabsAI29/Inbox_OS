@@ -35,5 +35,5 @@ async def get_db():
 async def create_tables():
     """Create all tables on startup."""
     async with engine.begin() as conn:
-        from models import user, email, analysis, rule, task, reminder, notification  # noqa: F401
+        from models import user, email, analysis, rule, task, notification  # noqa: F401
         await conn.run_sync(Base.metadata.create_all)

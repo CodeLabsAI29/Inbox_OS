@@ -247,15 +247,6 @@ export const LandingPage: React.FC = () => {
 
           {/* Nav CTAs */}
           <div className="hidden md:flex items-center gap-3">
-            <a 
-              href="https://github.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="px-4 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-all flex items-center gap-1.5 font-semibold"
-            >
-              <GithubIcon size={14} />
-              <span>GitHub</span>
-            </a>
             <button 
               onClick={() => navigate('/login')}
               className="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl transition-all shadow-sm shadow-indigo-600/10 active:scale-95"
@@ -314,15 +305,6 @@ export const LandingPage: React.FC = () => {
             </a>
             <hr className="border-slate-100" />
             <div className="flex gap-4">
-              <a 
-                href="https://github.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex-1 py-3 text-center text-xs font-semibold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center gap-1.5"
-              >
-                <GithubIcon size={14} />
-                <span>GitHub</span>
-              </a>
               <button 
                 onClick={() => {
                   setIsMobileMenuOpen(false);
