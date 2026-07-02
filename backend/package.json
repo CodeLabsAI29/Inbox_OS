@@ -12,17 +12,23 @@
     "test:embeddings": "ts-node src/test-embeddings.ts",
     "worker": "ts-node src/worker.ts",
     "start": "ts-node src/server.ts",
-    "test:worker": "ts-node src/test-worker.ts"
+    "test:worker": "ts-node src/test-worker.ts",
+    "test:discord": "ts-node src/test-discord.ts",
+    "test:slack": "ts-node src/test-slack.ts",
+    "test:gravatar": "ts-node src/test-gravatar.ts"
   },
   "dependencies": {
     "@google/genai": "^2.10.0",
     "@prisma/client": "^5.16.1",
+    "axios": "^1.18.1",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "googleapis": "^173.0.0",
     "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
+    "mailparser": "^3.9.12",
     "openai": "^6.45.0",
     "zod": "^4.4.3"
   },
