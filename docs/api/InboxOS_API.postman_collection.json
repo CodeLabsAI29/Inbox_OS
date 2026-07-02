@@ -1,0 +1,164 @@
+{
+  "info": {
+    "_postman_id": "8d3cfb57-6902-4fdb-b1b7-a3cf134df0eb",
+    "name": "InboxOS API",
+    "description": "Collection of API requests for InboxOS, the next-generation AI email automation and decision stack.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securepassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new user account on InboxOS."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Extract the 'token' cookie and save it to the 'jwt_token' environment variable",
+                  "const tokenCookie = pm.cookies.get('token');",
+                  "if (tokenCookie) {",
+                  "    pm.environment.set('jwt_token', tokenCookie);",
+                  "    console.log('Saved jwt_token environment variable successfully.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"securepassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Log in to an existing user account. This request sets an HTTP-only token cookie, and a Postman test script extracts this cookie to save it as the `jwt_token` environment variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "token={{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Retrieve the current authenticated user's profile."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Emails",
+      "item": [
+        {
+          "name": "Get Emails",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "token={{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/emails?limit=10&offset=0&category=all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "emails"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of emails to fetch"
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Offset/skip for pagination"
+                },
+                {
+                  "key": "category",
+                  "value": "all",
+                  "description": "Category filter (e.g. urgent, newsletter, personal, work, spam, all)"
+                }
+              ]
+            },
+            "description": "Get a paginated list of emails for the logged-in user, optionally filtered by category."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

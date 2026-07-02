@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:../apps/api/inboxos.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -11,9 +11,12 @@ model User {
   id           String        @id @default(uuid())
   email        String        @unique
   passwordHash String
-  createdAt    DateTime      @default(now())
-  emails       Email[]
-  settings     UserSettings?
+  createdAt     DateTime       @default(now())
+  emails        Email[]
+  settings      UserSettings?
+  emailAccounts EmailAccount[]
+  webhooks      WebhookEndpoint[]
+  rules         Rule[]
 }
 
 model UserSettings {
@@ -21,6 +24,8 @@ model UserSettings {
   theme     String  @default("dark")
   signature String?
   autoReply Boolean @default(false)
+  telegramChatId String?
+  telegramEnabled Boolean @default(false)
 
   userId    String  @unique
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -52,6 +57,10 @@ model Email {
   thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
   actionItems ActionItem[]
   embedding String?
+
+  @@index([userId])
+  @@index([threadId])
+  @@index([createdAt])
 }
 
 model ActionItem {
@@ -64,3 +73,83 @@ model ActionItem {
   email           Email    @relation(fields: [emailId], references: [id], onDelete: Cascade)
 }
 
+model EmailAccount {
+  id              String    @id @default(uuid())
+  provider        String    // 'gmail', 'outlook', 'imap'
+  emailAddress    String
+  encryptedTokens String    // Encrypted refresh & access tokens
+  syncState       String    @default("connected")
+  isActive        Boolean   @default(true)
+  lastSyncAt      DateTime?
+  lastMessageId   String?
+  smtpHost        String?
+  smtpPort        Int?
+  createdAt       DateTime  @default(now())
+
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, provider, emailAddress])
+  @@map("email_accounts")
+}
+
+model WebhookEndpoint {
+  id        String   @id @default(uuid())
+  targetUrl String
+  events    String   // JSON array stored as a string: '["email.received","action.created"]'
+  secret    String   // HMAC signing secret for payload verification
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("webhook_endpoints")
+}
+
+model Rule {
+  id           String          @id @default(uuid())
+  userId       String
+  name         String
+  description  String?
+  isActive     Boolean         @default(true)
+  priority     Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conditions   RuleCondition[]
+  actions      RuleAction[]
+  logs         RuleExecutionLog[]
+}
+
+model RuleCondition {
+  id        String   @id @default(uuid())
+  ruleId    String
+  field     String   // 'from', 'to', 'subject', 'body', 'category', 'priority', 'hasAttachments', 'senderDomain'
+  operator  String   // 'equals', 'contains', 'startsWith', 'endsWith', 'regex', 'gt', 'lt', 'in'
+  value     String
+  createdAt DateTime @default(now())
+
+  rule      Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+}
+
+model RuleAction {
+  id        String   @id @default(uuid())
+  ruleId    String
+  type      String   // 'moveToFolder', 'applyLabel', 'markAsRead', 'markAsUrgent', 'forwardTo', 'webhook', 'sendTelegram', 'sendWhatsApp'
+  config    Json
+  createdAt DateTime @default(now())
+
+  rule      Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+}
+
+model RuleExecutionLog {
+  id           String   @id @default(uuid())
+  ruleId       String
+  emailId      String
+  status       String   // 'success', 'failed'
+  executedAt   DateTime @default(now())
+  errorMessage String?
+
+  rule         Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+}

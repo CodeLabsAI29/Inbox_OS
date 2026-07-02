@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 // Load environment variables from the shared configuration directory
-dotenv.config({ path: path.resolve(__dirname, '../../config/env/.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../infrastructure/config/env/.env') });
 
 const prisma = new PrismaClient();
 

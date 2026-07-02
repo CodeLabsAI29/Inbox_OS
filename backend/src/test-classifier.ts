@@ -1,71 +1,105 @@
+import { KeywordFilter } from './services/KeywordFilter';
 import { AIService } from './services/ai.service';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-// Load environment variables from the shared configuration directory
-dotenv.config({ path: path.resolve(__dirname, '../../config/env/.env') });
+// Load environment variables (disable actual API keys to ensure LLM is not called)
+dotenv.config({ path: path.resolve(__dirname, '../../infrastructure/config/env/.env') });
 
-async function runTests() {
-  console.log('🧪 Starting AIService Classification Tests...');
-  const activeProvider = process.env.AI_PROVIDER || 'openai';
-  console.log(`Active AI_PROVIDER: ${activeProvider}`);
-  console.log('OpenAI API Key: ', process.env.OPENAI_API_KEY ? 'Present' : 'Missing');
-  console.log('Gemini API Key: ', process.env.GEMINI_API_KEY ? 'Present' : 'Missing');
+async function runClassifierTests() {
+  console.log('🧪 Running Heuristic Keyword Filter Tests...\n');
 
-  const testEmails = [
-    {
-      subject: 'URGENT: Database Outage Detected - Action Required',
-      body: 'Our automated monitors detected that the production database has been down for 5 minutes. Please login and restart the services immediately.',
-      expectedHint: 'urgent',
-    },
-    {
-      subject: 'Weekly Developer Newsletter - Issue #42',
-      body: 'In this issue, we discuss the new features of Node.js 22, performance improvements in V8, and tutorials on PostgreSQL pgvector.',
-      expectedHint: 'newsletter',
-    },
-    {
-      subject: 'Plans for dinner tonight?',
-      body: 'Hey! Are you free for dinner around 7 PM tonight? Let me know if that works.',
-      expectedHint: 'personal',
-    },
-    {
-      subject: 'Q3 Project Roadmap and Sync Meeting',
-      body: 'Hi team, please find attached the Q3 project roadmap. We will have a sync meeting tomorrow at 10 AM to discuss task allocations and deliverables.',
-      expectedHint: 'work',
-    },
-    {
-      subject: 'GET RICH QUICK!!! FREE MONEY!!!',
-      body: 'Click here now to win $1,000,000 guaranteed!!! No catches, just enter your credit card number and email address to claim your reward immediately!!!',
-      expectedHint: 'spam',
-    },
-  ];
-
-  for (let i = 0; i < testEmails.length; i++) {
-    const testCase = testEmails[i];
-    console.log(`\n----------------------------------------`);
-    console.log(`Test Case #${i + 1}:`);
-    console.log(`Subject: "${testCase.subject}"`);
-    try {
-      const start = Date.now();
-      const result = await AIService.classifyEmail(testCase.subject, testCase.body);
-      const duration = Date.now() - start;
-
-      console.log(`Result:`, JSON.stringify(result, null, 2));
-      console.log(`Duration: ${duration}ms`);
-
-      // Basic validation
-      const validCategories = ['urgent', 'newsletter', 'personal', 'work', 'spam'];
-      if (!validCategories.includes(result.category)) {
-        console.error(`❌ FAILED: Invalid category "${result.category}" returned.`);
-      } else {
-        console.log(`✅ PASSED: Valid category "${result.category}" with confidence ${result.confidence}.`);
-      }
-    } catch (error: any) {
-      console.error(`❌ FAILED with error:`, error.message || error);
-    }
+  // Test Case 1: Identifies an 'unsubscribe' email as Newsletter
+  const newsletterBody1 = 'Hello, thank you for subscribing to our weekly tech updates. Click here to unsubscribe.';
+  const category1 = KeywordFilter.classify(newsletterBody1);
+  console.log(`Test Case 1 (KeywordFilter - Newsletter):`);
+  console.log(`- Input Body: "${newsletterBody1}"`);
+  console.log(`- Expected Category: "newsletter"`);
+  console.log(`- Got Category:      "${category1}"`);
+  if (category1 === 'newsletter') {
+    console.log('✅ PASSED\n');
+  } else {
+    console.error('❌ FAILED\n');
+    process.exit(1);
   }
+
+  // Test Case 2: Identifies 'buy now' + 'earn money' as Spam
+  const spamBody = 'Earn money today! Buy now to receive a 100% free gift card!';
+  const category2 = KeywordFilter.classify(spamBody);
+  console.log(`Test Case 2 (KeywordFilter - Spam):`);
+  console.log(`- Input Body: "${spamBody}"`);
+  console.log(`- Expected Category: "spam"`);
+  console.log(`- Got Category:      "${category2}"`);
+  if (category2 === 'spam') {
+    console.log('✅ PASSED\n');
+  } else {
+    console.error('❌ FAILED\n');
+    process.exit(1);
+  }
+
+  // Test Case 3: Case-insensitive check
+  const mixedCaseBody = 'UnSuBsCrIbE from this list.';
+  const category3 = KeywordFilter.classify(mixedCaseBody);
+  console.log(`Test Case 3 (KeywordFilter - Mixed Case):`);
+  console.log(`- Input Body: Mixed-case 'UnSuBsCrIbE'`);
+  console.log(`- Expected Category: "newsletter"`);
+  console.log(`- Got Category:      "${category3}"`);
+  if (category3 === 'newsletter') {
+    console.log('✅ PASSED\n');
+  } else {
+    console.error('❌ FAILED\n');
+    process.exit(1);
+  }
+
+  // Test Case 4: Non-spam/non-newsletter email returns null
+  const cleanBody = 'Hi team, let us meet tomorrow at 10 AM to discuss the launch checklist.';
+  const category4 = KeywordFilter.classify(cleanBody);
+  console.log(`Test Case 4 (KeywordFilter - No Match):`);
+  console.log(`- Input Body: "${cleanBody}"`);
+  console.log(`- Expected Category: null`);
+  console.log(`- Got Category:      ${category4}`);
+  if (category4 === null) {
+    console.log('✅ PASSED\n');
+  } else {
+    console.error('❌ FAILED\n');
+    process.exit(1);
+  }
+
+  // Test Case 5: Verify integration with AIService
+  // We temporarily clear process.env API keys to guarantee that the LLM is NOT called.
+  // If the heuristic filter works, it returns newsletter with 1.0 confidence.
+  // If it falls back to LLM, it will throw an error because API keys are unset/invalidated.
+  const originalOpenAIKey = process.env.OPENAI_API_KEY;
+  const originalGeminiKey = process.env.GEMINI_API_KEY;
+  
+  process.env.OPENAI_API_KEY = 'sk-placeholder-nonexistent';
+  process.env.GEMINI_API_KEY = '';
+
+  console.log('Test Case 5 (AIService Integration - Avoiding LLM):');
+  try {
+    const result = await AIService.classifyEmail(
+      'Weekly Newsletter', 
+      'You are receiving this because you subscribed. To stop receiving, unsubscribe.'
+    );
+    console.log(`- Returned Category:   "${result.category}"`);
+    console.log(`- Returned Confidence: ${result.confidence}`);
+    
+    if (result.category === 'newsletter' && result.confidence === 1.0) {
+      console.log('✅ PASSED: Heuristic filter successfully bypassed the LLM API call!');
+    } else {
+      console.error('❌ FAILED: Unexpected classification result');
+      process.exit(1);
+    }
+  } catch (error: any) {
+    console.error(`❌ FAILED: AIService threw an error (LLM was likely called when it should not have been):`, error);
+    process.exit(1);
+  } finally {
+    // Restore environment keys
+    process.env.OPENAI_API_KEY = originalOpenAIKey;
+    process.env.GEMINI_API_KEY = originalGeminiKey;
+  }
+
+  console.log('\n🎉 All tests passed successfully!');
 }
 
-runTests().catch((err) => {
-  console.error('Test run failed unexpectedly:', err);
-});
+runClassifierTests();

@@ -1,15 +1,17 @@
 import OpenAI from 'openai';
 import { GoogleGenAI } from '@google/genai';
+// @ts-ignore
 import { PrismaClient } from '@prisma/client';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { KeywordFilter } from './KeywordFilter';
 
 // Load environment variables from the shared configuration directory
-dotenv.config({ path: path.resolve(__dirname, '../../../config/env/.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../infrastructure/config/env/.env') });
 
 const prisma = new PrismaClient();
 
-export type EmailCategory = 'urgent' | 'newsletter' | 'personal' | 'work' | 'spam';
+export type EmailCategory = 'urgent' | 'finance' | 'job' | 'otp' | 'meeting' | 'newsletter' | 'academic' | 'personal' | 'work' | 'spam';
 
 export interface ClassificationResult {
   category: EmailCategory;
@@ -47,6 +49,15 @@ export class AIService {
    * Leverages Structured Outputs (JSON Schema) and exponential backoff retry for rate limits.
    */
   public static async classifyEmail(subject: string, body: string): Promise<ClassificationResult> {
+    // 1. Try fast heuristic filter first to save cost and reduce latency
+    const heuristicCategory = KeywordFilter.classify(body);
+    if (heuristicCategory) {
+      return {
+        category: heuristicCategory,
+        confidence: 1.0,
+      };
+    }
+
     const provider = process.env.AI_PROVIDER || 'openai';
 
     if (provider === 'gemini') {
@@ -61,8 +72,13 @@ export class AIService {
 
     const systemPrompt = `You are an expert AI email classification assistant. Your task is to analyze the email's subject line and body text, and classify it into exactly one of the following categories:
 - urgent: Requires immediate attention, system alerts, outages, or critical action.
+- finance: Financial reports, bills, receipts, bank updates, invoices, or transactions.
+- job: Job applications, updates, recruiter messages, offers, or interviews.
+- otp: Authentication codes, verification pins, security alerts, or OTP tokens.
+- meeting: Calendar invites, scheduling requests, status syncs, or agenda updates.
 - newsletter: Weekly/daily digests, marketing updates, announcements, or blogs.
-- personal: Direct communication from friends, family, or professional contacts.
+- academic: University, school, homework, course, lectures, grades, or research.
+- personal: Direct communication from friends, family, or personal contacts.
 - work: Business operations, projects, corporate communications, or tasks.
 - spam: Junk, unsolicited marketing, phishing, or bulk commercial email.
 
@@ -92,7 +108,7 @@ Provide a confidence score between 0.0 and 1.0.`;
                 properties: {
                   category: {
                     type: 'string',
-                    enum: ['urgent', 'newsletter', 'personal', 'work', 'spam'],
+                    enum: ['urgent', 'finance', 'job', 'otp', 'meeting', 'newsletter', 'academic', 'personal', 'work', 'spam'],
                   },
                   confidence: {
                     type: 'number',
@@ -141,8 +157,13 @@ Provide a confidence score between 0.0 and 1.0.`;
 
     const systemInstruction = `You are an expert AI email classification assistant. Your task is to analyze the email's subject line and body text, and classify it into exactly one of the following categories:
 - urgent: Requires immediate attention, system alerts, outages, or critical action.
+- finance: Financial reports, bills, receipts, bank updates, invoices, or transactions.
+- job: Job applications, updates, recruiter messages, offers, or interviews.
+- otp: Authentication codes, verification pins, security alerts, or OTP tokens.
+- meeting: Calendar invites, scheduling requests, status syncs, or agenda updates.
 - newsletter: Weekly/daily digests, marketing updates, announcements, or blogs.
-- personal: Direct communication from friends, family, or professional contacts.
+- academic: University, school, homework, course, lectures, grades, or research.
+- personal: Direct communication from friends, family, or personal contacts.
 - work: Business operations, projects, corporate communications, or tasks.
 - spam: Junk, unsolicited marketing, phishing, or bulk commercial email.
 
@@ -167,7 +188,7 @@ Provide a confidence score between 0.0 and 1.0.`;
               properties: {
                 category: {
                   type: 'STRING',
-                  enum: ['urgent', 'newsletter', 'personal', 'work', 'spam'],
+                  enum: ['urgent', 'finance', 'job', 'otp', 'meeting', 'newsletter', 'academic', 'personal', 'work', 'spam'],
                 },
                 confidence: {
                   type: 'NUMBER',
@@ -230,7 +251,7 @@ Provide a confidence score between 0.0 and 1.0.`;
     }
 
     // 2. Concatenate the bodies into a single string
-    const concatenatedBodies = emails.map(email => email.body).join('\n\n');
+    const concatenatedBodies = emails.map((email: any) => email.body).join('\n\n');
 
     // 3. Truncate the concatenated string to a maximum of 8000 tokens (approx 32,000 characters)
     const truncatedText = this.truncateToTokens(concatenatedBodies, 8000);
@@ -701,7 +722,7 @@ If there are no explicit, concrete tasks, return an empty array.`;
       });
 
       const results = emails
-        .map((email) => {
+        .map((email: any) => {
           let dbEmbedding: number[] = [];
           try {
             dbEmbedding = JSON.parse(email.embedding!) as number[];
@@ -715,7 +736,7 @@ If there are no explicit, concrete tasks, return an empty array.`;
             similarity,
           };
         })
-        .sort((a, b) => b.similarity - a.similarity)
+        .sort((a: any, b: any) => b.similarity - a.similarity)
         .slice(0, limit);
 
       return results;

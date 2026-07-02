@@ -11,11 +11,12 @@
   <img src="https://img.shields.io/badge/OpenAI-GPT--4o-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI" />
   <img src="https://img.shields.io/badge/Docker-Supported-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License" />
+  
 </p>
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents 
 
 1. [Introduction & Problem Statement](#1-introduction--problem-statement)
 2. [Key Features](#2-key-features)
@@ -35,11 +36,12 @@
 
 ---
 
+
 ## 1. Introduction & Problem Statement
 
 The average knowledge worker receives **120+ emails per day**. 
 
-Inboxes have become a cluttered dumping ground containing a chaotic mix of urgent project threads, high-priority notifications, OTP verification codes, meeting invites, invoices, automated newsletters, and spam. Current tools attempt to solve this with summaries, but a summary is simply shorter noise. 
+Inboxes have become a cluttered  dumping ground containing a chaotic mix of urgent project threads, high-priority notifications, OTP verification codes, meeting invites, invoices, automated newsletters, and spam. Current tools attempt to solve this with summaries, but a summary is simply shorter noise. 
 
 **InboxOS** represents a paradigm shift. It is a dedicated **decision + execution layer** that sits on top of your existing mail provider. If Gmail or Outlook is the hard drive, InboxOS is the operating system. It parses incoming streams, uses structured AI reasoning to identify deadlines and tasks, evaluates programmatic routing rules, and automatically acts on them—scheduling calendar events, creating dashboard tasks, and pushing urgent alerts directly to your messaging apps. 
 
@@ -49,16 +51,16 @@ InboxOS is built from the ground up to democratize inbox automation: it is open-
 
 ## 2. Key Features
 
-*   ⚙️ **5-Layer AI Pipeline:** A structured flow that processes raw emails through ingestion, parser, intelligence, rules, action, and delivery layers.
-*   🔌 **Multi-Provider Connectors:** Built-in connectors for Gmail, Outlook (Graph API), and generic IMAP servers with full OAuth 2.0 security.
-*   🧠 **AI Classification Engine:** Automatic sorting of incoming mail into 8 distinct categories (`academic`, `job`, `finance`, `meeting`, `OTP`, `newsletter`, `personal`, `support`) with granular priority scoring ($0$–$100$).
-*   📝 **Smart Action Extraction:** Extracts structured entities: deadlines, action items, monetary amounts, and physical/digital locations.
-*   🎛️ **Rules Engine:** User-defined routing conditions with boolean logic, priority evaluation, and active time-of-day windows.
-*   💬 **Multi-Channel Delivery:** Real-time push alerts to WhatsApp, Slack webhooks, Telegram, email digests, and custom WebSockets.
-*   📊 **Real-Time Dashboard:** Dark glassmorphism dashboard built with Next.js 14 and Tailwind CSS, updating live via WebSocket.
-*   🔒 **Privacy-First AI:** Run fully local intelligence models using Ollama (Llama 3/Mistral) or hook up to commercial endpoints (OpenAI / Gemini).
-*   📦 **Plugin SDK (v3 roadmap):** Unified interfaces for building third-party connectors and execution actions.
-*   👥 **Team Inbox (v3 roadmap):** Multi-user support with ticket assignments, audit logs, and response SLA tracking.
+*  **5-Layer AI Pipeline:** A structured flow that processes raw emails through ingestion, parser, intelligence, rules, action, and delivery layers.
+*  **Multi-Provider Connectors:** Built-in connectors for Gmail, Outlook (Graph API), and generic IMAP servers with full OAuth 2.0 security.
+*  **AI Classification Engine:** Automatic sorting of incoming mail into 8 distinct categories (`academic`, `job`, `finance`, `meeting`, `OTP`, `newsletter`, `personal`, `support`) with granular priority scoring ($0$–$100$).
+*  **Smart Action Extraction:** Extracts structured entities: deadlines, action items, monetary amounts, and physical/digital locations.
+*  **Rules Engine:** User-defined routing conditions with boolean logic, priority evaluation, and active time-of-day windows.
+*  **Multi-Channel Delivery:** Real-time push alerts to WhatsApp, Slack webhooks, Telegram, email digests, and custom WebSockets.
+*  **Real-Time Dashboard:** Dark glassmorphism dashboard built with Next.js 14 and Tailwind CSS, updating live via WebSocket.
+*  **Privacy-First AI:** Run fully local intelligence models using Ollama (Llama 3/Mistral) or hook up to commercial endpoints (OpenAI / Gemini).
+*  **Plugin SDK (v3 roadmap):** Unified interfaces for building third-party connectors and execution actions.
+*  **Team Inbox (v3 roadmap):** Multi-user support with ticket assignments, audit logs, and response SLA tracking.
 
 ---
 
@@ -345,28 +347,32 @@ All API routes require authentication using a Bearer JWT Token unless explicitly
 
 ## 8. Project Structure
 
-This monorepo isolates individual layers and clients under clean folders. All config files are structured under `config/` to keep the root directory pristine.
+This monorepo isolates individual layers and clients under clean folders. All system infrastructure configurations are structured under `infrastructure/` to keep the root directory pristine.
 
 ```text
 InboxOS/
-├── apps/
-│   ├── api/                    # FastAPI python server backend
-│   └── web/                    # Next.js 14 frontend client (React + Vite)
-├── config/                     # Configuration and Environment mappings
-│   ├── docker/
-│   │   └── docker-compose.yml  # Relocated Docker Compose runtime configuration
-│   ├── env/
-│   │   └── .env.example        # Environment variables template file
-│   └── git/
-│       └── gitignore           # Symbolic link pointing to root .gitignore
-├── docs/                       # Developer manuals & ADR logs
-│   └── implementation-plan.md  # Core implementation design document
-├── packages/                   # Decoupled libraries
-│   ├── core/                   # Pydantic schemas, exception logic
-│   ├── intelligence/           # AI classifier engines & templates
-│   ├── outputs/                # Adapters for Slack, Telegram, WhatsApp
-│   └── rules-engine/           # Evaluator DSL parser logic
+├── assets/                     # Logos, screenshots, and branding assets
+├── backend/                    # Node.js backend server (Express + Prisma)
+├── frontend/                   # React frontend client (Vite)
+├── packages/                   # Decoupled libraries and shared modules
+├── docs/                       # Developer manuals & architecture logs
+│   ├── api/                    # API specifications and Postman config
+│   ├── architecture/           # Architecture design records and schema docs
+│   ├── contributing/           # Contribution guidelines
+│   ├── setup/                  # Setup instructions
+│   └── workflows/              # Workflow definitions
+├── development/                # Developer-only workspace
+│   ├── prompts/                # AI prompt definitions
+│   ├── scratch/                # Local scratch scripts and dumps
+│   └── scripts/                # Development utility scripts
+├── infrastructure/             # Configurations for running the application
+│   ├── docker/                 # Docker Compose configurations
+│   ├── terraform/              # Terraform scripts for cloud provisioning
+│   ├── postgres/               # PostgreSQL initialization scripts
+│   ├── config/                 # Env and gitignore template configurations
+│   └── github/                 # GitHub actions configurations
 ├── .gitignore                  # Git tracking rules
+├── package.json                # Root package workspace definition
 └── README.md                   # Repository Hero and Reference manual (this file)
 ```
 
@@ -384,7 +390,7 @@ InboxOS/
 
 ### Quick Start (Docker Compose)
 
-The entire pipeline can be deployed locally using the Docker Compose configuration located in the `config/` directory.
+The entire pipeline can be deployed locally using the Docker Compose configuration located in the `infrastructure/docker/` directory.
 
 ```bash
 # 1. Clone the repository
@@ -392,17 +398,17 @@ git clone https://github.com/inboxos/inboxos.git
 cd inboxos
 
 # 2. Copy and configure variables
-cp config/env/.env.example config/env/.env
-# Edit config/env/.env with your secrets
+cp infrastructure/config/env/.env.example infrastructure/config/env/.env
+# Edit infrastructure/config/env/.env with your secrets
 
-# 3. Spin up all services (PostgreSQL, Redis, API Backend, Celery, Frontend Dashboard)
-docker compose -f config/docker/docker-compose.yml up -d
+# 3. Spin up all services (PostgreSQL, Redis, Backend, Frontend)
+docker compose -f infrastructure/docker/docker-compose.yml up -d
 
 # 4. Execute database migrations
-docker compose -f config/docker/docker-compose.yml exec api alembic upgrade head
+docker compose -f infrastructure/docker/docker-compose.yml exec backend npx prisma db push
 
 # 5. Open the Dashboard UI
-# Access the dashboard at http://localhost:5173
+# Access the dashboard at http://localhost
 ```
 
 ---
@@ -413,40 +419,44 @@ For active local debugging of individual services without Docker containerizatio
 
 #### 1. Backend API Server
 ```bash
-cd apps/api
-python -m venv venv
-source venv/bin/activate # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp ../../config/env/.env.example ../../config/env/.env
-uvicorn main:app --reload --port 8000
+cd backend
+npm install
+# Configure backend/.env or use infrastructure/config/env/.env
+npm start
 ```
 
-#### 2. Celery Worker Queue (new terminal)
+#### 2. Frontend Dashboard UI (new terminal)
 ```bash
-cd apps/api
-source venv/bin/activate
-celery -A tasks worker --loglevel=info
-```
-
-#### 3. Frontend Dashboard UI (new terminal)
-```bash
-cd apps/web
+cd frontend
 npm install
 npm run dev
+```
+
+#### 3. Telegram Bot Local Webhook Tunnel
+For local testing of bidirectional Telegram bot webhooks:
+```bash
+# 1. Start a local tunnel mapping port 8000
+ngrok http 8000
+
+# 2. Copy the resulting HTTPS forwarding URL (e.g., https://abc-123.ngrok-free.app)
+#    and paste it as TELEGRAM_WEBHOOK_URL in your env config file.
+
+# 3. Spin up your backend server. Webhooks will automatically register on startup!
+npm start
 ```
 
 ---
 
 ## 10. Configuration & Environment Variables
 
-Create your configuration files inside `config/env/`.
+Create your configuration files inside `infrastructure/config/env/`.
 
-### Backend Configuration (`config/env/.env`)
+### Backend Configuration (`infrastructure/config/env/.env`)
 
 | Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `DATABASE_URL` | String | `postgresql+asyncpg://inboxos:inboxos_dev@postgres:5432/inboxos` | SQLAlchemy database URI. |
-| `REDIS_URL` | String | `redis://localhost:6379/0` | Redis caching & async broker address. |
+| `DATABASE_URL` | String | `postgresql://postgres:postgres@postgres:5432/inboxos?schema=public` | PostgreSQL database URI (Prisma format). |
+| `REDIS_URL` | String | `redis://redis:6379/0` | Redis caching & async broker address. |
 | `OPENAI_API_KEY` | String | — | OpenAI key (required if `AI_PROVIDER` is `openai`). |
 | `GEMINI_API_KEY` | String | — | Google AI studio key (required if provider is `gemini`). |
 | `OLLAMA_BASE_URL` | String | `http://localhost:11434` | Endpoint for local running model. |
@@ -459,12 +469,11 @@ Create your configuration files inside `config/env/`.
 
 ---
 
-### Frontend Configuration (`apps/web/.env`)
+### Frontend Configuration (`frontend/.env`)
 
 | Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `NEXT_PUBLIC_API_URL` | String | `http://localhost:8000` | Address location of FastAPI backend server. |
-| `NEXT_PUBLIC_WS_URL` | String | `ws://localhost:8000` | Address location for real-time WebSocket. |
+| `VITE_API_BASE_URL` | String | `http://localhost:8000` | Address location of Node.js backend server. |
 
 ---
 
@@ -472,18 +481,18 @@ Create your configuration files inside `config/env/`.
 
 ### Backend Deploy (DigitalOcean App Platform / Render)
 1. Provision a managed **PostgreSQL 15** and **Redis** instance.
-2. Build the Dockerfile context from `apps/api/` folder.
-3. Bind the environment variables to point to production endpoints (ensure `APP_ENV=production` is set).
-4. Run `alembic upgrade head` inside a release command wrapper hook before launching.
+2. Build the Dockerfile context from `backend/` folder.
+3. Bind the environment variables to point to production endpoints (ensure `NODE_ENV=production` is set).
+4. Run `npx prisma db push` or `npx prisma migrate deploy` to deploy the database schema.
 
 ### Frontend Deploy (Vercel)
-1. Connect the repository and configure target build directory to `apps/web`.
-2. Configure build framework presets to **Vite** / **Next.js**.
-3. Supply `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_WS_URL` env parameters pointing to the live API backend server.
+1. Connect the repository and configure target build directory to `frontend`.
+2. Configure build framework presets to **Vite**.
+3. Supply `VITE_API_BASE_URL` env parameter pointing to the live API backend server.
 
 ### Self-Hosted (Single VPS with Nginx)
 For deploying everything on a single virtual private server.
-1. Run `docker compose -f config/docker/docker-compose.yml up -d` on the VPS.
+1. Run `docker compose up -d` on the VPS.
 2. Bind local Nginx to reverse proxy port `8000` (API backend) and port `5173` (Frontend).
 3. Secure the connection with Let's Encrypt SSL certificates:
    ```bash
@@ -511,12 +520,12 @@ Increase efficiency inside the dark glassmorphism dashboard UI.
 
 ## 13. Performance Optimizations
 
-*   📡 **Parser Caching:** Parsed multipart email contexts and structures are serialized and stored in Redis with a 24-hour expiration window.
-*   🤖 **AI Batch Classification:** Reduces LLM latency by grouping low-importance emails (such as newsletters and support tickets) and classifying them in batches of 5. Uses a lightweight routing model (like `gpt-4o-mini`) for initial sorting before processing with complex extraction pipelines.
-*   🗂️ **Database Composite Indexing:** High-speed queries are achieved using composite indexes built on `(user_id, received_at DESC)` and `(category, priority_score DESC)`.
-*   🖥️ **Instanced Rendering:** The frontend dashboard list utilizes Virtual Scrolling (`react-window`) to smoothly render long inbox logs containing 10,000+ entries.
-*   ⚡ **Connection Pooling:** Backend connections are managed using `AsyncPG` with SQLALchemy async engines, maintaining connections without initialization lag.
-*   🛡️ **Redis-Backed Throttling:** Protects pipeline processes using rate limiters configured to allow a burst of 50 emails/hour per connected inbox user.
+*  **Parser Caching:** Parsed multipart email contexts and structures are serialized and stored in Redis with a 24-hour expiration window.
+*  **AI Batch Classification:** Reduces LLM latency by grouping low-importance emails (such as newsletters and support tickets) and classifying them in batches of 5. Uses a lightweight routing model (like `gpt-4o-mini`) for initial sorting before processing with complex extraction pipelines.
+*  **Database Composite Indexing:** High-speed queries are achieved using composite indexes built on `(user_id, received_at DESC)` and `(category, priority_score DESC)`.
+*  **Instanced Rendering:** The frontend dashboard list utilizes Virtual Scrolling (`react-window`) to smoothly render long inbox logs containing 10,000+ entries.
+*  **Connection Pooling:** Backend connections are managed using `AsyncPG` with SQLALchemy async engines, maintaining connections without initialization lag.
+*  **Redis-Backed Throttling:** Protects pipeline processes using rate limiters configured to allow a burst of 50 emails/hour per connected inbox user.
 
 ---
 
@@ -538,7 +547,7 @@ InboxOS is built by a distributed core team of open-source developers.
 ### Contributing to InboxOS
 We welcome contributions to the pipeline connectors and adapters!
 1. Check the [Good First Issues](https://github.com/inboxos/inboxos/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label—we currently maintain **102+ onboarding tasks**!
-2. Read the standard `CONTRIBUTING.md` guidelines for branch styles.
+2. Read the standard [CONTRIBUTING.md](docs/contributing/CONTRIBUTING.md) guidelines for branch styles.
 3. InboxOS proudly participates in **Hacktoberfest**. Submit your PRs according to guidelines!
 
 ---

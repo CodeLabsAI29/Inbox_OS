@@ -7,16 +7,20 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"No tests configured for frontend\" && exit 0",
     "preview": "vite preview"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.2",
     "dompurify": "^3.4.11",
+    "framer-motion": "^12.42.0",
     "lucide-react": "^1.22.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-hook-form": "^7.80.0",
-    "react-router-dom": "^7.18.1"
+    "react-router-dom": "^7.18.1",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@types/dompurify": "^3.0.5",
@@ -25,6 +29,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "autoprefixer": "^10.5.2",
+    "esbuild": "^0.28.1",
     "oxlint": "^1.69.0",
     "postcss": "^8.5.16",
     "tailwindcss": "^3.4.19",

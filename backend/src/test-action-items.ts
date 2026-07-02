@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 // Load environment variables from the shared configuration directory
-dotenv.config({ path: path.resolve(__dirname, '../../config/env/.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../infrastructure/config/env/.env') });
 
 const prisma = new PrismaClient();
 
@@ -33,6 +33,17 @@ async function runTest() {
           summary: null,
         },
       });
+    }
+
+    // Check if API keys are present and are not placeholders
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY;
+    const hasOpenAI = openaiKey && openaiKey !== 'sk-...' && openaiKey !== '...' && openaiKey !== '';
+    const hasGemini = geminiKey && geminiKey !== 'placeholder' && geminiKey !== '...' && geminiKey !== '';
+
+    if (!hasOpenAI && !hasGemini) {
+      console.log('\n⚠️ Skipping AI integration tests in CI/dev environment due to missing/placeholder API keys.');
+      return;
     }
 
     // --- TEST CASE 1: Email with explicit action items ---
@@ -85,6 +96,7 @@ async function runTest() {
       console.log('✅ Test Case 1 PASSED: Action items successfully extracted and saved to DB!');
     } else {
       console.error('❌ Test Case 1 FAILED: No action items found in DB.');
+      process.exit(1);
     }
 
     // --- TEST CASE 2: Email with NO action items ---
@@ -137,10 +149,12 @@ async function runTest() {
       console.log('✅ Test Case 2 PASSED: Handles empty action item cases gracefully!');
     } else {
       console.error('❌ Test Case 2 FAILED: Saved action items when none were expected.');
+      process.exit(1);
     }
 
   } catch (error: any) {
     console.error('❌ Test execution failed with error:', error.message || error);
+    process.exit(1);
   } finally {
     await prisma.$disconnect();
   }
@@ -148,4 +162,5 @@ async function runTest() {
 
 runTest().catch((err) => {
   console.error('Test run failed unexpectedly:', err);
+  process.exit(1);
 });

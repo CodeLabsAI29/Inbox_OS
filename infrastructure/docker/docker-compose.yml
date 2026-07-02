@@ -1,0 +1,97 @@
+services:
+  # ==========================================
+  # PostgreSQL Service
+  # ==========================================
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: inboxos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d inboxos" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Redis Cache & Broker Service
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Node.js Backend Service
+  # ==========================================
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/inboxos?schema=public
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=replace_with_random_64_char_hex_string_for_dev_mode_only
+      - ENCRYPTION_KEY=replace_with_exactly_32_characters!!
+      # Optional external APIs (can be supplied from host environment if needed)
+      - GMAIL_CLIENT_ID=${GMAIL_CLIENT_ID:-}
+      - GMAIL_CLIENT_SECRET=${GMAIL_CLIENT_SECRET:-}
+      - GMAIL_REDIRECT_URI=${GMAIL_REDIRECT_URI:-http://localhost:8000/api/integrations/gmail/callback}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - AI_PROVIDER=${AI_PROVIDER:-openai}
+    volumes:
+      - ../../backend:/usr/src/app
+      # Anonymous volume to preserve node_modules installed inside the container
+      - /usr/src/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Wait for database, run prisma schema sync, then start backend server
+    command: npm run start
+
+  # ==========================================
+  # React Frontend Service
+  # ==========================================
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      target: dev
+    restart: unless-stopped
+    ports:
+      - "80:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    volumes:
+      - ../../frontend:/app
+      # Anonymous volume to preserve node_modules installed inside the container
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:

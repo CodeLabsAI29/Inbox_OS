@@ -9,7 +9,7 @@ export default {
       colors: {
         'bg-base': '#080b14',
         'bg-elevated': '#111827',
-        'accent': '#6366f1',
+        'accent': 'var(--accent)',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

@@ -17,7 +17,7 @@ import {
 import { type EmailData } from './EmailRow';
 import { useCompose } from '../context/ComposeContext';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Detailed mock data containing body_html with potentially dangerous scripts (to verify sanitization)
 const DETAILED_MOCK_EMAILS: Record<string, EmailData & { body_html?: string }> = {
