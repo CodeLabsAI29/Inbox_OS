@@ -4,8 +4,14 @@ import { Email } from '@prisma/client';
 export class SlackNotifier {
   private static getWebhookUrl(): string {
     const url = process.env.SLACK_WEBHOOK_URL;
-    if (!url || url.trim() === '' || url.includes('your_test_webhook_url_here')) {
-      throw new Error('SLACK_WEBHOOK_URL environment variable is not configured.');
+    if (
+      !url ||
+      url.trim() === '' ||
+      url.includes('your_test_webhook_url_here')
+    ) {
+      throw new Error(
+        'SLACK_WEBHOOK_URL environment variable is not configured.'
+      );
     }
     return url.trim();
   }
@@ -13,12 +19,15 @@ export class SlackNotifier {
   /**
    * Sends a notification to a Slack channel via Webhook using Block Kit.
    * Formats the email summary, subject, category, and metadata to indicate it came from InboxOS AI.
-   * 
+   *
    * @param email The ingested Email object from Prisma
    * @param summary Optional AI summary of the email. If not provided, a body snippet is used.
    * @returns Promise<boolean> indicating whether the notification was sent successfully
    */
-  public static async sendEmailNotification(email: Email, summary?: string): Promise<boolean> {
+  public static async sendEmailNotification(
+    email: Email,
+    summary?: string
+  ): Promise<boolean> {
     try {
       const webhookUrl = this.getWebhookUrl();
 
@@ -27,12 +36,14 @@ export class SlackNotifier {
       const category = email.category?.trim() || 'Unclassified';
       const sender = email.sender || 'Unknown Sender';
       const recipient = email.recipient || 'Unknown Recipient';
-      
+
       // Determine the summary text to display
       let summaryText = summary?.trim();
       if (!summaryText) {
-        summaryText = email.body 
-          ? (email.body.length > 250 ? email.body.substring(0, 247) + '...' : email.body) 
+        summaryText = email.body
+          ? email.body.length > 250
+            ? email.body.substring(0, 247) + '...'
+            : email.body
           : '(Empty Body)';
       }
 
@@ -101,7 +112,9 @@ export class SlackNotifier {
         ],
       };
 
-      console.log(`Sending Slack Block Kit notification for email: "${subject}"`);
+      console.log(
+        `Sending Slack Block Kit notification for email: "${subject}"`
+      );
 
       const response = await axios.post(webhookUrl, payload, {
         headers: {
@@ -114,7 +127,9 @@ export class SlackNotifier {
         console.log('Slack notification sent successfully.');
         return true;
       } else {
-        console.error(`Failed to send Slack notification. Status code: ${response.status}`);
+        console.error(
+          `Failed to send Slack notification. Status code: ${response.status}`
+        );
         return false;
       }
     } catch (error: any) {

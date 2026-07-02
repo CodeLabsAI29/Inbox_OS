@@ -4,13 +4,16 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 // Load environment variables (disable actual API keys to ensure LLM is not called)
-dotenv.config({ path: path.resolve(__dirname, '../../infrastructure/config/env/.env') });
+dotenv.config({
+  path: path.resolve(__dirname, '../../infrastructure/config/env/.env'),
+});
 
 async function runClassifierTests() {
   console.log('🧪 Running Heuristic Keyword Filter Tests...\n');
 
   // Test Case 1: Identifies an 'unsubscribe' email as Newsletter
-  const newsletterBody1 = 'Hello, thank you for subscribing to our weekly tech updates. Click here to unsubscribe.';
+  const newsletterBody1 =
+    'Hello, thank you for subscribing to our weekly tech updates. Click here to unsubscribe.';
   const category1 = KeywordFilter.classify(newsletterBody1);
   console.log(`Test Case 1 (KeywordFilter - Newsletter):`);
   console.log(`- Input Body: "${newsletterBody1}"`);
@@ -24,7 +27,8 @@ async function runClassifierTests() {
   }
 
   // Test Case 2: Identifies 'buy now' + 'earn money' as Spam
-  const spamBody = 'Earn money today! Buy now to receive a 100% free gift card!';
+  const spamBody =
+    'Earn money today! Buy now to receive a 100% free gift card!';
   const category2 = KeywordFilter.classify(spamBody);
   console.log(`Test Case 2 (KeywordFilter - Spam):`);
   console.log(`- Input Body: "${spamBody}"`);
@@ -52,7 +56,8 @@ async function runClassifierTests() {
   }
 
   // Test Case 4: Non-spam/non-newsletter email returns null
-  const cleanBody = 'Hi team, let us meet tomorrow at 10 AM to discuss the launch checklist.';
+  const cleanBody =
+    'Hi team, let us meet tomorrow at 10 AM to discuss the launch checklist.';
   const category4 = KeywordFilter.classify(cleanBody);
   console.log(`Test Case 4 (KeywordFilter - No Match):`);
   console.log(`- Input Body: "${cleanBody}"`);
@@ -71,27 +76,32 @@ async function runClassifierTests() {
   // If it falls back to LLM, it will throw an error because API keys are unset/invalidated.
   const originalOpenAIKey = process.env.OPENAI_API_KEY;
   const originalGeminiKey = process.env.GEMINI_API_KEY;
-  
+
   process.env.OPENAI_API_KEY = 'sk-placeholder-nonexistent';
   process.env.GEMINI_API_KEY = '';
 
   console.log('Test Case 5 (AIService Integration - Avoiding LLM):');
   try {
     const result = await AIService.classifyEmail(
-      'Weekly Newsletter', 
+      'Weekly Newsletter',
       'You are receiving this because you subscribed. To stop receiving, unsubscribe.'
     );
     console.log(`- Returned Category:   "${result.category}"`);
     console.log(`- Returned Confidence: ${result.confidence}`);
-    
+
     if (result.category === 'newsletter' && result.confidence === 1.0) {
-      console.log('✅ PASSED: Heuristic filter successfully bypassed the LLM API call!');
+      console.log(
+        '✅ PASSED: Heuristic filter successfully bypassed the LLM API call!'
+      );
     } else {
       console.error('❌ FAILED: Unexpected classification result');
       process.exit(1);
     }
   } catch (error: any) {
-    console.error(`❌ FAILED: AIService threw an error (LLM was likely called when it should not have been):`, error);
+    console.error(
+      `❌ FAILED: AIService threw an error (LLM was likely called when it should not have been):`,
+      error
+    );
     process.exit(1);
   } finally {
     // Restore environment keys

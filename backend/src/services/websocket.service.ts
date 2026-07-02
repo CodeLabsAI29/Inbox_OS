@@ -20,15 +20,17 @@ export class WebSocketService {
         }
 
         // Parse cookie header
-        const cookies = cookieHeader.split(';').reduce((acc: Record<string, string>, c) => {
-          const parts = c.trim().split('=');
-          const key = parts[0];
-          const value = parts.slice(1).join('=');
-          if (key && value) {
-            acc[key] = decodeURIComponent(value);
-          }
-          return acc;
-        }, {});
+        const cookies = cookieHeader
+          .split(';')
+          .reduce((acc: Record<string, string>, c) => {
+            const parts = c.trim().split('=');
+            const key = parts[0];
+            const value = parts.slice(1).join('=');
+            if (key && value) {
+              acc[key] = decodeURIComponent(value);
+            }
+            return acc;
+          }, {});
 
         const token = cookies.token;
         if (!token) {
@@ -37,14 +39,19 @@ export class WebSocketService {
 
         const payload = AuthService.verifyToken(token);
         if (!payload || !payload.userId) {
-          return next(new Error('Authentication error: Invalid or expired token'));
+          return next(
+            new Error('Authentication error: Invalid or expired token')
+          );
         }
 
         // Bind user payload to socket session
         (socket as any).user = payload;
         next();
       } catch (err: any) {
-        logger.error('[WebSocket Auth Error] Middleware verification failed:', err);
+        logger.error(
+          '[WebSocket Auth Error] Middleware verification failed:',
+          err
+        );
         next(new Error('Internal authentication parsing error'));
       }
     });
@@ -52,9 +59,11 @@ export class WebSocketService {
     this.io.on('connection', (socket: Socket) => {
       const user = (socket as any).user;
       const room = `user:${user.userId}`;
-      
+
       socket.join(room);
-      logger.info(`[WebSocket] Client connected: ${socket.id} joined room: ${room}`);
+      logger.info(
+        `[WebSocket] Client connected: ${socket.id} joined room: ${room}`
+      );
 
       socket.on('disconnect', () => {
         logger.info(`[WebSocket] Client disconnected: ${socket.id}`);
@@ -67,7 +76,9 @@ export class WebSocketService {
    */
   public static emitToUser(userId: string, event: string, payload: any) {
     if (!this.io) {
-      logger.warn('[WebSocket] Cannot emit event. Socket server is not initialized.');
+      logger.warn(
+        '[WebSocket] Cannot emit event. Socket server is not initialized.'
+      );
       return;
     }
     const room = `user:${userId}`;

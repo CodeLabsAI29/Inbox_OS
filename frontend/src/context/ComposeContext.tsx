@@ -16,9 +16,13 @@ interface ComposeContextType {
 
 const ComposeContext = createContext<ComposeContextType | undefined>(undefined);
 
-export const ComposeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ComposeProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [initialValues, setInitialValues] = useState<ComposeValues | null>(null);
+  const [initialValues, setInitialValues] = useState<ComposeValues | null>(
+    null
+  );
 
   const openCompose = (values?: ComposeValues) => {
     if (values) {
@@ -35,7 +39,9 @@ export const ComposeProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   return (
-    <ComposeContext.Provider value={{ isOpen, initialValues, openCompose, closeCompose }}>
+    <ComposeContext.Provider
+      value={{ isOpen, initialValues, openCompose, closeCompose }}
+    >
       {children}
     </ComposeContext.Provider>
   );

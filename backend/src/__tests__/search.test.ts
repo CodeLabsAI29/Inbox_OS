@@ -16,9 +16,7 @@ describe('GET /api/emails/search', () => {
   });
 
   it('should return 401 if no token is provided', async () => {
-    await request(app)
-      .get('/api/emails/search?q=test')
-      .expect(401);
+    await request(app).get('/api/emails/search?q=test').expect(401);
   });
 
   it('should return 400 if search query q is missing', async () => {
@@ -67,7 +65,9 @@ describe('GET /api/emails/search', () => {
     ];
 
     const countSpy = jest.spyOn(prisma.email, 'count').mockResolvedValue(1);
-    const findManySpy = jest.spyOn(prisma.email, 'findMany').mockResolvedValue(mockEmails as any);
+    const findManySpy = jest
+      .spyOn(prisma.email, 'findMany')
+      .mockResolvedValue(mockEmails as any);
 
     const res = await request(app)
       .get('/api/emails/search?q=welcome')
@@ -111,7 +111,9 @@ describe('GET /api/emails/search', () => {
     const token = AuthService.generateToken(userId, 'test@example.com');
 
     const countSpy = jest.spyOn(prisma.email, 'count').mockResolvedValue(50);
-    const findManySpy = jest.spyOn(prisma.email, 'findMany').mockResolvedValue([]);
+    const findManySpy = jest
+      .spyOn(prisma.email, 'findMany')
+      .mockResolvedValue([]);
 
     const res = await request(app)
       .get('/api/emails/search?q=test&limit=30&offset=5')
@@ -127,10 +129,7 @@ describe('GET /api/emails/search', () => {
     expect(findManySpy).toHaveBeenCalledWith({
       where: {
         userId,
-        OR: [
-          { subject: { contains: 'test' } },
-          { body: { contains: 'test' } },
-        ],
+        OR: [{ subject: { contains: 'test' } }, { body: { contains: 'test' } }],
       },
       take: 20, // capped
       skip: 5,
@@ -143,7 +142,9 @@ describe('GET /api/emails/search', () => {
     const token = AuthService.generateToken(userId, 'test@example.com');
 
     const countSpy = jest.spyOn(prisma.email, 'count').mockResolvedValue(10);
-    const findManySpy = jest.spyOn(prisma.email, 'findMany').mockResolvedValue([]);
+    const findManySpy = jest
+      .spyOn(prisma.email, 'findMany')
+      .mockResolvedValue([]);
 
     const res = await request(app)
       .get('/api/emails/search?q=test&limit=-10&offset=invalid')

@@ -1,7 +1,8 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
+const JWT_SECRET =
+  process.env.JWT_SECRET || 'fallback-secret-key-change-in-production';
 const JWT_EXPIRES_IN = '24h';
 const SALT_ROUNDS = 10;
 
@@ -16,7 +17,10 @@ export class AuthService {
   /**
    * Compares a plain text password with a hashed password.
    */
-  public static async comparePassword(password: string, hash: string): Promise<boolean> {
+  public static async comparePassword(
+    password: string,
+    hash: string
+  ): Promise<boolean> {
     return bcrypt.compare(password, hash);
   }
 
@@ -24,19 +28,22 @@ export class AuthService {
    * Generates a JWT token containing the user's ID and email.
    */
   public static generateToken(userId: string, email: string): string {
-    return jwt.sign(
-      { userId, email },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
-    );
+    return jwt.sign({ userId, email }, JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
   }
 
   /**
    * Verifies and decodes a JWT token.
    */
-  public static verifyToken(token: string): { userId: string; email: string } | null {
+  public static verifyToken(
+    token: string
+  ): { userId: string; email: string } | null {
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+      const decoded = jwt.verify(token, JWT_SECRET) as {
+        userId: string;
+        email: string;
+      };
       return decoded;
     } catch (error) {
       return null;

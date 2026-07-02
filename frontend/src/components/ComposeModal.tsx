@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useCompose } from '../context/ComposeContext';
 import { Button } from './Button';
-import { 
-  X, 
-  Send, 
-  Sparkles, 
-  Loader2, 
-  Bold, 
-  Italic, 
-  Code, 
-  List, 
-  Mail, 
+import {
+  X,
+  Send,
+  Sparkles,
+  Loader2,
+  Bold,
+  Italic,
+  Code,
+  List,
+  Mail,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 
 interface FormInputs {
@@ -27,25 +27,25 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const ComposeModal: React.FC = () => {
   const { isOpen, initialValues, closeCompose } = useCompose();
-  
+
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const { 
-    register, 
-    handleSubmit, 
-    setValue, 
-    getValues, 
-    reset, 
-    formState: { errors } 
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    getValues,
+    reset,
+    formState: { errors },
   } = useForm<FormInputs>({
     defaultValues: {
       to: '',
       cc: '',
       subject: '',
-      body: ''
-    }
+      body: '',
+    },
   });
 
   // Load initial values (e.g. if replying)
@@ -55,7 +55,7 @@ export const ComposeModal: React.FC = () => {
         to: initialValues?.to || '',
         cc: initialValues?.cc || '',
         subject: initialValues?.subject || '',
-        body: initialValues?.body || ''
+        body: initialValues?.body || '',
       });
     }
   }, [isOpen, initialValues, reset]);
@@ -64,7 +64,9 @@ export const ComposeModal: React.FC = () => {
 
   // Insert markdown symbols into body text area
   const insertMarkdown = (symbol: string) => {
-    const textarea = document.getElementById('compose-body') as HTMLTextAreaElement;
+    const textarea = document.getElementById(
+      'compose-body'
+    ) as HTMLTextAreaElement;
     if (!textarea) return;
 
     const start = textarea.selectionStart;
@@ -76,33 +78,37 @@ export const ComposeModal: React.FC = () => {
 
     let replacement = '';
     if (symbol === 'bold') replacement = `**${selected || 'bold text'}**`;
-    else if (symbol === 'italic') replacement = `*${selected || 'italic text'}*`;
+    else if (symbol === 'italic')
+      replacement = `*${selected || 'italic text'}*`;
     else if (symbol === 'code') replacement = `\`${selected || 'code'}\``;
     else if (symbol === 'list') replacement = `\n- ${selected || 'list item'}`;
 
     const newText = before + replacement + after;
     setValue('body', newText);
-    
+
     // Restore selection focus
     setTimeout(() => {
       textarea.focus();
-      textarea.setSelectionRange(start + replacement.length, start + replacement.length);
+      textarea.setSelectionRange(
+        start + replacement.length,
+        start + replacement.length
+      );
     }, 50);
   };
 
   // AI Draft Assistance Handler
   const triggerAiDraft = async () => {
     setIsAiLoading(true);
-    
+
     // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     const toVal = getValues('to') || 'Recipient';
     const subVal = getValues('subject') || 'General Request';
     const name = toVal.split('@')[0];
 
     const generatedDraft = `Hi ${name.charAt(0).toUpperCase() + name.slice(1)},\n\nThank you for reaching out regarding "${subVal}". I wanted to let you know that I have received your request and will review the details shortly.\n\nI will get back to you coordinate next steps as soon as possible.\n\nBest regards,\nAlex Carter`;
-    
+
     setValue('body', generatedDraft);
     setIsAiLoading(false);
   };
@@ -110,7 +116,7 @@ export const ComposeModal: React.FC = () => {
   // Form submit handler
   const onSubmit = async (formData: FormInputs) => {
     setIsSending(true);
-    
+
     try {
       const response = await fetch(`${API_BASE}/api/emails/send`, {
         method: 'POST',
@@ -127,13 +133,16 @@ export const ComposeModal: React.FC = () => {
 
       setToastMessage('Email dispatched successfully!');
     } catch (err) {
-      console.warn('[ComposeModal] POST /api/emails/send failed. Performing fallback mock dispatch.', err);
-      
+      console.warn(
+        '[ComposeModal] POST /api/emails/send failed. Performing fallback mock dispatch.',
+        err
+      );
+
       // Fallback local success toast (for offline demo capability)
       setToastMessage('Email dispatched successfully! (Mock pipeline)');
     } finally {
       setIsSending(false);
-      
+
       // Keep toast visible for 2.5 seconds, then close modal
       setTimeout(() => {
         setToastMessage(null);
@@ -144,9 +153,8 @@ export const ComposeModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      
       {/* ── Backdrop Overlay ────────────────────────────────────────────────────── */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={closeCompose}
       />
@@ -161,7 +169,6 @@ export const ComposeModal: React.FC = () => {
 
       {/* ── Main Compose Card Container ────────────────────────────────────────── */}
       <div className="relative w-full max-w-[640px] glass rounded-3xl border border-white/5 shadow-2xl flex flex-col max-h-[90vh] z-10 overflow-hidden bg-bg-base/95 backdrop-blur-3xl animate-scaleUp">
-        
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
           <div className="flex items-center gap-2">
@@ -170,7 +177,7 @@ export const ComposeModal: React.FC = () => {
               Compose Outbound Action
             </h2>
           </div>
-          <button 
+          <button
             onClick={closeCompose}
             className="p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
@@ -179,12 +186,16 @@ export const ComposeModal: React.FC = () => {
         </div>
 
         {/* Form Body wrapper */}
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 space-y-4">
-          
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex-1 overflow-y-auto p-6 space-y-4"
+        >
           {/* TO Field */}
           <div className="space-y-1">
             <div className="flex justify-between items-center">
-              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">To</label>
+              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                To
+              </label>
               {errors.to && (
                 <span className="text-[9px] text-rose-400 flex items-center gap-1 font-medium">
                   <AlertCircle size={9} />
@@ -196,16 +207,16 @@ export const ComposeModal: React.FC = () => {
               type="text"
               placeholder="recipient@domain.com"
               disabled={isSending}
-              {...register('to', { 
-                required: 'Recipient is required', 
+              {...register('to', {
+                required: 'Recipient is required',
                 pattern: {
                   value: /\S+@\S+\.\S+/,
-                  message: 'Enter a valid email address'
-                }
+                  message: 'Enter a valid email address',
+                },
               })}
               className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-gray-200 placeholder-gray-500 transition-all duration-200 focus:outline-none focus:ring-1 ${
-                errors.to 
-                  ? 'border-rose-500/50 focus:ring-rose-500/10' 
+                errors.to
+                  ? 'border-rose-500/50 focus:ring-rose-500/10'
                   : 'border-white/5 hover:border-white/10 focus:border-indigo-500/40 focus:ring-indigo-500/10'
               }`}
             />
@@ -213,7 +224,9 @@ export const ComposeModal: React.FC = () => {
 
           {/* CC Field */}
           <div className="space-y-1">
-            <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">CC</label>
+            <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+              CC
+            </label>
             <input
               type="text"
               placeholder="optional@domain.com"
@@ -226,7 +239,9 @@ export const ComposeModal: React.FC = () => {
           {/* SUBJECT Field */}
           <div className="space-y-1">
             <div className="flex justify-between items-center">
-              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Subject</label>
+              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                Subject
+              </label>
               {errors.subject && (
                 <span className="text-[9px] text-rose-400 flex items-center gap-1 font-medium">
                   <AlertCircle size={9} />
@@ -240,8 +255,8 @@ export const ComposeModal: React.FC = () => {
               disabled={isSending}
               {...register('subject', { required: 'Subject line is required' })}
               className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-gray-200 placeholder-gray-500 transition-all duration-200 focus:outline-none focus:ring-1 ${
-                errors.subject 
-                  ? 'border-rose-500/50 focus:ring-rose-500/10' 
+                errors.subject
+                  ? 'border-rose-500/50 focus:ring-rose-500/10'
                   : 'border-white/5 hover:border-white/10 focus:border-indigo-500/40 focus:ring-indigo-500/10'
               }`}
             />
@@ -250,7 +265,9 @@ export const ComposeModal: React.FC = () => {
           {/* Editor Helper bar & Textarea BODY Field */}
           <div className="space-y-1.5 flex-1 flex flex-col min-h-[220px]">
             <div className="flex justify-between items-center">
-              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Message Body</label>
+              <label className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                Message Body
+              </label>
               {errors.body && (
                 <span className="text-[9px] text-rose-400 flex items-center gap-1 font-medium">
                   <AlertCircle size={9} />
@@ -260,36 +277,35 @@ export const ComposeModal: React.FC = () => {
             </div>
 
             <div className="border border-white/5 rounded-2xl overflow-hidden flex flex-col flex-1 bg-white/[0.02]">
-              
               {/* Text formatting bar */}
               <div className="flex items-center justify-between px-3 py-2 border-b border-white/5 bg-white/[0.01]">
                 <div className="flex items-center gap-1">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => insertMarkdown('bold')}
                     title="Bold"
                     className="p-3 md:p-1.5 rounded hover:bg-white/5 text-gray-400 hover:text-white transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"
                   >
                     <Bold size={13} />
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => insertMarkdown('italic')}
                     title="Italic"
                     className="p-3 md:p-1.5 rounded hover:bg-white/5 text-gray-400 hover:text-white transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"
                   >
                     <Italic size={13} />
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => insertMarkdown('code')}
                     title="Code block"
                     className="p-3 md:p-1.5 rounded hover:bg-white/5 text-gray-400 hover:text-white transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"
                   >
                     <Code size={13} />
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => insertMarkdown('list')}
                     title="Bullet List"
                     className="p-3 md:p-1.5 rounded hover:bg-white/5 text-gray-400 hover:text-white transition-colors min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 flex items-center justify-center"
@@ -339,10 +355,7 @@ export const ComposeModal: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              isLoading={isSending}
-            >
+            <Button type="submit" isLoading={isSending}>
               {isSending ? (
                 <span>Dispatched...</span>
               ) : (
@@ -353,9 +366,7 @@ export const ComposeModal: React.FC = () => {
               )}
             </Button>
           </div>
-
         </form>
-
       </div>
     </div>
   );

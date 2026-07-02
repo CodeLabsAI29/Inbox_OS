@@ -16,9 +16,7 @@ describe('GET /api/users/profile', () => {
   });
 
   it('should return 401 if no token is provided', async () => {
-    await request(app)
-      .get('/api/users/profile')
-      .expect(401);
+    await request(app).get('/api/users/profile').expect(401);
   });
 
   it('should return 200 and the user profile (excluding passwordHash) if authenticated and user exists', async () => {
@@ -53,6 +51,13 @@ describe('GET /api/users/profile', () => {
         id: true,
         email: true,
         createdAt: true,
+        settings: {
+          select: {
+            theme: true,
+            signature: true,
+            autoReply: true,
+          },
+        },
       },
     });
   });
@@ -62,7 +67,10 @@ describe('GET /api/users/profile', () => {
       .spyOn(prisma.user, 'findUnique')
       .mockResolvedValue(null);
 
-    const token = AuthService.generateToken('non-existent-id', 'test@example.com');
+    const token = AuthService.generateToken(
+      'non-existent-id',
+      'test@example.com'
+    );
 
     const res = await request(app)
       .get('/api/users/profile')

@@ -2,15 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AuthLayout } from './AuthLayout';
-import { 
-  UserCheck, 
-  Mail, 
-  Lock, 
-  AlertCircle, 
-  Eye, 
-  EyeOff, 
-  Loader2, 
-  ArrowRight 
+import {
+  UserCheck,
+  Mail,
+  Lock,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Loader2,
+  ArrowRight,
 } from 'lucide-react';
 
 export const RegisterForm: React.FC = () => {
@@ -20,15 +20,17 @@ export const RegisterForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Local validation errors
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<
+    string | null
+  >(null);
 
   // Caps Lock detection state
   const [isCapsLockOn, setIsCapsLockOn] = useState(false);
@@ -41,7 +43,7 @@ export const RegisterForm: React.FC = () => {
   // Password strength calculator
   const getPasswordStrength = () => {
     if (!password) return { label: '', score: 0, color: 'bg-transparent' };
-    
+
     let score = 0;
     if (password.length >= 6) score += 1;
     if (password.length >= 8) score += 1;
@@ -62,7 +64,7 @@ export const RegisterForm: React.FC = () => {
 
   const validate = () => {
     let isValid = true;
-    
+
     // Email check
     if (!email) {
       setEmailError('Email is required');
@@ -102,7 +104,7 @@ export const RegisterForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
-    
+
     if (!validate()) return;
 
     setIsLoading(true);
@@ -119,7 +121,6 @@ export const RegisterForm: React.FC = () => {
   return (
     <AuthLayout>
       <div className="w-full space-y-6">
-        
         {/* Welcome Section */}
         <div className="space-y-2 text-left">
           <h3 className="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
@@ -140,7 +141,6 @@ export const RegisterForm: React.FC = () => {
 
         {/* Register Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          
           {/* Email Input */}
           <div className="space-y-1.5 text-left">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
@@ -160,8 +160,8 @@ export const RegisterForm: React.FC = () => {
                 }}
                 disabled={isLoading}
                 className={`w-full bg-white/5 border rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:ring-1 ${
-                  emailError 
-                    ? 'border-rose-500/50 focus:ring-rose-500/10' 
+                  emailError
+                    ? 'border-rose-500/50 focus:ring-rose-500/10'
                     : 'border-white/5 hover:border-white/10 focus:border-[#6D5DF6]/40 focus:ring-[#6D5DF6]/10'
                 }`}
               />
@@ -194,8 +194,8 @@ export const RegisterForm: React.FC = () => {
                 }}
                 disabled={isLoading}
                 className={`w-full bg-white/5 border rounded-xl pl-11 pr-12 py-2.5 text-xs text-slate-100 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:ring-1 ${
-                  passwordError 
-                    ? 'border-rose-500/50 focus:ring-rose-500/10' 
+                  passwordError
+                    ? 'border-rose-500/50 focus:ring-rose-500/10'
                     : 'border-white/5 hover:border-white/10 focus:border-[#6D5DF6]/40 focus:ring-[#6D5DF6]/10'
                 }`}
               />
@@ -216,9 +216,15 @@ export const RegisterForm: React.FC = () => {
                   <span>Strength: {strength.label}</span>
                 </div>
                 <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden flex gap-0.5">
-                  <div className={`h-full flex-1 rounded-l transition-all duration-300 ${strength.score >= 1 ? strength.color : 'bg-transparent'}`} />
-                  <div className={`h-full flex-1 transition-all duration-300 ${strength.score >= 2 ? strength.color : 'bg-transparent'}`} />
-                  <div className={`h-full flex-1 rounded-r transition-all duration-300 ${strength.score >= 3 ? strength.color : 'bg-transparent'}`} />
+                  <div
+                    className={`h-full flex-1 rounded-l transition-all duration-300 ${strength.score >= 1 ? strength.color : 'bg-transparent'}`}
+                  />
+                  <div
+                    className={`h-full flex-1 transition-all duration-300 ${strength.score >= 2 ? strength.color : 'bg-transparent'}`}
+                  />
+                  <div
+                    className={`h-full flex-1 rounded-r transition-all duration-300 ${strength.score >= 3 ? strength.color : 'bg-transparent'}`}
+                  />
                 </div>
               </div>
             )}
@@ -257,8 +263,8 @@ export const RegisterForm: React.FC = () => {
                 }}
                 disabled={isLoading}
                 className={`w-full bg-white/5 border rounded-xl pl-11 pr-12 py-2.5 text-xs text-slate-100 placeholder-slate-500 transition-all duration-200 focus:outline-none focus:ring-1 ${
-                  confirmPasswordError 
-                    ? 'border-rose-500/50 focus:ring-rose-500/10' 
+                  confirmPasswordError
+                    ? 'border-rose-500/50 focus:ring-rose-500/10'
                     : 'border-white/5 hover:border-white/10 focus:border-[#6D5DF6]/40 focus:ring-[#6D5DF6]/10'
                 }`}
               />
@@ -297,13 +303,14 @@ export const RegisterForm: React.FC = () => {
               </>
             )}
           </button>
-
         </form>
 
         {/* Google Sign-In Divider */}
         <div className="flex items-center gap-3 my-5">
           <div className="flex-1 h-px bg-white/5" />
-          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">or</span>
+          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+            or
+          </span>
           <div className="flex-1 h-px bg-white/5" />
         </div>
 
@@ -312,19 +319,42 @@ export const RegisterForm: React.FC = () => {
           type="button"
           onClick={async () => {
             try {
-              const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-              const res = await fetch(`${apiBase}/api/auth/google`, { credentials: 'include' });
+              const apiBase =
+                import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+              const res = await fetch(`${apiBase}/api/auth/google`, {
+                credentials: 'include',
+              });
               const data = await res.json();
               if (data.url) window.location.href = data.url;
-            } catch (e) { console.error('Google sign-in failed', e); }
+            } catch (e) {
+              console.error('Google sign-in failed', e);
+            }
           }}
           className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white text-sm font-semibold transition-all duration-200 active:scale-[0.98]"
         >
-          <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" fill="#FFC107"/>
-            <path d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" fill="#FF3D00"/>
-            <path d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" fill="#4CAF50"/>
-            <path d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" fill="#1976D2"/>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 48 48"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
+              fill="#FFC107"
+            />
+            <path
+              d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
+              fill="#FF3D00"
+            />
+            <path
+              d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
+              fill="#4CAF50"
+            />
+            <path
+              d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
+              fill="#1976D2"
+            />
           </svg>
           Continue with Google
         </button>
@@ -332,15 +362,14 @@ export const RegisterForm: React.FC = () => {
         {/* Footer Toggle */}
         <div className="text-center mt-6 text-[10px] text-slate-500 leading-normal font-semibold">
           <p>Join thousands of users running email as an operating system.</p>
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             onClick={clearError}
             className="font-bold text-[#6D5DF6] hover:text-[#5B7CFF] transition-colors mt-1 block uppercase tracking-wider"
           >
             Sign In
           </Link>
         </div>
-
       </div>
     </AuthLayout>
   );

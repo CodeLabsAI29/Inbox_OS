@@ -14,14 +14,14 @@ async function run() {
     try {
       logger.info(`Re-evaluating email: ${email.id} ("${email.subject}")`);
       const result = await AIService.classifyEmail(email.subject, email.body);
-      
+
       const updated = await prisma.email.update({
         where: { id: email.id },
-        data: { category: result.category }
+        data: { category: result.category },
       });
-      
+
       logger.info(`Email ${email.id} classified as "${result.category}"`);
-      
+
       await RulesEngineService.evaluateRules(updated, email.userId);
     } catch (err: any) {
       logger.error(`Failed to process email ${email.id}:`, err.message || err);
@@ -32,7 +32,7 @@ async function run() {
 }
 
 run()
-  .catch(err => {
+  .catch((err) => {
     logger.error('Migration failed:', err);
     process.exit(1);
   })

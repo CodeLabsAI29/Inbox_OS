@@ -1,8 +1,10 @@
 import { Email } from '@prisma/client';
 import { DiscordNotifier } from './services/DiscordNotifier';
 
+import * as dotenv from 'dotenv';
+
 // Load env configuration
-require('dotenv').config();
+dotenv.config();
 
 async function runTest() {
   const mockEmail: Email = {
@@ -18,12 +20,12 @@ async function runTest() {
     createdAt: new Date(),
     userId: 'user-id-abc',
     threadId: 'thread-id-xyz',
-    embedding: null
+    embedding: null,
   };
 
   console.log('Starting Discord notification test...');
   const success = await DiscordNotifier.sendEmailNotification(mockEmail);
-  
+
   if (success) {
     console.log('Test completed: Discord notification sent successfully!');
   } else {

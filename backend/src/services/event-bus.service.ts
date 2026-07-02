@@ -14,8 +14,9 @@ const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379/0';
 
 export class EventBus {
   private static pubClient: Redis | null = null;
-  private static subHandlers: Map<string, Array<(payload: any) => void>> = new Map();
-  private static webhookCache: { data: any[], expiresAt: number } | null = null;
+  private static subHandlers: Map<string, Array<(payload: any) => void>> =
+    new Map();
+  private static webhookCache: { data: any[]; expiresAt: number } | null = null;
 
   // BullMQ components
   private static eventQueue: Queue | null = null;
@@ -28,13 +29,17 @@ export class EventBus {
 
   private static async getWebhooks(topic: string) {
     if (!this.webhookCache || Date.now() > this.webhookCache.expiresAt) {
-      this.webhookCache = { 
-        data: await prisma.webhookEndpoint.findMany(), 
-        expiresAt: Date.now() + 30_000 
+      this.webhookCache = {
+        data: await prisma.webhookEndpoint.findMany(),
+        expiresAt: Date.now() + 30_000,
       };
     }
-    return this.webhookCache.data.filter(h => {
-      try { return JSON.parse(h.events).includes(topic); } catch { return false; }
+    return this.webhookCache.data.filter((h) => {
+      try {
+        return JSON.parse(h.events).includes(topic);
+      } catch {
+        return false;
+      }
     });
   }
 
@@ -52,9 +57,11 @@ export class EventBus {
   private static triggerFallback() {
     if (!this.useLocalEmitter) {
       this.useLocalEmitter = true;
-      console.warn('⚠️ [EventBus] Redis connection unavailable. Falling back to in-memory EventBus.');
+      console.warn(
+        '⚠️ [EventBus] Redis connection unavailable. Falling back to in-memory EventBus.'
+      );
       // Execute all registered fallback callbacks (e.g. starting the worker inline)
-      this.fallbackCallbacks.forEach(cb => {
+      this.fallbackCallbacks.forEach((cb) => {
         try {
           cb();
         } catch (err) {
@@ -76,12 +83,13 @@ export class EventBus {
       this.pubClient = new Redis(REDIS_URL, {
         maxRetriesPerRequest: null,
         retryStrategy: (times) => {
-          if (times > 2) { // Allow up to 2 retries (total 3 attempts)
+          if (times > 2) {
+            // Allow up to 2 retries (total 3 attempts)
             this.triggerFallback();
             return null; // Stop retrying
           }
           return 500;
-        }
+        },
       });
 
       this.pubClient.on('error', (error: any) => {
@@ -106,9 +114,9 @@ export class EventBus {
     if (!this.eventQueue) {
       const client = this.getPubClient();
       if (!client || this.useLocalEmitter) return null;
-      
+
       this.eventQueue = new Queue('inboxos-events', {
-        connection: client as any
+        connection: client as any,
       });
     }
     return this.eventQueue;
@@ -123,7 +131,12 @@ export class EventBus {
       try {
         const hooks = await this.getWebhooks(topic);
         for (const hook of hooks) {
-          WebhookDispatcher.dispatch(hook.targetUrl, hook.secret, topic, payload);
+          WebhookDispatcher.dispatch(
+            hook.targetUrl,
+            hook.secret,
+            topic,
+            payload
+          );
         }
       } catch (err) {
         console.error('[EventBus] External webhook dispatch error:', err);
@@ -145,8 +158,8 @@ export class EventBus {
         attempts: 3,
         backoff: {
           type: 'exponential',
-          delay: 2000
-        }
+          delay: 2000,
+        },
       });
     } catch (error: any) {
       if (error.code === 'ECONNREFUSED') {
@@ -162,7 +175,10 @@ export class EventBus {
   /**
    * Subscribes to a topic. If running in BullMQ mode, initializes a Worker to handle the queue.
    */
-  public static async subscribe(topic: string, handler: (payload: any) => void): Promise<void> {
+  public static async subscribe(
+    topic: string,
+    handler: (payload: any) => void
+  ): Promise<void> {
     try {
       // Store handler in the local map
       let handlers = this.subHandlers.get(topic);
@@ -186,24 +202,35 @@ export class EventBus {
 
       // Instantiate BullMQ Worker if it's not already running
       if (!this.eventWorker) {
-        this.eventWorker = new Worker('inboxos-events', async (job: Job) => {
-          const registeredHandlers = this.subHandlers.get(job.name);
-          if (registeredHandlers && registeredHandlers.length > 0) {
-            console.log(`[BullMQ EventBus] Executing job ${job.id} for event: "${job.name}"`);
-            for (const subHandler of registeredHandlers) {
-              await subHandler(job.data);
+        this.eventWorker = new Worker(
+          'inboxos-events',
+          async (job: Job) => {
+            const registeredHandlers = this.subHandlers.get(job.name);
+            if (registeredHandlers && registeredHandlers.length > 0) {
+              console.log(
+                `[BullMQ EventBus] Executing job ${job.id} for event: "${job.name}"`
+              );
+              for (const subHandler of registeredHandlers) {
+                await subHandler(job.data);
+              }
             }
+          },
+          {
+            connection: client as any,
+            concurrency: 5,
           }
-        }, {
-          connection: client as any,
-          concurrency: 5
-        });
+        );
 
         this.eventWorker.on('failed', (job: any, err: Error) => {
-          console.error(`[BullMQ EventBus] Job ${job?.id} failed:`, err.message || err);
+          console.error(
+            `[BullMQ EventBus] Job ${job?.id} failed:`,
+            err.message || err
+          );
         });
 
-        console.log('[BullMQ EventBus] Worker listener registered successfully');
+        console.log(
+          '[BullMQ EventBus] Worker listener registered successfully'
+        );
       }
     } catch (error: any) {
       if (error.code === 'ECONNREFUSED') {

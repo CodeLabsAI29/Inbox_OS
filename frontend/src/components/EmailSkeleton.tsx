@@ -37,7 +37,9 @@ export const EmailSkeletonRow: React.FC = () => {
   );
 };
 
-export const EmailSkeletonList: React.FC<{ count?: number }> = ({ count = 4 }) => {
+export const EmailSkeletonList: React.FC<{ count?: number }> = ({
+  count = 4,
+}) => {
   const rows = Array.from({ length: count });
 
   return (

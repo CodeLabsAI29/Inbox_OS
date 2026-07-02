@@ -9,7 +9,10 @@ import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { AuthService } from './services/auth.service';
-import { requireAuth, AuthenticatedRequest } from './middleware/auth.middleware';
+import {
+  requireAuth,
+  AuthenticatedRequest,
+} from './middleware/auth.middleware';
 import { rateLimiter } from './middleware/rate-limiter.middleware';
 import client from './utils/metrics';
 import { logger } from './utils/logger';
@@ -31,17 +34,24 @@ const PORT = process.env.PORT || 8000;
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && (
-    origin === 'http://localhost' ||
-    origin.startsWith('http://localhost:') ||
-    origin === 'http://127.0.0.1' ||
-    origin.startsWith('http://127.0.0.1:')
-  )) {
+  if (
+    origin &&
+    (origin === 'http://localhost' ||
+      origin.startsWith('http://localhost:') ||
+      origin === 'http://127.0.0.1' ||
+      origin.startsWith('http://127.0.0.1:'))
+  ) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.setHeader(
+    'Access-Control-Allow-Methods',
+    'GET,PUT,POST,DELETE,OPTIONS,PATCH'
+  );
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
     return;
@@ -52,7 +62,8 @@ app.use((req, res, next) => {
 app.get('/metrics', async (req: Request, res: Response) => {
   const ip = req.ip || req.socket.remoteAddress || '';
   const cleanIp = ip.startsWith('::ffff:') ? ip.substring(7) : ip;
-  const isLocalhost = cleanIp === '127.0.0.1' || cleanIp === '::1' || cleanIp === 'localhost';
+  const isLocalhost =
+    cleanIp === '127.0.0.1' || cleanIp === '::1' || cleanIp === 'localhost';
 
   let isPrivate = false;
   const ipParts = cleanIp.split('.');
@@ -77,7 +88,9 @@ app.get('/metrics', async (req: Request, res: Response) => {
     res.set('Content-Type', client.register.contentType);
     res.end(await client.register.metrics());
   } catch (err: any) {
-    logger.error('Failed to generate Prometheus metrics', { error: err.message });
+    logger.error('Failed to generate Prometheus metrics', {
+      error: err.message,
+    });
     res.status(500).end(err);
   }
 });
@@ -97,12 +110,13 @@ app.get('/api/health', async (req: Request, res: Response) => {
     timestamp: new Date(),
     telegram: {
       status: telegramHealth.connected ? '✅ Connected' : '❌ Disconnected',
-      webhook: telegramHealth.webhookActive ? '✅ Active' : '❌ Inactive / Polling',
-      botApi: telegramHealth.reachable ? '✅ Reachable' : '❌ Unreachable'
-    }
+      webhook: telegramHealth.webhookActive
+        ? '✅ Active'
+        : '❌ Inactive / Polling',
+      botApi: telegramHealth.reachable ? '✅ Reachable' : '❌ Unreachable',
+    },
   });
 });
-
 
 /**
  * POST /api/auth/register
@@ -122,7 +136,9 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({ error: 'User with this email already exists' });
+      return res
+        .status(400)
+        .json({ error: 'User with this email already exists' });
     }
 
     // Hash the password with 10 salt rounds
@@ -183,7 +199,10 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     }
 
     // Verify password
-    const isPasswordValid = await AuthService.comparePassword(password, user.passwordHash);
+    const isPasswordValid = await AuthService.comparePassword(
+      password,
+      user.passwordHash
+    );
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -202,7 +221,7 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
     // Dispatch Telegram security notification alert if enabled
     try {
       const userSettings = await prisma.userSettings.findFirst({
-        where: { userId: user.id, telegramEnabled: true }
+        where: { userId: user.id, telegramEnabled: true },
       });
       if (userSettings && userSettings.telegramChatId) {
         await TelegramNotificationService.sendAuthAlert(
@@ -240,66 +259,74 @@ app.post('/api/auth/logout', (_req: Request, res: Response) => {
  * GET /api/auth/me
  * Protected endpoint to fetch current authenticated user profile.
  */
-app.get('/api/auth/me', requireAuth, (req: AuthenticatedRequest, res: Response) => {
-  return res.status(200).json({
-    user: req.user,
-  });
-});
+app.get(
+  '/api/auth/me',
+  requireAuth,
+  (req: AuthenticatedRequest, res: Response) => {
+    return res.status(200).json({
+      user: req.user,
+    });
+  }
+);
 
 /**
  * GET /api/users/profile
  * Protected endpoint to fetch current authenticated user profile.
  */
-app.get('/api/users/profile', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const cacheKey = `user:profile:${userId}`;
-
-    // Try fetching from Redis cache first
-    const cachedProfile = await RedisService.get(cacheKey);
-    if (cachedProfile) {
-      try {
-        const parsedProfile = JSON.parse(cachedProfile);
-        return res.status(200).json(parsedProfile);
-      } catch (parseError) {
-        console.warn('Failed to parse cached user profile JSON:', parseError);
+app.get(
+  '/api/users/profile',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
       }
-    }
 
-    // Fetch from Prisma if not cached
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        createdAt: true,
-        settings: {
-          select: {
-            theme: true,
-            signature: true,
-            autoReply: true,
-          }
+      const cacheKey = `user:profile:${userId}`;
+
+      // Try fetching from Redis cache first
+      const cachedProfile = await RedisService.get(cacheKey);
+      if (cachedProfile) {
+        try {
+          const parsedProfile = JSON.parse(cachedProfile);
+          return res.status(200).json(parsedProfile);
+        } catch (parseError) {
+          console.warn('Failed to parse cached user profile JSON:', parseError);
         }
-      },
-    });
+      }
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      // Fetch from Prisma if not cached
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          createdAt: true,
+          settings: {
+            select: {
+              theme: true,
+              signature: true,
+              autoReply: true,
+            },
+          },
+        },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Store in cache for 300 seconds
+      await RedisService.setex(cacheKey, 300, JSON.stringify(user));
+
+      return res.status(200).json(user);
+    } catch (error) {
+      console.error('Fetch profile error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
     }
-
-    // Store in cache for 300 seconds
-    await RedisService.setex(cacheKey, 300, JSON.stringify(user));
-
-    return res.status(200).json(user);
-  } catch (error) {
-    console.error('Fetch profile error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
   }
-});
+);
 
 /**
  * POST /api/webhooks/incoming
@@ -326,7 +353,8 @@ app.post('/api/webhooks/incoming', async (req: Request, res: Response) => {
       });
     }
 
-    const { sender, recipient, subject, body, messageId, inReplyTo } = validation.data;
+    const { sender, recipient, subject, body, messageId, inReplyTo } =
+      validation.data;
 
     // 2. Fetch or dynamically create the recipient User
     let user = await prisma.user.findUnique({
@@ -337,7 +365,9 @@ app.post('/api/webhooks/incoming', async (req: Request, res: Response) => {
       user = await prisma.user.create({
         data: {
           email: recipient,
-          passwordHash: await AuthService.hashPassword('webhook-generated-password-hash'),
+          passwordHash: await AuthService.hashPassword(
+            'webhook-generated-password-hash'
+          ),
         },
       });
     }
@@ -408,7 +438,9 @@ app.post('/api/telegram/webhook', async (req: Request, res: Response) => {
   const configuredSecret = process.env.TELEGRAM_WEBHOOK_SECRET || '';
 
   if (configuredSecret && secretToken !== configuredSecret) {
-    logger.warn('[TelegramBot] Rejected unauthorized webhook request (invalid x-telegram-bot-api-secret-token)');
+    logger.warn(
+      '[TelegramBot] Rejected unauthorized webhook request (invalid x-telegram-bot-api-secret-token)'
+    );
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
@@ -428,35 +460,39 @@ app.post('/api/telegram/webhook', async (req: Request, res: Response) => {
  * GET /api/users/me/settings
  * Fetches user-specific preferences. If not initialized, returns system defaults.
  */
-app.get('/api/users/me/settings', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+app.get(
+  '/api/users/me/settings',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-    const settings = await prisma.userSettings.findUnique({
-      where: { userId },
-    });
-
-    if (!settings) {
-      return res.status(200).json({
-        theme: 'dark',
-        signature: null,
-        autoReply: false,
+      const settings = await prisma.userSettings.findUnique({
+        where: { userId },
       });
-    }
 
-    return res.status(200).json({
-      theme: settings.theme,
-      signature: settings.signature,
-      autoReply: settings.autoReply,
-    });
-  } catch (error) {
-    console.error('Fetch settings error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+      if (!settings) {
+        return res.status(200).json({
+          theme: 'dark',
+          signature: null,
+          autoReply: false,
+        });
+      }
+
+      return res.status(200).json({
+        theme: settings.theme,
+        signature: settings.signature,
+        autoReply: settings.autoReply,
+      });
+    } catch (error) {
+      console.error('Fetch settings error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
   }
-});
+);
 
 /**
  * PUT /api/users/me/settings
@@ -468,353 +504,537 @@ const updateSettingsSchema = z.object({
   autoReply: z.boolean().optional(),
 });
 
-app.put('/api/users/me/settings', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
+app.put(
+  '/api/users/me/settings',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-    const validation = updateSettingsSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({
-        error: 'Invalid payload schema',
-        details: validation.error.flatten(),
+      const validation = updateSettingsSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid payload schema',
+          details: validation.error.flatten(),
+        });
+      }
+
+      const { theme, signature, autoReply } = validation.data;
+
+      const updatedSettings = await prisma.userSettings.upsert({
+        where: { userId },
+        update: {
+          ...(theme !== undefined && { theme }),
+          ...(signature !== undefined && { signature }),
+          ...(autoReply !== undefined && { autoReply }),
+        },
+        create: {
+          userId,
+          theme: theme ?? 'dark',
+          signature: signature ?? null,
+          autoReply: autoReply ?? false,
+        },
       });
+
+      return res.status(200).json({
+        message: 'Settings updated successfully',
+        settings: {
+          theme: updatedSettings.theme,
+          signature: updatedSettings.signature,
+          autoReply: updatedSettings.autoReply,
+        },
+      });
+    } catch (error) {
+      console.error('Update settings error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
     }
-
-    const { theme, signature, autoReply } = validation.data;
-
-    const updatedSettings = await prisma.userSettings.upsert({
-      where: { userId },
-      update: {
-        ...(theme !== undefined && { theme }),
-        ...(signature !== undefined && { signature }),
-        ...(autoReply !== undefined && { autoReply }),
-      },
-      create: {
-        userId,
-        theme: theme ?? 'dark',
-        signature: signature ?? null,
-        autoReply: autoReply ?? false,
-      },
-    });
-
-    return res.status(200).json({
-      message: 'Settings updated successfully',
-      settings: {
-        theme: updatedSettings.theme,
-        signature: updatedSettings.signature,
-        autoReply: updatedSettings.autoReply,
-      },
-    });
-  } catch (error) {
-    console.error('Update settings error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
   }
-});
+);
 
 // OAuth2 & Encryption config
 const oauth2Client = new google.auth.OAuth2(
   process.env.GMAIL_CLIENT_ID,
   process.env.GMAIL_CLIENT_SECRET,
-  process.env.GMAIL_REDIRECT_URI || 'http://localhost:8000/api/integrations/gmail/callback'
+  process.env.GMAIL_REDIRECT_URI ||
+    'http://localhost:8000/api/integrations/gmail/callback'
 );
 
 /**
  * GET /api/integrations/gmail/auth
  * Generates the Google OAuth URL.
  */
-app.get('/api/integrations/gmail/auth', requireAuth, (req: AuthenticatedRequest, res: Response) => {
-  const url = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: ['https://mail.google.com/'],
-    prompt: 'consent',
-    state: req.user?.userId
-  });
-  return res.json({ url });
-});
+app.get(
+  '/api/integrations/gmail/auth',
+  requireAuth,
+  (req: AuthenticatedRequest, res: Response) => {
+    const url = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: ['https://mail.google.com/'],
+      prompt: 'consent',
+      state: req.user?.userId,
+    });
+    return res.json({ url });
+  }
+);
 
 /**
  * GET /api/integrations/gmail/callback
  * Exchanges the auth code for tokens and saves them to Prisma securely.
  */
-app.get('/api/integrations/gmail/callback', async (req: Request, res: Response) => {
-  const code = req.query.code as string;
-  const userId = req.query.state as string;
-  
-  if (!code || !userId) {
-    return res.status(400).json({ error: 'Missing code or state parameters' });
-  }
+app.get(
+  '/api/integrations/gmail/callback',
+  async (req: Request, res: Response) => {
+    const code = req.query.code as string;
+    const userId = req.query.state as string;
 
-  try {
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-
-    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
-    const profile = await gmail.users.getProfile({ userId: 'me' });
-    const emailAddress = profile.data.emailAddress;
-
-    if (!emailAddress) {
-       return res.status(400).json({ error: 'Could not fetch email address from Google' });
+    if (!code || !userId) {
+      return res
+        .status(400)
+        .json({ error: 'Missing code or state parameters' });
     }
 
-    // ── Google Sign-In flow ───────────────────────────────────────────────────
-    // If state is 'google-signin', auto-create or find the user by Gmail address
-    // then set a JWT cookie and redirect to the dashboard.
-    if (userId === 'google-signin') {
-      let user = await prisma.user.findUnique({ where: { email: emailAddress } });
-      if (!user) {
-        user = await prisma.user.create({
-          data: {
-            email: emailAddress,
-            passwordHash: crypto.randomBytes(32).toString('hex'), // unusable password — Google is the auth
-          }
+    try {
+      const { tokens } = await oauth2Client.getToken(code);
+      oauth2Client.setCredentials(tokens);
+
+      const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+      const profile = await gmail.users.getProfile({ userId: 'me' });
+      const emailAddress = profile.data.emailAddress;
+
+      if (!emailAddress) {
+        return res
+          .status(400)
+          .json({ error: 'Could not fetch email address from Google' });
+      }
+
+      // ── Google Sign-In flow ───────────────────────────────────────────────────
+      // If state is 'google-signin', auto-create or find the user by Gmail address
+      // then set a JWT cookie and redirect to the dashboard.
+      if (userId === 'google-signin') {
+        let user = await prisma.user.findUnique({
+          where: { email: emailAddress },
         });
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email: emailAddress,
+              passwordHash: crypto.randomBytes(32).toString('hex'), // unusable password — Google is the auth
+            },
+          });
+        }
+
+        const jwtToken = AuthService.generateToken(user.id, user.email);
+        res.cookie('token', jwtToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 24 * 60 * 60 * 1000,
+        });
+
+        // Also connect their Gmail account
+        const encryptedTokens = encrypt(JSON.stringify(tokens));
+        await prisma.emailAccount.upsert({
+          where: {
+            userId_provider_emailAddress: {
+              userId: user.id,
+              provider: 'gmail',
+              emailAddress,
+            },
+          },
+          update: {
+            encryptedTokens,
+            syncState: 'connected',
+            lastSyncAt: new Date(),
+          },
+          create: {
+            userId: user.id,
+            provider: 'gmail',
+            emailAddress,
+            encryptedTokens,
+            syncState: 'connected',
+          },
+        });
+
+        return res.redirect('http://localhost:5173/');
       }
 
-      const jwtToken = AuthService.generateToken(user.id, user.email);
-      res.cookie('token', jwtToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000,
-      });
-
-      // Also connect their Gmail account
+      // ── Connect Gmail to existing account flow ────────────────────────────────
       const encryptedTokens = encrypt(JSON.stringify(tokens));
+
+      // Save to Database
       await prisma.emailAccount.upsert({
-        where: { userId_provider_emailAddress: { userId: user.id, provider: 'gmail', emailAddress } },
-        update: { encryptedTokens, syncState: 'connected', lastSyncAt: new Date() },
-        create: { userId: user.id, provider: 'gmail', emailAddress, encryptedTokens, syncState: 'connected' }
+        where: {
+          userId_provider_emailAddress: {
+            userId,
+            provider: 'gmail',
+            emailAddress,
+          },
+        },
+        update: {
+          encryptedTokens,
+          syncState: 'connected',
+          lastSyncAt: new Date(),
+        },
+        create: {
+          userId,
+          provider: 'gmail',
+          emailAddress,
+          encryptedTokens,
+          syncState: 'connected',
+        },
       });
 
-      return res.redirect('http://localhost:5173/');
+      return res
+        .status(200)
+        .json({ message: 'Gmail connected successfully', emailAddress });
+    } catch (error) {
+      console.error('OAuth callback error:', error);
+      return res.status(500).json({ error: 'OAuth integration failed' });
     }
-
-    // ── Connect Gmail to existing account flow ────────────────────────────────
-    const encryptedTokens = encrypt(JSON.stringify(tokens));
-
-    // Save to Database
-    await prisma.emailAccount.upsert({
-      where: {
-         userId_provider_emailAddress: {
-             userId,
-             provider: 'gmail',
-             emailAddress
-         }
-      },
-      update: {
-         encryptedTokens,
-         syncState: 'connected',
-         lastSyncAt: new Date()
-      },
-      create: {
-         userId,
-         provider: 'gmail',
-         emailAddress,
-         encryptedTokens,
-         syncState: 'connected'
-      }
-    });
-
-    return res.status(200).json({ message: 'Gmail connected successfully', emailAddress });
-  } catch (error) {
-    console.error('OAuth callback error:', error);
-    return res.status(500).json({ error: 'OAuth integration failed' });
   }
-
-});
+);
 
 /**
  * POST /api/emails/send
  * Sends an outbound email via SMTP
  */
-app.post('/api/emails/send', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { to, subject, text, html, inReplyTo } = req.body;
-    if (!to || !subject || !text) {
-      return res.status(400).json({ error: 'Missing to, subject, or text' });
-    }
-    
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+app.post(
+  '/api/emails/send',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { to, subject, text, html, inReplyTo } = req.body;
+      if (!to || !subject || !text) {
+        return res.status(400).json({ error: 'Missing to, subject, or text' });
+      }
 
-    const result = await EmailSenderService.send(userId, { to, subject, text, html, inReplyTo });
-    return res.status(200).json({ message: 'Email sent successfully', messageId: result.messageId });
-  } catch (error: any) {
-    console.error('Send email error:', error.message);
-    return res.status(500).json({ error: 'Failed to send email' });
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+      const result = await EmailSenderService.send(userId, {
+        to,
+        subject,
+        text,
+        html,
+        inReplyTo,
+      });
+      return res.status(200).json({
+        message: 'Email sent successfully',
+        messageId: result.messageId,
+      });
+    } catch (error: any) {
+      console.error('Send email error:', error.message);
+      return res.status(500).json({ error: 'Failed to send email' });
+    }
   }
-});
+);
 
 /**
  * Webhook Config Routes
  */
-app.post('/api/webhooks/config', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { targetUrl, events } = req.body;
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-    if (!targetUrl || !Array.isArray(events)) return res.status(400).json({ error: 'Invalid payload' });
+app.post(
+  '/api/webhooks/config',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { targetUrl, events } = req.body;
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+      if (!targetUrl || !Array.isArray(events))
+        return res.status(400).json({ error: 'Invalid payload' });
 
-    const secret = crypto.randomBytes(32).toString('hex');
-    const hook = await prisma.webhookEndpoint.create({
-      data: { targetUrl, events: JSON.stringify(events), secret, userId }
-    });
-    
-    return res.json({ id: hook.id, targetUrl: hook.targetUrl, events: JSON.parse(hook.events), secret: hook.secret });
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to create webhook' });
+      const secret = crypto.randomBytes(32).toString('hex');
+      const hook = await prisma.webhookEndpoint.create({
+        data: { targetUrl, events: JSON.stringify(events), secret, userId },
+      });
+
+      return res.json({
+        id: hook.id,
+        targetUrl: hook.targetUrl,
+        events: JSON.parse(hook.events),
+        secret: hook.secret,
+      });
+    } catch (err) {
+      return res.status(500).json({ error: 'Failed to create webhook' });
+    }
   }
-});
+);
 
-app.get('/api/webhooks/config', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+app.get(
+  '/api/webhooks/config',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const hooks = await prisma.webhookEndpoint.findMany({ where: { userId } });
-    const formatted = hooks.map(h => ({ id: h.id, targetUrl: h.targetUrl, events: JSON.parse(h.events) }));
-    return res.json(formatted);
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to fetch webhooks' });
+      const hooks = await prisma.webhookEndpoint.findMany({
+        where: { userId },
+      });
+      const formatted = hooks.map((h) => ({
+        id: h.id,
+        targetUrl: h.targetUrl,
+        events: JSON.parse(h.events),
+      }));
+      return res.json(formatted);
+    } catch (err) {
+      return res.status(500).json({ error: 'Failed to fetch webhooks' });
+    }
   }
-});
+);
 
-app.patch('/api/webhooks/config/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-    const { targetUrl, events } = req.body;
-    const id = req.params.id as string;
+app.patch(
+  '/api/webhooks/config/:id',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+      const { targetUrl, events } = req.body;
+      const id = req.params.id as string;
 
-    const hook = await prisma.webhookEndpoint.findUnique({ where: { id } });
-    if (!hook || hook.userId !== userId) return res.status(404).json({ error: 'Not found' });
+      const hook = await prisma.webhookEndpoint.findUnique({ where: { id } });
+      if (!hook || hook.userId !== userId)
+        return res.status(404).json({ error: 'Not found' });
 
-    await prisma.webhookEndpoint.update({
-      where: { id },
-      data: {
-        ...(targetUrl && { targetUrl }),
-        ...(events && { events: JSON.stringify(events) })
-      }
-    });
-    return res.json({ message: 'Webhook updated' });
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to update webhook' });
+      await prisma.webhookEndpoint.update({
+        where: { id },
+        data: {
+          ...(targetUrl && { targetUrl }),
+          ...(events && { events: JSON.stringify(events) }),
+        },
+      });
+      return res.json({ message: 'Webhook updated' });
+    } catch (err) {
+      return res.status(500).json({ error: 'Failed to update webhook' });
+    }
   }
-});
+);
 
-app.delete('/api/webhooks/config/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
-    const id = req.params.id as string;
+app.delete(
+  '/api/webhooks/config/:id',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+      const id = req.params.id as string;
 
-    const hook = await prisma.webhookEndpoint.findUnique({ where: { id } });
-    if (!hook || hook.userId !== userId) return res.status(404).json({ error: 'Not found' });
+      const hook = await prisma.webhookEndpoint.findUnique({ where: { id } });
+      if (!hook || hook.userId !== userId)
+        return res.status(404).json({ error: 'Not found' });
 
-    await prisma.webhookEndpoint.delete({ where: { id } });
-    return res.json({ message: 'Webhook deleted' });
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to delete webhook' });
+      await prisma.webhookEndpoint.delete({ where: { id } });
+      return res.json({ message: 'Webhook deleted' });
+    } catch (err) {
+      return res.status(500).json({ error: 'Failed to delete webhook' });
+    }
   }
-});
-
+);
 
 /**
  * GET /api/emails
  * Returns paginated email list for the logged-in user.
  * Called by frontend EmailList.tsx
  */
-app.get('/api/emails', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+app.get(
+  '/api/emails',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const limit = parseInt(req.query.limit as string) || 10;
-    const offset = parseInt(req.query.offset as string) || 0;
-    const category = req.query.category as string | undefined;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = parseInt(req.query.offset as string) || 0;
+      const category = req.query.category as string | undefined;
 
-    const where: any = { userId };
-    if (category && category !== 'all') where.category = category;
+      const where: any = { userId };
+      if (category && category !== 'all') where.category = category;
 
-    const [emails, total] = await Promise.all([
-      prisma.email.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        skip: offset,
-        select: {
-          id: true, messageId: true, sender: true, recipient: true,
-          subject: true, body: true, status: true, category: true,
-          createdAt: true, threadId: true
-        }
-      }),
-      prisma.email.count({ where })
-    ]);
+      const [emails, total] = await Promise.all([
+        prisma.email.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          skip: offset,
+          select: {
+            id: true,
+            messageId: true,
+            sender: true,
+            recipient: true,
+            subject: true,
+            body: true,
+            status: true,
+            category: true,
+            createdAt: true,
+            threadId: true,
+          },
+        }),
+        prisma.email.count({ where }),
+      ]);
 
-    return res.json({ emails, total, limit, offset });
-  } catch (err) {
-    console.error('GET /api/emails error:', err);
-    return res.status(500).json({ error: 'Failed to fetch emails' });
+      return res.json({ emails, total, limit, offset });
+    } catch (err) {
+      console.error('GET /api/emails error:', err);
+      return res.status(500).json({ error: 'Failed to fetch emails' });
+    }
   }
-});
+);
+
+/**
+ * GET /api/emails/search
+ * Search user's emails by subject or body with pagination.
+ */
+app.get(
+  '/api/emails/search',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { q } = req.query;
+      if (typeof q !== 'string' || !q.trim()) {
+        return res.status(400).json({
+          error: 'Query parameter "q" is required and cannot be empty',
+        });
+      }
+
+      // Parse pagination parameters
+      const limitQuery = parseInt(req.query.limit as string, 10);
+      const offsetQuery = parseInt(req.query.offset as string, 10);
+
+      const limit =
+        isNaN(limitQuery) || limitQuery <= 0 ? 20 : Math.min(limitQuery, 20);
+      const offset = isNaN(offsetQuery) || offsetQuery < 0 ? 0 : offsetQuery;
+
+      // Search query object
+      const searchFilter = {
+        userId,
+        OR: [
+          { subject: { contains: q } },
+          { body: { contains: q } },
+        ],
+      };
+
+      // Run both count and select queries concurrently
+      const [total, emails] = await Promise.all([
+        prisma.email.count({ where: searchFilter as any }),
+        prisma.email.findMany({
+          where: searchFilter as any,
+          take: limit,
+          skip: offset,
+          orderBy: { createdAt: 'desc' },
+        }),
+      ]);
+
+      return res.status(200).json({
+        emails,
+        pagination: {
+          total,
+          limit,
+          offset,
+        },
+      });
+    } catch (error) {
+      console.error('Email search error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+);
 
 /**
  * GET /api/emails/:id
  * Returns a single email with its thread list and action items.
  */
-app.get('/api/emails/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+app.get(
+  '/api/emails/:id',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const id = req.params.id as string;
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(id)) {
-      return res.status(400).json({ error: 'Invalid email ID format' });
-    }
-
-    const email = await prisma.email.findUnique({
-      where: { id },
-      include: {
-        actionItems: true,
-        thread: {
-          include: {
-            emails: {
-              orderBy: {
-                createdAt: 'asc'
-              }
-            }
-          }
-        }
+      const id = req.params.id as string;
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(id)) {
+        return res.status(400).json({ error: 'Invalid email ID format' });
       }
-    });
 
-    if (!email || email.userId !== userId) {
-      return res.status(404).json({ error: 'Email not found' });
+      const email = await prisma.email.findUnique({
+        where: { id },
+        include: {
+          actionItems: true,
+          thread: {
+            include: {
+              emails: {
+                orderBy: {
+                  createdAt: 'asc',
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!email || email.userId !== userId) {
+        return res.status(404).json({ error: 'Email not found' });
+      }
+
+      return res.json(email);
+    } catch (error) {
+      console.error('GET /api/emails/:id error:', error);
+      return res.status(500).json({ error: 'Failed to fetch email details' });
     }
-
-    return res.json(email);
-  } catch (error) {
-    console.error('GET /api/emails/:id error:', error);
-    return res.status(500).json({ error: 'Failed to fetch email details' });
   }
-});
+);
 
 /**
  * Rules Engine Validation Schemas
  */
 const ruleConditionSchema = z.object({
-  field: z.enum(['from', 'to', 'subject', 'body', 'category', 'priority', 'hasAttachments', 'senderDomain']),
-  operator: z.enum(['equals', 'contains', 'startsWith', 'endsWith', 'regex', 'gt', 'lt', 'in']),
-  value: z.string()
+  field: z.enum([
+    'from',
+    'to',
+    'subject',
+    'body',
+    'category',
+    'priority',
+    'hasAttachments',
+    'senderDomain',
+  ]),
+  operator: z.enum([
+    'equals',
+    'contains',
+    'startsWith',
+    'endsWith',
+    'regex',
+    'gt',
+    'lt',
+    'in',
+  ]),
+  value: z.string(),
 });
 
 const ruleActionSchema = z.object({
-  type: z.enum(['moveToFolder', 'applyLabel', 'markAsRead', 'markAsUrgent', 'forwardTo', 'webhook', 'sendTelegram', 'sendWhatsApp']),
-  config: z.record(z.string(), z.any())
+  type: z.enum([
+    'moveToFolder',
+    'applyLabel',
+    'markAsRead',
+    'markAsUrgent',
+    'forwardTo',
+    'webhook',
+    'sendTelegram',
+    'sendWhatsApp',
+  ]),
+  config: z.record(z.string(), z.any()),
 });
 
 const createRuleSchema = z.object({
@@ -822,215 +1042,244 @@ const createRuleSchema = z.object({
   description: z.string().optional(),
   priority: z.number().int().default(0),
   conditions: z.array(ruleConditionSchema).min(1),
-  actions: z.array(ruleActionSchema).min(1)
+  actions: z.array(ruleActionSchema).min(1),
 });
 
 /**
  * GET /api/rules
  * List all rules for authenticated user, ordered by priority
  */
-app.get('/api/rules', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+app.get(
+  '/api/rules',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const rules = await prisma.rule.findMany({
-      where: { userId },
-      orderBy: { priority: 'desc' },
-      include: {
-        conditions: true,
-        actions: true
-      }
-    });
+      const rules = await prisma.rule.findMany({
+        where: { userId },
+        orderBy: { priority: 'desc' },
+        include: {
+          conditions: true,
+          actions: true,
+        },
+      });
 
-    return res.json(rules);
-  } catch (error) {
-    console.error('GET /api/rules error:', error);
-    return res.status(500).json({ error: 'Failed to fetch rules' });
+      return res.json(rules);
+    } catch (error) {
+      console.error('GET /api/rules error:', error);
+      return res.status(500).json({ error: 'Failed to fetch rules' });
+    }
   }
-});
+);
 
 /**
  * POST /api/rules
  * Create a new rule with conditions and actions
  */
-app.post('/api/rules', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+app.post(
+  '/api/rules',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const validation = createRuleSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({
-        error: 'Invalid request payload',
-        details: validation.error.flatten()
-      });
-    }
-
-    const { name, description, priority, conditions, actions } = validation.data;
-
-    const newRule = await prisma.rule.create({
-      data: {
-        userId,
-        name,
-        description,
-        priority,
-        conditions: {
-          create: conditions
-        },
-        actions: {
-          create: actions as any
-        }
-      },
-      include: {
-        conditions: true,
-        actions: true
+      const validation = createRuleSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid request payload',
+          details: validation.error.flatten(),
+        });
       }
-    });
 
-    return res.status(201).json(newRule);
-  } catch (error) {
-    console.error('POST /api/rules error:', error);
-    return res.status(500).json({ error: 'Failed to create rule' });
+      const { name, description, priority, conditions, actions } =
+        validation.data;
+
+      const newRule = await prisma.rule.create({
+        data: {
+          userId,
+          name,
+          description,
+          priority,
+          conditions: {
+            create: conditions,
+          },
+          actions: {
+            create: actions as any,
+          },
+        },
+        include: {
+          conditions: true,
+          actions: true,
+        },
+      });
+
+      return res.status(201).json(newRule);
+    } catch (error) {
+      console.error('POST /api/rules error:', error);
+      return res.status(500).json({ error: 'Failed to create rule' });
+    }
   }
-});
+);
 
 /**
  * GET /api/rules/:id
  * Retrieve single rule details
  */
-app.get('/api/rules/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+app.get(
+  '/api/rules/:id',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const id = req.params.id as string;
-    const rule = await prisma.rule.findUnique({
-      where: { id },
-      include: {
-        conditions: true,
-        actions: true
+      const id = req.params.id as string;
+      const rule = await prisma.rule.findUnique({
+        where: { id },
+        include: {
+          conditions: true,
+          actions: true,
+        },
+      });
+
+      if (!rule || rule.userId !== userId) {
+        return res.status(404).json({ error: 'Rule not found' });
       }
-    });
 
-    if (!rule || rule.userId !== userId) {
-      return res.status(404).json({ error: 'Rule not found' });
+      return res.json(rule);
+    } catch (error) {
+      console.error('GET /api/rules/:id error:', error);
+      return res.status(500).json({ error: 'Failed to fetch rule' });
     }
-
-    return res.json(rule);
-  } catch (error) {
-    console.error('GET /api/rules/:id error:', error);
-    return res.status(500).json({ error: 'Failed to fetch rule' });
   }
-});
+);
 
 /**
  * PUT /api/rules/:id
  * Update rule by replacing conditions and actions
  */
-app.put('/api/rules/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+app.put(
+  '/api/rules/:id',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const id = req.params.id as string;
-    const existingRule = await prisma.rule.findUnique({ where: { id } });
-    if (!existingRule || existingRule.userId !== userId) {
-      return res.status(404).json({ error: 'Rule not found' });
-    }
+      const id = req.params.id as string;
+      const existingRule = await prisma.rule.findUnique({ where: { id } });
+      if (!existingRule || existingRule.userId !== userId) {
+        return res.status(404).json({ error: 'Rule not found' });
+      }
 
-    const validation = createRuleSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({
-        error: 'Invalid request payload',
-        details: validation.error.flatten()
-      });
-    }
+      const validation = createRuleSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          error: 'Invalid request payload',
+          details: validation.error.flatten(),
+        });
+      }
 
-    const { name, description, priority, conditions, actions } = validation.data;
+      const { name, description, priority, conditions, actions } =
+        validation.data;
 
-    // Run delete-then-create inside a transaction
-    const updatedRule = await prisma.$transaction(async (tx) => {
-      await tx.ruleCondition.deleteMany({ where: { ruleId: id } });
-      await tx.ruleAction.deleteMany({ where: { ruleId: id } });
+      // Run delete-then-create inside a transaction
+      const updatedRule = await prisma.$transaction(async (tx) => {
+        await tx.ruleCondition.deleteMany({ where: { ruleId: id } });
+        await tx.ruleAction.deleteMany({ where: { ruleId: id } });
 
-      return tx.rule.update({
-        where: { id },
-        data: {
-          name,
-          description,
-          priority,
-          conditions: {
-            create: conditions
+        return tx.rule.update({
+          where: { id },
+          data: {
+            name,
+            description,
+            priority,
+            conditions: {
+              create: conditions,
+            },
+            actions: {
+              create: actions as any,
+            },
           },
-          actions: {
-            create: actions as any
-          }
-        },
-        include: {
-          conditions: true,
-          actions: true
-        }
+          include: {
+            conditions: true,
+            actions: true,
+          },
+        });
       });
-    });
 
-    return res.json(updatedRule);
-  } catch (error) {
-    console.error('PUT /api/rules/:id error:', error);
-    return res.status(500).json({ error: 'Failed to update rule' });
+      return res.json(updatedRule);
+    } catch (error) {
+      console.error('PUT /api/rules/:id error:', error);
+      return res.status(500).json({ error: 'Failed to update rule' });
+    }
   }
-});
+);
 
 /**
  * DELETE /api/rules/:id
  * Deletes a rule
  */
-app.delete('/api/rules/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+app.delete(
+  '/api/rules/:id',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const id = req.params.id as string;
-    const rule = await prisma.rule.findUnique({ where: { id } });
-    if (!rule || rule.userId !== userId) {
-      return res.status(404).json({ error: 'Rule not found' });
+      const id = req.params.id as string;
+      const rule = await prisma.rule.findUnique({ where: { id } });
+      if (!rule || rule.userId !== userId) {
+        return res.status(404).json({ error: 'Rule not found' });
+      }
+
+      await prisma.rule.delete({ where: { id } });
+
+      return res.json({ message: 'Rule deleted successfully' });
+    } catch (error) {
+      console.error('DELETE /api/rules/:id error:', error);
+      return res.status(500).json({ error: 'Failed to delete rule' });
     }
-
-    await prisma.rule.delete({ where: { id } });
-
-    return res.json({ message: 'Rule deleted successfully' });
-  } catch (error) {
-    console.error('DELETE /api/rules/:id error:', error);
-    return res.status(500).json({ error: 'Failed to delete rule' });
   }
-});
+);
 
 /**
  * POST /api/rules/:id/toggle
  * Toggles isActive status
  */
-app.post('/api/rules/:id/toggle', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+app.post(
+  '/api/rules/:id/toggle',
+  requireAuth,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-    const id = req.params.id as string;
-    const rule = await prisma.rule.findUnique({ where: { id } });
-    if (!rule || rule.userId !== userId) {
-      return res.status(404).json({ error: 'Rule not found' });
+      const id = req.params.id as string;
+      const rule = await prisma.rule.findUnique({ where: { id } });
+      if (!rule || rule.userId !== userId) {
+        return res.status(404).json({ error: 'Rule not found' });
+      }
+
+      const updated = await prisma.rule.update({
+        where: { id },
+        data: { isActive: !rule.isActive },
+      });
+
+      return res.json({
+        message: 'Rule toggled successfully',
+        isActive: updated.isActive,
+      });
+    } catch (error) {
+      console.error('POST /api/rules/:id/toggle error:', error);
+      return res.status(500).json({ error: 'Failed to toggle rule' });
     }
-
-    const updated = await prisma.rule.update({
-      where: { id },
-      data: { isActive: !rule.isActive }
-    });
-
-    return res.json({ message: 'Rule toggled successfully', isActive: updated.isActive });
-  } catch (error) {
-    console.error('POST /api/rules/:id/toggle error:', error);
-    return res.status(500).json({ error: 'Failed to toggle rule' });
   }
-});
+);
 
 /**
  * GET /api/auth/google
@@ -1040,9 +1289,13 @@ app.post('/api/rules/:id/toggle', requireAuth, async (req: AuthenticatedRequest,
 app.get('/api/auth/google', (req: Request, res: Response) => {
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: ['https://mail.google.com/', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
+    scope: [
+      'https://mail.google.com/',
+      'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ],
     prompt: 'consent',
-    state: 'google-signin' // special flag — callback will auto-create user
+    state: 'google-signin', // special flag — callback will auto-create user
   });
   return res.json({ url });
 });
@@ -1051,13 +1304,16 @@ app.get('/api/auth/google', (req: Request, res: Response) => {
 
 const server = app.listen(PORT, () => {
   logger.info(`Auth service running on port ${PORT}`);
-  
+
   // Register EventBus fallback handler AFTER server is listening
   // to avoid blocking startup if Redis is slow or unavailable.
   // This allows graceful degradation while the server remains responsive.
   EventBus.onFallback(() => {
     registerWorkerHandlers().catch((err) => {
-      console.error('Failed to register inline worker handlers on EventBus fallback:', err);
+      console.error(
+        'Failed to register inline worker handlers on EventBus fallback:',
+        err
+      );
     });
   });
 
@@ -1071,14 +1327,18 @@ const server = app.listen(PORT, () => {
 const io = new SocketIoServer(server, {
   cors: {
     origin: (origin: any, callback: any) => {
-      if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      if (
+        !origin ||
+        origin.startsWith('http://localhost') ||
+        origin.startsWith('http://127.0.0.1')
+      ) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 WebSocketService.initialize(io);
 

@@ -11,13 +11,11 @@ describe('GET /api/health', () => {
   });
 
   it('should return 200 OK and status ok with timestamp', async () => {
-    const res = await request(app)
-      .get('/api/health')
-      .expect(200);
+    const res = await request(app).get('/api/health').expect(200);
 
     expect(res.body).toHaveProperty('status', 'ok');
     expect(res.body).toHaveProperty('timestamp');
-    
+
     // Validate that timestamp is a valid ISO date string
     const date = new Date(res.body.timestamp);
     expect(date.getTime()).not.toBeNaN();

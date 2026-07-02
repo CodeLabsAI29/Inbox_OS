@@ -13,7 +13,7 @@ export class GmailSyncService {
 
     // 1. Get the email account credentials
     const account = await prisma.emailAccount.findFirst({
-      where: { userId, provider: 'gmail' }
+      where: { userId, provider: 'gmail' },
     });
 
     if (!account) {
@@ -25,18 +25,19 @@ export class GmailSyncService {
     const oauth2Client = new google.auth.OAuth2(
       process.env.GMAIL_CLIENT_ID,
       process.env.GMAIL_CLIENT_SECRET,
-      process.env.GMAIL_REDIRECT_URI || 'http://localhost:8000/api/integrations/gmail/callback'
+      process.env.GMAIL_REDIRECT_URI ||
+        'http://localhost:8000/api/integrations/gmail/callback'
     );
     oauth2Client.setCredentials(tokens);
-    
+
     // Auto token refresh listener
     oauth2Client.on('tokens', async (newTokens) => {
       if (newTokens.refresh_token || newTokens.access_token) {
         const updatedTokens = { ...tokens, ...newTokens };
         const reEncrypted = encrypt(JSON.stringify(updatedTokens));
-        await prisma.emailAccount.update({ 
-          where: { id: account.id }, 
-          data: { encryptedTokens: reEncrypted }
+        await prisma.emailAccount.update({
+          where: { id: account.id },
+          data: { encryptedTokens: reEncrypted },
         });
       }
     });
@@ -57,52 +58,73 @@ export class GmailSyncService {
 
       // Check if we already have it to prevent duplicates
       if (account.lastMessageId === msg.id) {
-          console.log('Reached already synced message, stopping fetch.');
-          break;
+        console.log('Reached already synced message, stopping fetch.');
+        break;
       }
-      
-      const existing = await prisma.email.findUnique({ where: { messageId: msg.id } });
+
+      const existing = await prisma.email.findUnique({
+        where: { messageId: msg.id },
+      });
       if (existing) continue;
 
       // 4. Fetch full payload
       const msgData = await gmail.users.messages.get({
         userId: 'me',
         id: msg.id,
-        format: 'full'
+        format: 'full',
       });
 
       const payload = msgData.data.payload;
       const headers = payload?.headers || [];
 
-      const subject = headers.find(h => h.name?.toLowerCase() === 'subject')?.value || 'No Subject';
-      const sender = headers.find(h => h.name?.toLowerCase() === 'from')?.value || 'Unknown Sender';
-      const recipient = headers.find(h => h.name?.toLowerCase() === 'to')?.value || account.emailAddress;
-      const inReplyTo = headers.find(h => h.name?.toLowerCase() === 'in-reply-to')?.value || null;
+      const subject =
+        headers.find((h) => h.name?.toLowerCase() === 'subject')?.value ||
+        'No Subject';
+      const sender =
+        headers.find((h) => h.name?.toLowerCase() === 'from')?.value ||
+        'Unknown Sender';
+      const recipient =
+        headers.find((h) => h.name?.toLowerCase() === 'to')?.value ||
+        account.emailAddress;
+      const inReplyTo =
+        headers.find((h) => h.name?.toLowerCase() === 'in-reply-to')?.value ||
+        null;
 
       // Decode base64url body
       let bodyData = '';
       if (payload?.parts && payload.parts.length > 0) {
-        const textPart = payload.parts.find(p => p.mimeType === 'text/plain');
+        const textPart = payload.parts.find((p) => p.mimeType === 'text/plain');
         if (textPart && textPart.body?.data) {
-           bodyData = Buffer.from(textPart.body.data, 'base64url').toString('utf-8');
+          bodyData = Buffer.from(textPart.body.data, 'base64url').toString(
+            'utf-8'
+          );
         } else if (payload.parts[0].body?.data) {
-           bodyData = Buffer.from(payload.parts[0].body.data, 'base64url').toString('utf-8');
+          bodyData = Buffer.from(
+            payload.parts[0].body.data,
+            'base64url'
+          ).toString('utf-8');
         }
       } else if (payload?.body?.data) {
-        bodyData = Buffer.from(payload.body.data, 'base64url').toString('utf-8');
+        bodyData = Buffer.from(payload.body.data, 'base64url').toString(
+          'utf-8'
+        );
       }
 
       // Handle Thread association
       let threadId = msgData.data.threadId;
       if (threadId) {
-        let existingThread = await prisma.thread.findUnique({ where: { id: threadId } });
+        let existingThread = await prisma.thread.findUnique({
+          where: { id: threadId },
+        });
         if (!existingThread) {
           existingThread = await prisma.thread.create({
-             data: { id: threadId, summary: subject }
+            data: { id: threadId, summary: subject },
           });
         }
       } else {
-        const newThread = await prisma.thread.create({ data: { summary: subject }});
+        const newThread = await prisma.thread.create({
+          data: { summary: subject },
+        });
         threadId = newThread.id;
       }
 
@@ -117,24 +139,26 @@ export class GmailSyncService {
           body: bodyData,
           status: 'UNREAD',
           userId,
-          threadId: threadId as string
-        }
+          threadId: threadId as string,
+        },
       });
       syncedCount++;
     }
 
     // Store the ID of the most recent message to avoid duplicates on the next run
     if (messages.length > 0 && messages[0].id) {
-       await prisma.emailAccount.update({
-         where: { id: account.id },
-         data: { 
-            lastMessageId: messages[0].id,
-            lastSyncAt: new Date()
-         }
-       });
+      await prisma.emailAccount.update({
+        where: { id: account.id },
+        data: {
+          lastMessageId: messages[0].id,
+          lastSyncAt: new Date(),
+        },
+      });
     }
 
-    console.log(`[GmailSyncService] Successfully synced ${syncedCount} new emails.`);
+    console.log(
+      `[GmailSyncService] Successfully synced ${syncedCount} new emails.`
+    );
     return syncedCount;
   }
 }

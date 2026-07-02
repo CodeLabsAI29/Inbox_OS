@@ -8,11 +8,16 @@ interface SocketContextProps {
   isConnected: boolean;
 }
 
-const SocketContext = createContext<SocketContextProps>({ socket: null, isConnected: false });
+const SocketContext = createContext<SocketContextProps>({
+  socket: null,
+  isConnected: false,
+});
 
 export const useSocket = () => useContext(SocketContext);
 
-export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -20,7 +25,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Open credential-based socket connection
     const socketInstance = io(API_BASE, {
       withCredentials: true,
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
     });
 
     socketInstance.on('connect', () => {

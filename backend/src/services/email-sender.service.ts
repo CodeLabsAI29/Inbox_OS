@@ -6,17 +6,28 @@ import { google } from 'googleapis';
 const prisma = new PrismaClient();
 
 export class EmailSenderService {
-  static async send(userId: string, payload: { to: string, subject: string, text: string, html?: string, inReplyTo?: string }) {
+  static async send(
+    userId: string,
+    payload: {
+      to: string;
+      subject: string;
+      text: string;
+      html?: string;
+      inReplyTo?: string;
+    }
+  ) {
     const account = await prisma.emailAccount.findFirst({
       where: {
         userId,
         provider: { in: ['imap', 'gmail'] },
-        isActive: true
-      }
+        isActive: true,
+      },
     });
 
     if (!account) {
-      throw new Error('No active IMAP/SMTP or Gmail account connected for this user.');
+      throw new Error(
+        'No active IMAP/SMTP or Gmail account connected for this user.'
+      );
     }
 
     // ── GMAIL OUTBOUND (GMAIL API) ───────────────────────────────────────────
@@ -25,7 +36,8 @@ export class EmailSenderService {
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        process.env.GMAIL_REDIRECT_URI || 'http://localhost:8000/api/integrations/gmail/callback'
+        process.env.GMAIL_REDIRECT_URI ||
+          'http://localhost:8000/api/integrations/gmail/callback'
       );
       oauth2Client.setCredentials(tokens);
 
@@ -36,7 +48,7 @@ export class EmailSenderService {
           const reEncrypted = encrypt(JSON.stringify(updatedTokens));
           await prisma.emailAccount.update({
             where: { id: account.id },
-            data: { encryptedTokens: reEncrypted }
+            data: { encryptedTokens: reEncrypted },
           });
         }
       });
@@ -47,7 +59,7 @@ export class EmailSenderService {
         subject: payload.subject,
         text: payload.text,
         html: payload.html,
-        inReplyTo: payload.inReplyTo
+        inReplyTo: payload.inReplyTo,
       };
 
       // Compile message raw headers and body using stream transport
@@ -64,7 +76,9 @@ export class EmailSenderService {
       } else {
         rawMime = await new Promise<string>((resolve, reject) => {
           const chunks: Buffer[] = [];
-          (info.message as any).on('data', (chunk: Buffer) => chunks.push(chunk));
+          (info.message as any).on('data', (chunk: Buffer) =>
+            chunks.push(chunk)
+          );
           (info.message as any).on('end', () => {
             const buffer = Buffer.concat(chunks);
             resolve(buffer.toString('base64url'));
@@ -77,8 +91,8 @@ export class EmailSenderService {
       const res = await gmail.users.messages.send({
         userId: 'me',
         requestBody: {
-          raw: rawMime
-        }
+          raw: rawMime,
+        },
       });
 
       const messageId = res.data.id || `gmail-sent-${Date.now()}`;
@@ -86,12 +100,16 @@ export class EmailSenderService {
       // Threading logic
       let threadId: string | null = null;
       if (payload.inReplyTo) {
-        const parentEmail = await prisma.email.findUnique({ where: { messageId: payload.inReplyTo } });
+        const parentEmail = await prisma.email.findUnique({
+          where: { messageId: payload.inReplyTo },
+        });
         if (parentEmail) threadId = parentEmail.threadId;
       }
 
       if (!threadId) {
-        const newThread = await prisma.thread.create({ data: { summary: payload.subject } });
+        const newThread = await prisma.thread.create({
+          data: { summary: payload.subject },
+        });
         threadId = newThread.id;
       }
 
@@ -106,8 +124,8 @@ export class EmailSenderService {
           body: payload.text || payload.html || '',
           status: 'SENT',
           userId,
-          threadId
-        }
+          threadId,
+        },
       });
 
       return { messageId };
@@ -124,7 +142,7 @@ export class EmailSenderService {
       host: account.smtpHost,
       port: account.smtpPort ?? 587,
       secure: false, // Use STARTTLS
-      auth: { user: credentials.user, pass: credentials.password }
+      auth: { user: credentials.user, pass: credentials.password },
     });
 
     try {
@@ -135,7 +153,7 @@ export class EmailSenderService {
         subject: payload.subject,
         text: payload.text,
         html: payload.html,
-        inReplyTo: payload.inReplyTo
+        inReplyTo: payload.inReplyTo,
       };
 
       const info = await transporter.sendMail(mailOptions);
@@ -143,12 +161,16 @@ export class EmailSenderService {
       // Threading logic
       let threadId: string | null = null;
       if (payload.inReplyTo) {
-        const parentEmail = await prisma.email.findUnique({ where: { messageId: payload.inReplyTo } });
+        const parentEmail = await prisma.email.findUnique({
+          where: { messageId: payload.inReplyTo },
+        });
         if (parentEmail) threadId = parentEmail.threadId;
       }
 
       if (!threadId) {
-        const newThread = await prisma.thread.create({ data: { summary: payload.subject } });
+        const newThread = await prisma.thread.create({
+          data: { summary: payload.subject },
+        });
         threadId = newThread.id;
       }
 
@@ -163,8 +185,8 @@ export class EmailSenderService {
           body: payload.text || payload.html || '',
           status: 'SENT',
           userId,
-          threadId
-        }
+          threadId,
+        },
       });
 
       return { messageId: info.messageId };

@@ -4,8 +4,14 @@ import { Email } from '@prisma/client';
 export class DiscordNotifier {
   private static getWebhookUrl(): string {
     const url = process.env.DISCORD_WEBHOOK_URL;
-    if (!url || url.trim() === '' || url.includes('your_test_webhook_url_here')) {
-      throw new Error('DISCORD_WEBHOOK_URL environment variable is not configured.');
+    if (
+      !url ||
+      url.trim() === '' ||
+      url.includes('your_test_webhook_url_here')
+    ) {
+      throw new Error(
+        'DISCORD_WEBHOOK_URL environment variable is not configured.'
+      );
     }
     return url.trim();
   }
@@ -14,7 +20,7 @@ export class DiscordNotifier {
    * Sends a notification to a Discord channel via Webhook when a new email is received.
    * Formats the email metadata (subject, sender, recipient, AI classification category, body snippet)
    * into a clean Discord embed structure.
-   * 
+   *
    * @param email The ingested Email object from Prisma
    * @returns Promise<boolean> indicating whether the notification was sent successfully
    */
@@ -27,10 +33,12 @@ export class DiscordNotifier {
       const category = email.category?.trim() || 'Unclassified';
       const sender = email.sender || 'Unknown Sender';
       const recipient = email.recipient || 'Unknown Recipient';
-      
+
       // Generate a snippet of the email body (max 200 chars)
-      const bodySnippet = email.body 
-        ? (email.body.length > 200 ? email.body.substring(0, 197) + '...' : email.body) 
+      const bodySnippet = email.body
+        ? email.body.length > 200
+          ? email.body.substring(0, 197) + '...'
+          : email.body
         : '(Empty Body)';
 
       // Format Discord Embed
@@ -39,7 +47,7 @@ export class DiscordNotifier {
           {
             title: '📬 New Email Received',
             description: bodySnippet,
-            color: 0x5865F2, // Discord Blurple
+            color: 0x5865f2, // Discord Blurple
             fields: [
               {
                 name: 'Subject',
@@ -62,7 +70,9 @@ export class DiscordNotifier {
                 inline: true,
               },
             ],
-            timestamp: email.createdAt ? new Date(email.createdAt).toISOString() : new Date().toISOString(),
+            timestamp: email.createdAt
+              ? new Date(email.createdAt).toISOString()
+              : new Date().toISOString(),
             footer: {
               text: 'InboxOS Email Operating System',
             },
@@ -70,7 +80,9 @@ export class DiscordNotifier {
         ],
       };
 
-      console.log(`Sending Discord notification for email: "${subject}" [Category: ${category}]`);
+      console.log(
+        `Sending Discord notification for email: "${subject}" [Category: ${category}]`
+      );
 
       const response = await axios.post(webhookUrl, payload, {
         headers: {
@@ -83,7 +95,9 @@ export class DiscordNotifier {
         console.log('Discord notification sent successfully.');
         return true;
       } else {
-        console.error(`Failed to send Discord notification. Status code: ${response.status}`);
+        console.error(
+          `Failed to send Discord notification. Status code: ${response.status}`
+        );
         return false;
       }
     } catch (error: any) {

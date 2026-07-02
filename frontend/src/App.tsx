@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
@@ -8,10 +14,10 @@ import { EmailList } from './components/EmailList';
 import { ComposeModal } from './components/ComposeModal';
 import { LandingPage } from './components/LandingPage';
 import { SocketProvider, useSocket } from './context/SocketContext';
-import { 
-  ShieldAlert, 
-  CheckCircle2, 
-  Clock, 
+import {
+  ShieldAlert,
+  CheckCircle2,
+  Clock,
   Sparkles,
   TrendingUp,
   Inbox,
@@ -23,7 +29,7 @@ import {
   Bot,
   Mail,
   Radio,
-  Bell
+  Bell,
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -36,20 +42,30 @@ interface MetricCardProps {
   icon: React.ReactNode;
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, isPositive, icon }) => {
+const MetricCard: React.FC<MetricCardProps> = ({
+  title,
+  value,
+  change,
+  isPositive,
+  icon,
+}) => {
   return (
     <div className="glass rounded-2xl p-5 border border-white/5 relative overflow-hidden transition-all duration-300 hover:border-white/10 hover:shadow-xl hover:translate-y-[-2px]">
       <div className="flex justify-between items-start mb-3">
         <span className="text-xs font-medium text-gray-400">{title}</span>
-        <div className="p-2 rounded-xl bg-white/5 text-indigo-400">
-          {icon}
-        </div>
+        <div className="p-2 rounded-xl bg-white/5 text-indigo-400">{icon}</div>
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-bold tracking-tight text-white">{value}</span>
-        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-          isPositive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
-        }`}>
+        <span className="text-2xl font-bold tracking-tight text-white">
+          {value}
+        </span>
+        <span
+          className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+            isPositive
+              ? 'bg-emerald-500/10 text-emerald-400'
+              : 'bg-rose-500/10 text-rose-400'
+          }`}
+        >
           {change}
         </span>
       </div>
@@ -88,7 +104,8 @@ const DashboardContent: React.FC = () => {
     const path = location.pathname;
     if (path.endsWith('/tasks') || path.includes('/tasks/')) return 'tasks';
     if (path.endsWith('/rules') || path.includes('/rules/')) return 'rules';
-    if (path.endsWith('/settings') || path.includes('/settings/')) return 'settings';
+    if (path.endsWith('/settings') || path.includes('/settings/'))
+      return 'settings';
     return 'inbox';
   };
 
@@ -132,7 +149,7 @@ const DashboardContent: React.FC = () => {
     const loadSettings = async () => {
       try {
         const res = await fetch(`${API_BASE}/api/users/me/settings`, {
-          credentials: 'include'
+          credentials: 'include',
         });
         if (res.ok) {
           const data = await res.json();
@@ -155,14 +172,14 @@ const DashboardContent: React.FC = () => {
       const res = await fetch(`${API_BASE}/api/users/me/settings`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           theme,
           signature: signature || null,
-          autoReply
+          autoReply,
         }),
-        credentials: 'include'
+        credentials: 'include',
       });
 
       if (res.ok) {
@@ -179,10 +196,34 @@ const DashboardContent: React.FC = () => {
   };
 
   const metrics = [
-    { title: 'Total Ingested', value: '1,284', change: '+12%', isPositive: true, icon: <Inbox size={18} /> },
-    { title: 'Urgent Action Required', value: '4', change: '-25%', isPositive: true, icon: <ShieldAlert size={18} className="text-amber-400 animate-pulse" /> },
-    { title: 'Auto-resolved / Closed', value: '84%', change: '+3.5%', isPositive: true, icon: <CheckCircle2 size={18} className="text-emerald-400" /> },
-    { title: 'Average Action Time', value: '1.2m', change: '-12%', isPositive: true, icon: <Clock size={18} /> },
+    {
+      title: 'Total Ingested',
+      value: '1,284',
+      change: '+12%',
+      isPositive: true,
+      icon: <Inbox size={18} />,
+    },
+    {
+      title: 'Urgent Action Required',
+      value: '4',
+      change: '-25%',
+      isPositive: true,
+      icon: <ShieldAlert size={18} className="text-amber-400 animate-pulse" />,
+    },
+    {
+      title: 'Auto-resolved / Closed',
+      value: '84%',
+      change: '+3.5%',
+      isPositive: true,
+      icon: <CheckCircle2 size={18} className="text-emerald-400" />,
+    },
+    {
+      title: 'Average Action Time',
+      value: '1.2m',
+      change: '-12%',
+      isPositive: true,
+      icon: <Clock size={18} />,
+    },
   ];
 
   if (activeTab === 'settings') {
@@ -199,10 +240,12 @@ const DashboardContent: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-5">
             <div className="text-left">
               <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                System Preferences <Sliders className="text-indigo-400 animate-pulse" size={18} />
+                System Preferences{' '}
+                <Sliders className="text-indigo-400 animate-pulse" size={18} />
               </h2>
               <p className="text-xs text-gray-400">
-                Configure your AI operating system settings, LLM integration, and outbound channels.
+                Configure your AI operating system settings, LLM integration,
+                and outbound channels.
               </p>
             </div>
             {saveSuccess && (
@@ -214,14 +257,25 @@ const DashboardContent: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
-            
             {/* Preferences sub-navigation */}
             <div className="md:col-span-1 flex flex-col gap-1.5">
               {[
-                { id: 'profile', label: 'General Profile', icon: <User size={16} /> },
+                {
+                  id: 'profile',
+                  label: 'General Profile',
+                  icon: <User size={16} />,
+                },
                 { id: 'ai', label: 'AI Intelligence', icon: <Bot size={16} /> },
-                { id: 'integrations', label: 'Connections', icon: <Mail size={16} /> },
-                { id: 'notifications', label: 'Alert Rules', icon: <Bell size={16} /> },
+                {
+                  id: 'integrations',
+                  label: 'Connections',
+                  icon: <Mail size={16} />,
+                },
+                {
+                  id: 'notifications',
+                  label: 'Alert Rules',
+                  icon: <Bell size={16} />,
+                },
               ].map((subTab) => (
                 <button
                   key={subTab.id}
@@ -241,13 +295,17 @@ const DashboardContent: React.FC = () => {
             {/* Form card */}
             <div className="md:col-span-3 glass border border-white/5 rounded-2xl p-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-2xl rounded-full" />
-              
+
               {settingsSubTab === 'profile' && (
                 <form onSubmit={handleSave} className="space-y-6 text-left">
-                  <h3 className="text-sm font-semibold text-white">General & Account Profile</h3>
+                  <h3 className="text-sm font-semibold text-white">
+                    General & Account Profile
+                  </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Full Name</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                        Full Name
+                      </label>
                       <input
                         type="text"
                         value={profileName}
@@ -258,7 +316,9 @@ const DashboardContent: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Email Address</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                        Email Address
+                      </label>
                       <input
                         type="email"
                         value={profileEmail}
@@ -269,7 +329,9 @@ const DashboardContent: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-2 col-span-1">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Email Signature</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                        Email Signature
+                      </label>
                       <input
                         type="text"
                         value={signature}
@@ -286,21 +348,34 @@ const DashboardContent: React.FC = () => {
                           onChange={(e) => setAutoReply(e.target.checked)}
                           className="h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-500/30"
                         />
-                        <span className="text-xs font-semibold text-gray-300">Enable Auto Reply</span>
+                        <span className="text-xs font-semibold text-gray-300">
+                          Enable Auto Reply
+                        </span>
                       </label>
                     </div>
                   </div>
 
                   <div className="border-t border-white/5 pt-5 space-y-4">
-                    <h4 className="text-xs font-semibold text-gray-300">Theme Preferences</h4>
+                    <h4 className="text-xs font-semibold text-gray-300">
+                      Theme Preferences
+                    </h4>
                     <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
                       <div>
-                        <p className="text-xs font-semibold text-gray-200">Interface Theme: <span className="text-indigo-400 capitalize">{theme}</span></p>
-                        <p className="text-[10px] text-gray-500">Toggle between dark and light themes.</p>
+                        <p className="text-xs font-semibold text-gray-200">
+                          Interface Theme:{' '}
+                          <span className="text-indigo-400 capitalize">
+                            {theme}
+                          </span>
+                        </p>
+                        <p className="text-[10px] text-gray-500">
+                          Toggle between dark and light themes.
+                        </p>
                       </div>
-                      <button 
-                        type="button" 
-                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTheme(theme === 'dark' ? 'light' : 'dark')
+                        }
                         className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 text-[10px] font-bold transition-all uppercase tracking-wider"
                       >
                         Toggle {theme === 'dark' ? 'Light' : 'Dark'} Mode
@@ -323,27 +398,42 @@ const DashboardContent: React.FC = () => {
               {settingsSubTab === 'ai' && (
                 <form onSubmit={handleSave} className="space-y-6 text-left">
                   <div>
-                    <h3 className="text-sm font-semibold text-white mb-1">AI Processor Model</h3>
-                    <p className="text-[11px] text-gray-500">Choose the LLM engine that parses, scores, and classifies incoming streams.</p>
+                    <h3 className="text-sm font-semibold text-white mb-1">
+                      AI Processor Model
+                    </h3>
+                    <p className="text-[11px] text-gray-500">
+                      Choose the LLM engine that parses, scores, and classifies
+                      incoming streams.
+                    </p>
                   </div>
 
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">AI Provider</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                        AI Provider
+                      </label>
                       <select
                         value={aiProvider}
                         onChange={(e) => setAiProvider(e.target.value)}
                         className="w-full bg-[#131625] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-gray-100 focus:outline-none focus:border-indigo-500/40 focus:ring-1 focus:ring-indigo-500/25 transition-all"
                       >
-                        <option value="openai">OpenAI GPT-4o API (Cloud)</option>
-                        <option value="gemini">Google Gemini 1.5 Pro API (Cloud)</option>
-                        <option value="ollama">Ollama Llama 3 (Local Self-Hosted)</option>
+                        <option value="openai">
+                          OpenAI GPT-4o API (Cloud)
+                        </option>
+                        <option value="gemini">
+                          Google Gemini 1.5 Pro API (Cloud)
+                        </option>
+                        <option value="ollama">
+                          Ollama Llama 3 (Local Self-Hosted)
+                        </option>
                       </select>
                     </div>
 
                     {aiProvider === 'openai' && (
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">OpenAI API Key</label>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                          OpenAI API Key
+                        </label>
                         <input
                           type="password"
                           value={openaiKey}
@@ -356,7 +446,9 @@ const DashboardContent: React.FC = () => {
 
                     {aiProvider === 'gemini' && (
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Gemini API Key</label>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                          Gemini API Key
+                        </label>
                         <input
                           type="password"
                           value={geminiKey}
@@ -369,7 +461,9 @@ const DashboardContent: React.FC = () => {
 
                     {aiProvider === 'ollama' && (
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Ollama Connection URL</label>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                          Ollama Connection URL
+                        </label>
                         <input
                           type="url"
                           value={ollamaUrl}
@@ -396,8 +490,13 @@ const DashboardContent: React.FC = () => {
               {settingsSubTab === 'integrations' && (
                 <div className="space-y-6 text-left">
                   <div>
-                    <h3 className="text-sm font-semibold text-white mb-1">Inbox Connections</h3>
-                    <p className="text-[11px] text-gray-500">Enable ingestion sources or connection webhooks to monitor and fetch mail.</p>
+                    <h3 className="text-sm font-semibold text-white mb-1">
+                      Inbox Connections
+                    </h3>
+                    <p className="text-[11px] text-gray-500">
+                      Enable ingestion sources or connection webhooks to monitor
+                      and fetch mail.
+                    </p>
                   </div>
 
                   <div className="space-y-4">
@@ -408,17 +507,20 @@ const DashboardContent: React.FC = () => {
                           <Mail size={18} />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-white">Gmail Account</p>
+                          <p className="text-xs font-semibold text-white">
+                            Gmail Account
+                          </p>
                           <p className="text-[10px] text-emerald-400 flex items-center gap-1 font-medium">
-                            <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse" /> Connected
+                            <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse" />{' '}
+                            Connected
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={() => setGmailConnected(!gmailConnected)}
                         className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                          gmailConnected 
-                            ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5' 
+                          gmailConnected
+                            ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5'
                             : 'bg-indigo-600 hover:bg-indigo-500 text-white border-transparent'
                         }`}
                       >
@@ -433,15 +535,19 @@ const DashboardContent: React.FC = () => {
                           <Mail size={18} />
                         </div>
                         <div>
-                          <p className="text-xs font-semibold text-white">Outlook / Exchange</p>
-                          <p className="text-[10px] text-gray-500">Not Connected</p>
+                          <p className="text-xs font-semibold text-white">
+                            Outlook / Exchange
+                          </p>
+                          <p className="text-[10px] text-gray-500">
+                            Not Connected
+                          </p>
                         </div>
                       </div>
                       <button
                         onClick={() => setOutlookConnected(!outlookConnected)}
                         className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                          outlookConnected 
-                            ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5' 
+                          outlookConnected
+                            ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5'
                             : 'bg-indigo-600 hover:bg-indigo-500 text-white border-transparent'
                         }`}
                       >
@@ -451,28 +557,39 @@ const DashboardContent: React.FC = () => {
 
                     {/* Telegram Bot */}
                     <div className="border-t border-white/5 pt-5 space-y-4">
-                      <h4 className="text-xs font-semibold text-gray-300">Telegram Control Channel</h4>
+                      <h4 className="text-xs font-semibold text-gray-300">
+                        Telegram Control Channel
+                      </h4>
                       <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 bg-sky-500/10 text-sky-400 rounded-xl flex items-center justify-center shrink-0">
                             <Radio size={18} />
                           </div>
                           <div>
-                            <p className="text-xs font-semibold text-white">Telegram Ingestion Bot</p>
-                            <p className={`text-[10px] flex items-center gap-1 font-medium ${telegramConnected ? 'text-emerald-400' : 'text-gray-500'}`}>
+                            <p className="text-xs font-semibold text-white">
+                              Telegram Ingestion Bot
+                            </p>
+                            <p
+                              className={`text-[10px] flex items-center gap-1 font-medium ${telegramConnected ? 'text-emerald-400' : 'text-gray-500'}`}
+                            >
                               {telegramConnected ? (
                                 <>
-                                  <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse" /> Active
+                                  <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse" />{' '}
+                                  Active
                                 </>
-                              ) : 'Inactive'}
+                              ) : (
+                                'Inactive'
+                              )}
                             </p>
                           </div>
                         </div>
                         <button
-                          onClick={() => setTelegramConnected(!telegramConnected)}
+                          onClick={() =>
+                            setTelegramConnected(!telegramConnected)
+                          }
                           className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                            telegramConnected 
-                              ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5' 
+                            telegramConnected
+                              ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5'
                               : 'bg-indigo-600 hover:bg-indigo-500 text-white border-transparent'
                           }`}
                         >
@@ -482,7 +599,9 @@ const DashboardContent: React.FC = () => {
 
                       {telegramConnected && (
                         <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Bot Token</label>
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                            Bot Token
+                          </label>
                           <input
                             type="password"
                             value={telegramToken}
@@ -500,23 +619,32 @@ const DashboardContent: React.FC = () => {
               {settingsSubTab === 'notifications' && (
                 <form onSubmit={handleSave} className="space-y-6 text-left">
                   <div>
-                    <h3 className="text-sm font-semibold text-white mb-1">Notification Routing Rules</h3>
-                    <p className="text-[11px] text-gray-500">Configure thresholds and channels where InboxOS alerts you about incoming emails.</p>
+                    <h3 className="text-sm font-semibold text-white mb-1">
+                      Notification Routing Rules
+                    </h3>
+                    <p className="text-[11px] text-gray-500">
+                      Configure thresholds and channels where InboxOS alerts you
+                      about incoming emails.
+                    </p>
                   </div>
 
                   <div className="space-y-4">
                     {/* Push Alerts */}
                     <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
                       <div>
-                        <p className="text-xs font-semibold text-gray-200">Dashboard Banner Alerts</p>
-                        <p className="text-[10px] text-gray-500">Display popup overlays when matching tasks run.</p>
+                        <p className="text-xs font-semibold text-gray-200">
+                          Dashboard Banner Alerts
+                        </p>
+                        <p className="text-[10px] text-gray-500">
+                          Display popup overlays when matching tasks run.
+                        </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setPushEnabled(!pushEnabled)}
                         className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                          pushEnabled 
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                          pushEnabled
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                             : 'bg-white/5 border-white/5 text-gray-500'
                         }`}
                       >
@@ -527,15 +655,20 @@ const DashboardContent: React.FC = () => {
                     {/* Telegram Delivery */}
                     <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
                       <div>
-                        <p className="text-xs font-semibold text-gray-200">Telegram Escalation</p>
-                        <p className="text-[10px] text-gray-500">Forward high-urgency notifications directly to your chat.</p>
+                        <p className="text-xs font-semibold text-gray-200">
+                          Telegram Escalation
+                        </p>
+                        <p className="text-[10px] text-gray-500">
+                          Forward high-urgency notifications directly to your
+                          chat.
+                        </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setTelegramAlerts(!telegramAlerts)}
                         className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                          telegramAlerts 
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                          telegramAlerts
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                             : 'bg-white/5 border-white/5 text-gray-500'
                         }`}
                       >
@@ -546,15 +679,20 @@ const DashboardContent: React.FC = () => {
                     {/* WhatsApp */}
                     <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
                       <div>
-                        <p className="text-xs font-semibold text-gray-200">WhatsApp Urgent Alerts</p>
-                        <p className="text-[10px] text-gray-500">Use Twilio to SMS high importance tasks or billing alerts.</p>
+                        <p className="text-xs font-semibold text-gray-200">
+                          WhatsApp Urgent Alerts
+                        </p>
+                        <p className="text-[10px] text-gray-500">
+                          Use Twilio to SMS high importance tasks or billing
+                          alerts.
+                        </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setWhatsappAlerts(!whatsappAlerts)}
                         className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                          whatsappAlerts 
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                          whatsappAlerts
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                             : 'bg-white/5 border-white/5 text-gray-500'
                         }`}
                       >
@@ -566,7 +704,9 @@ const DashboardContent: React.FC = () => {
                     <div className="border-t border-white/5 pt-5 space-y-3">
                       <div className="flex justify-between items-center text-xs font-semibold text-gray-300">
                         <span>Minimum Priority Alert Score</span>
-                        <span className="text-indigo-400 font-extrabold">{minPriority}%</span>
+                        <span className="text-indigo-400 font-extrabold">
+                          {minPriority}%
+                        </span>
                       </div>
                       <input
                         type="range"
@@ -578,7 +718,8 @@ const DashboardContent: React.FC = () => {
                         className="w-full accent-indigo-500 h-1 bg-white/10 rounded-lg cursor-pointer"
                       />
                       <p className="text-[10px] text-gray-500">
-                        Only emails with AI importance rating at or above {minPriority} will trigger instant push notifications.
+                        Only emails with AI importance rating at or above{' '}
+                        {minPriority} will trigger instant push notifications.
                       </p>
                     </div>
                   </div>
@@ -594,7 +735,6 @@ const DashboardContent: React.FC = () => {
                   </div>
                 </form>
               )}
-
             </div>
           </div>
         </div>
@@ -603,10 +743,7 @@ const DashboardContent: React.FC = () => {
   }
 
   return (
-    <Layout 
-      activeTab={activeTab} 
-      setActiveTab={setActiveTab}
-    >
+    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-indigo-600/95 border border-indigo-500/30 text-white text-xs font-semibold shadow-2xl backdrop-blur-md animate-bounce">
           <Sparkles size={14} className="text-amber-300" />
@@ -617,10 +754,12 @@ const DashboardContent: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-              Workspace Overview <Sparkles size={16} className="text-indigo-400" />
+              Workspace Overview{' '}
+              <Sparkles size={16} className="text-indigo-400" />
             </h2>
             <p className="text-xs text-gray-400">
-              InboxOS has resolved **87** tasks today automatically. Your inbox is clean.
+              InboxOS has resolved **87** tasks today automatically. Your inbox
+              is clean.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -664,8 +803,12 @@ const DashboardContent: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Zap size={14} className="text-amber-400" />
                     <div>
-                      <p className="text-xs font-semibold text-gray-200">OTP Auto-Extract</p>
-                      <p className="text-[9px] text-gray-500">Fast-path codes to clipboard</p>
+                      <p className="text-xs font-semibold text-gray-200">
+                        OTP Auto-Extract
+                      </p>
+                      <p className="text-[9px] text-gray-500">
+                        Fast-path codes to clipboard
+                      </p>
                     </div>
                   </div>
                   <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -677,8 +820,12 @@ const DashboardContent: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Zap size={14} className="text-indigo-400" />
                     <div>
-                      <p className="text-xs font-semibold text-gray-200">Finance Alert Channel</p>
-                      <p className="text-[9px] text-gray-500">Route invoices to WhatsApp</p>
+                      <p className="text-xs font-semibold text-gray-200">
+                        Finance Alert Channel
+                      </p>
+                      <p className="text-[9px] text-gray-500">
+                        Route invoices to WhatsApp
+                      </p>
                     </div>
                   </div>
                   <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -690,8 +837,12 @@ const DashboardContent: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Zap size={14} className="text-gray-400" />
                     <div>
-                      <p className="text-xs font-semibold text-gray-200">Newsletter Digest</p>
-                      <p className="text-[9px] text-gray-500">Compile weekly updates</p>
+                      <p className="text-xs font-semibold text-gray-200">
+                        Newsletter Digest
+                      </p>
+                      <p className="text-[9px] text-gray-500">
+                        Compile weekly updates
+                      </p>
                     </div>
                   </div>
                   <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -713,10 +864,13 @@ const DashboardContent: React.FC = () => {
 
               <div className="glass rounded-2xl p-5 border border-white/5 space-y-4">
                 <div className="h-16 flex items-end gap-1.5">
-                  {[45, 60, 30, 80, 65, 95, 40, 50, 75, 90, 85, 30, 45, 60, 85, 95, 70, 55, 60, 90].map((h, i) => (
-                    <div 
-                      key={i} 
-                      className="flex-1 bg-indigo-500/30 rounded-t transition-all hover:bg-indigo-500" 
+                  {[
+                    45, 60, 30, 80, 65, 95, 40, 50, 75, 90, 85, 30, 45, 60, 85,
+                    95, 70, 55, 60, 90,
+                  ].map((h, i) => (
+                    <div
+                      key={i}
+                      className="flex-1 bg-indigo-500/30 rounded-t transition-all hover:bg-indigo-500"
                       style={{ height: `${h}%` }}
                     />
                   ))}
@@ -742,15 +896,15 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
-        <Route 
-          path="/dashboard/*" 
+        <Route
+          path="/dashboard/*"
           element={
             <ProtectedRoute>
               <SocketProvider>
                 <DashboardContent />
               </SocketProvider>
             </ProtectedRoute>
-          } 
+          }
         />
         {/* Fallback to landing page */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import DOMPurify from 'dompurify';
-import { 
-  ArrowLeft, 
-  Sparkles, 
-  Calendar, 
-  CheckSquare, 
-  AlertTriangle, 
-  User, 
-  Clock, 
+import {
+  ArrowLeft,
+  Sparkles,
+  Calendar,
+  CheckSquare,
+  AlertTriangle,
+  User,
+  Clock,
   ClipboardList,
   Flame,
   CheckCircle2,
-  Trash2
+  Trash2,
 } from 'lucide-react';
 import { type EmailData } from './EmailRow';
 import { useCompose } from '../context/ComposeContext';
@@ -20,14 +20,16 @@ import { useCompose } from '../context/ComposeContext';
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Detailed mock data containing body_html with potentially dangerous scripts (to verify sanitization)
-const DETAILED_MOCK_EMAILS: Record<string, EmailData & { body_html?: string }> = {
-  e1: {
-    id: 'e1',
-    sender: 'security@google.com',
-    sender_name: 'Google Security',
-    subject: 'Critical security alert for your linked account',
-    body_text: 'We detected a login attempt from a new device in Tokyo, Japan. Please verify if this was you by entering the verification code: 490102.',
-    body_html: `
+const DETAILED_MOCK_EMAILS: Record<string, EmailData & { body_html?: string }> =
+  {
+    e1: {
+      id: 'e1',
+      sender: 'security@google.com',
+      sender_name: 'Google Security',
+      subject: 'Critical security alert for your linked account',
+      body_text:
+        'We detected a login attempt from a new device in Tokyo, Japan. Please verify if this was you by entering the verification code: 490102.',
+      body_html: `
       <div style="font-family: sans-serif; padding: 20px; color: #333; background-color: #f9f9f9; border-radius: 8px;">
         <h2 style="color: #d93025; margin-bottom: 16px;">New Sign-in Alert</h2>
         <p>A new sign-in attempt was detected on your account from a device in <strong>Tokyo, Japan</strong>.</p>
@@ -41,23 +43,25 @@ const DETAILED_MOCK_EMAILS: Record<string, EmailData & { body_html?: string }> =
         <img src="doesnotexist" onerror="console.log('XSS attempt via image onerror trigger!')" style="display:none;" />
       </div>
     `,
-    category: 'otp',
-    createdAt: new Date().toISOString(),
-    analysis: {
       category: 'otp',
-      priority_score: 98,
-      urgency_score: 98,
-      actionability_score: 95,
-      summary: 'Google security alert notifying user of a login attempt in Tokyo, requesting verification via OTP code 490102.'
-    }
-  },
-  e2: {
-    id: 'e2',
-    sender: 'billing@stripe.com',
-    sender_name: 'Stripe Billing',
-    subject: 'Your Stripe Invoice #INV-88902 is ready',
-    body_text: 'Your monthly billing cycle has ended. A payment of $120.00 will be auto-debited from your visa ending in 4242 on July 5th. Review your invoice details.',
-    body_html: `
+      createdAt: new Date().toISOString(),
+      analysis: {
+        category: 'otp',
+        priority_score: 98,
+        urgency_score: 98,
+        actionability_score: 95,
+        summary:
+          'Google security alert notifying user of a login attempt in Tokyo, requesting verification via OTP code 490102.',
+      },
+    },
+    e2: {
+      id: 'e2',
+      sender: 'billing@stripe.com',
+      sender_name: 'Stripe Billing',
+      subject: 'Your Stripe Invoice #INV-88902 is ready',
+      body_text:
+        'Your monthly billing cycle has ended. A payment of $120.00 will be auto-debited from your visa ending in 4242 on July 5th. Review your invoice details.',
+      body_html: `
       <div style="font-family: sans-serif; padding: 24px; color: #1f2937;">
         <img src="https://stripe.com/img/v3/home/twitter.png" width="40" alt="Stripe" style="margin-bottom: 20px;" />
         <h3 style="color: #635bff; margin: 0 0 10px 0;">Invoice #INV-88902</h3>
@@ -83,23 +87,25 @@ const DETAILED_MOCK_EMAILS: Record<string, EmailData & { body_html?: string }> =
         <p style="font-size: 13px; color: #6b7280;">If you have any questions, reach out to our team at support@stripe.com.</p>
       </div>
     `,
-    category: 'finance',
-    createdAt: new Date().toISOString(),
-    analysis: {
       category: 'finance',
-      priority_score: 82,
-      urgency_score: 75,
-      actionability_score: 60,
-      summary: 'Stripe invoice details for monthly billing cycle. Total charge is $120.00 USD, scheduled for auto-debit on July 5, 2026.'
-    }
-  },
-  e3: {
-    id: 'e3',
-    sender: 'stripe-jobs@stripe.com',
-    sender_name: 'Stripe Recruiting',
-    subject: 'Technical Coding Interview - Software Engineer Intern',
-    body_text: 'Thank you for your application to Stripe. We would like to invite you for a 45-minute technical coding interview. Please use this calendar link to pick a slot before Friday.',
-    body_html: `
+      createdAt: new Date().toISOString(),
+      analysis: {
+        category: 'finance',
+        priority_score: 82,
+        urgency_score: 75,
+        actionability_score: 60,
+        summary:
+          'Stripe invoice details for monthly billing cycle. Total charge is $120.00 USD, scheduled for auto-debit on July 5, 2026.',
+      },
+    },
+    e3: {
+      id: 'e3',
+      sender: 'stripe-jobs@stripe.com',
+      sender_name: 'Stripe Recruiting',
+      subject: 'Technical Coding Interview - Software Engineer Intern',
+      body_text:
+        'Thank you for your application to Stripe. We would like to invite you for a 45-minute technical coding interview. Please use this calendar link to pick a slot before Friday.',
+      body_html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e1e1e1; border-radius: 8px; padding: 24px;">
         <h2 style="color: #635bff; margin-top: 0;">Congratulations!</h2>
         <p>Dear Candidate,</p>
@@ -112,23 +118,25 @@ const DETAILED_MOCK_EMAILS: Record<string, EmailData & { body_html?: string }> =
         <p>Best regards,<br/>The Stripe Recruiting Team</p>
       </div>
     `,
-    category: 'job',
-    createdAt: new Date().toISOString(),
-    analysis: {
       category: 'job',
-      priority_score: 88,
-      urgency_score: 90,
-      actionability_score: 95,
-      summary: 'Invitation to schedule a 45-minute technical interview for the SWE Intern position at Stripe. Deadline is Friday.'
-    }
-  },
-  e4: {
-    id: 'e4',
-    sender: 'prof.sharma@university.edu',
-    sender_name: 'Prof. Sharma (DBMS)',
-    subject: 'DBMS Mini-Project Submission Deadline Tonight',
-    body_text: 'Dear students, this is a final reminder that the database management system mini-project submission portal closes tonight at 11:59 PM. Absolutely no extensions will be granted.',
-    body_html: `
+      createdAt: new Date().toISOString(),
+      analysis: {
+        category: 'job',
+        priority_score: 88,
+        urgency_score: 90,
+        actionability_score: 95,
+        summary:
+          'Invitation to schedule a 45-minute technical interview for the SWE Intern position at Stripe. Deadline is Friday.',
+      },
+    },
+    e4: {
+      id: 'e4',
+      sender: 'prof.sharma@university.edu',
+      sender_name: 'Prof. Sharma (DBMS)',
+      subject: 'DBMS Mini-Project Submission Deadline Tonight',
+      body_text:
+        'Dear students, this is a final reminder that the database management system mini-project submission portal closes tonight at 11:59 PM. Absolutely no extensions will be granted.',
+      body_html: `
       <div style="font-family: serif; font-size: 16px; line-height: 1.6; padding: 20px; border-left: 4px solid #d93025; background: #fff8f8;">
         <h3 style="color: #d93025; margin-top: 0;">URGENT ACADEMIC NOTICE</h3>
         <p>Dear Class,</p>
@@ -143,29 +151,37 @@ const DETAILED_MOCK_EMAILS: Record<string, EmailData & { body_html?: string }> =
         <p>Best,<br/>Prof. Sharma</p>
       </div>
     `,
-    category: 'academic',
-    createdAt: new Date().toISOString(),
-    analysis: {
       category: 'academic',
-      priority_score: 95,
-      urgency_score: 98,
-      actionability_score: 98,
-      summary: 'Urgent reminder from Prof. Sharma regarding the DBMS Mini-Project deadline at 11:59 PM tonight, emphasizing strict grading constraints and no extensions.'
-    }
-  }
-};
+      createdAt: new Date().toISOString(),
+      analysis: {
+        category: 'academic',
+        priority_score: 95,
+        urgency_score: 98,
+        actionability_score: 98,
+        summary:
+          'Urgent reminder from Prof. Sharma regarding the DBMS Mini-Project deadline at 11:59 PM tonight, emphasizing strict grading constraints and no extensions.',
+      },
+    },
+  };
 
 interface EmailViewerProps {
   emailId: string;
   onBack: () => void;
 }
 
-export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => {
+export const EmailViewer: React.FC<EmailViewerProps> = ({
+  emailId,
+  onBack,
+}) => {
   const { openCompose } = useCompose();
-  const [checkedActions, setCheckedActions] = useState<Record<number, boolean>>({});
+  const [checkedActions, setCheckedActions] = useState<Record<number, boolean>>(
+    {}
+  );
 
   // Fetch full email details via TanStack Query
-  const { data, isLoading, isError } = useQuery<EmailData & { body_html?: string }>({
+  const { data, isLoading, isError } = useQuery<
+    EmailData & { body_html?: string }
+  >({
     queryKey: ['email-detail', emailId],
     queryFn: async () => {
       const response = await fetch(`${API_BASE}/emails/${emailId}`, {
@@ -185,13 +201,14 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
   });
 
   // Fallback to detailed mock records if API request fails
-  const email = data || DETAILED_MOCK_EMAILS[emailId] || DETAILED_MOCK_EMAILS['e1'];
+  const email =
+    data || DETAILED_MOCK_EMAILS[emailId] || DETAILED_MOCK_EMAILS['e1'];
 
   // Handle checked action items local toggle
   const toggleAction = (idx: number) => {
-    setCheckedActions(prev => ({
+    setCheckedActions((prev) => ({
       ...prev,
-      [idx]: !prev[idx]
+      [idx]: !prev[idx],
     }));
   };
 
@@ -215,9 +232,13 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
     return (
       <div className="glass rounded-2xl p-8 border border-rose-500/20 text-center flex flex-col items-center justify-center gap-3">
         <AlertTriangle size={32} className="text-rose-400" />
-        <h4 className="text-sm font-semibold text-white">Ingest Details Missing</h4>
-        <p className="text-xs text-gray-400">Failed to retrieve raw mail and context parameters.</p>
-        <button 
+        <h4 className="text-sm font-semibold text-white">
+          Ingest Details Missing
+        </h4>
+        <p className="text-xs text-gray-400">
+          Failed to retrieve raw mail and context parameters.
+        </p>
+        <button
           onClick={onBack}
           className="px-4 py-2 rounded-lg bg-white/5 text-gray-200 border border-white/5 text-xs font-semibold hover:bg-white/10 transition-all flex items-center gap-1.5"
         >
@@ -229,10 +250,37 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
   }
 
   // Sanitize the HTML body using DOMPurify before dangerously setting innerHTML
-  const rawBodyHtml = email.body_html || `<div style="font-family: sans-serif; white-space: pre-wrap; color: #d1d5db; line-height: 1.6;">${email.body_text || email.body || ''}</div>`;
+  const rawBodyHtml =
+    email.body_html ||
+    `<div style="font-family: sans-serif; white-space: pre-wrap; color: #d1d5db; line-height: 1.6;">${email.body_text || email.body || ''}</div>`;
   const sanitizedHtml = DOMPurify.sanitize(rawBodyHtml, {
-    ALLOWED_TAGS: ['div', 'p', 'b', 'i', 'em', 'strong', 'a', 'span', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'br', 'img', 'strong'],
-    ALLOWED_ATTR: ['href', 'style', 'src', 'alt', 'width', 'height', 'target']
+    ALLOWED_TAGS: [
+      'div',
+      'p',
+      'b',
+      'i',
+      'em',
+      'strong',
+      'a',
+      'span',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'ul',
+      'ol',
+      'li',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
+      'br',
+      'img',
+      'strong',
+    ],
+    ALLOWED_ATTR: ['href', 'style', 'src', 'alt', 'width', 'height', 'target'],
   });
 
   const priorityScore = email.analysis?.priority_score || 50;
@@ -241,37 +289,60 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
   const actionItems = (() => {
     if (email.id === 'e1') {
       return [
-        { desc: 'Confirm security code 490102 on Google accounts security portal', date: 'Immediate' },
-        { desc: 'Inspect current active session details in Google settings', date: 'Today' }
+        {
+          desc: 'Confirm security code 490102 on Google accounts security portal',
+          date: 'Immediate',
+        },
+        {
+          desc: 'Inspect current active session details in Google settings',
+          date: 'Today',
+        },
       ];
     } else if (email.id === 'e2') {
       return [
-        { desc: 'Verify Visa card ending in 4242 has sufficient balance for Vercel auto-debit', date: 'By July 5' },
-        { desc: 'Forward Stripe payment receipt to company ledger accounts', date: 'By July 10' }
+        {
+          desc: 'Verify Visa card ending in 4242 has sufficient balance for Vercel auto-debit',
+          date: 'By July 5',
+        },
+        {
+          desc: 'Forward Stripe payment receipt to company ledger accounts',
+          date: 'By July 10',
+        },
       ];
     } else if (email.id === 'e3') {
       return [
-        { desc: 'Choose a 45-minute technical coding interview slot via Calendly', date: 'By Friday 5 PM' },
-        { desc: 'Prepare algorithm, data structures, and complexity revision sheets', date: 'Ongoing' }
+        {
+          desc: 'Choose a 45-minute technical coding interview slot via Calendly',
+          date: 'By Friday 5 PM',
+        },
+        {
+          desc: 'Prepare algorithm, data structures, and complexity revision sheets',
+          date: 'Ongoing',
+        },
       ];
     } else if (email.id === 'e4') {
       return [
-        { desc: 'Compile mini-project database code into static ZIP format', date: 'By Tonight 11:59 PM' },
-        { desc: 'Submit Normal Form justifications doc to LMS submission panel', date: 'By Tonight 11:59 PM' }
+        {
+          desc: 'Compile mini-project database code into static ZIP format',
+          date: 'By Tonight 11:59 PM',
+        },
+        {
+          desc: 'Submit Normal Form justifications doc to LMS submission panel',
+          date: 'By Tonight 11:59 PM',
+        },
       ];
     }
     return [
       { desc: 'Review mail content for important details', date: 'As needed' },
-      { desc: 'Draft response to sender details', date: 'Within 24 hours' }
+      { desc: 'Draft response to sender details', date: 'Within 24 hours' },
     ];
   })();
 
   return (
     <div className="space-y-6">
-      
       {/* ── Header Action Bar ────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <button 
+        <button
           onClick={onBack}
           className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/5 transition-all text-xs font-semibold min-h-[44px] min-w-[44px]"
         >
@@ -288,16 +359,14 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
 
       {/* ── Main Split Panel Layout ────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        
         {/* ── Left Column: Email Content Viewport ────────────────────────────────── */}
         <section className="lg:col-span-2 glass rounded-3xl border border-white/5 overflow-hidden shadow-2xl flex flex-col min-h-[500px]">
-          
           {/* Ingest metadata header */}
           <div className="px-6 py-5 border-b border-white/5 bg-white/[0.01]">
             <h1 className="text-base font-bold text-white mb-3 tracking-tight">
               {email.subject}
             </h1>
-            
+
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-gray-400 text-sm font-semibold shrink-0">
@@ -315,7 +384,11 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
 
               <div className="text-left sm:text-right shrink-0">
                 <p className="text-[10px] text-gray-400 font-medium">
-                  {email.received_at ? new Date(email.received_at).toLocaleString() : email.createdAt ? new Date(email.createdAt).toLocaleString() : email.received || 'Recently'}
+                  {email.received_at
+                    ? new Date(email.received_at).toLocaleString()
+                    : email.createdAt
+                      ? new Date(email.createdAt).toLocaleString()
+                      : email.received || 'Recently'}
                 </p>
                 <p className="text-[9px] text-indigo-400 font-semibold mt-0.5">
                   to: {email.recipient || 'me@inboxos.dev'}
@@ -326,20 +399,17 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
 
           {/* Sanitized HTML Body Frame */}
           <div className="p-6 flex-1 bg-white/5 overflow-y-auto">
-            <div 
+            <div
               className="prose prose-invert max-w-none text-gray-300 text-xs leading-relaxed"
               dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
             />
           </div>
-
         </section>
 
         {/* ── Right Column: AI Insights Sidebar ────────────────────────────────── */}
         <aside className="space-y-6">
-          
           {/* AI Panel Wrapper - Elevated Background & Glass style */}
           <div className="glass bg-bg-elevated/75 border border-white/5 rounded-3xl p-5 shadow-2xl space-y-5">
-            
             {/* Header branding */}
             <div className="flex items-center justify-between pb-3.5 border-b border-white/5">
               <div className="flex items-center gap-2">
@@ -361,7 +431,8 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
               </h4>
               <div className="glass-panel p-3.5 rounded-2xl border border-white/5 bg-indigo-500/[0.01]">
                 <p className="text-xs text-gray-200 leading-normal">
-                  {email.analysis?.summary || 'AI system has classified this thread. Action items extracted below.'}
+                  {email.analysis?.summary ||
+                    'AI system has classified this thread. Action items extracted below.'}
                 </p>
               </div>
             </div>
@@ -372,25 +443,32 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
                 Decision Metrics
               </h4>
               <div className="grid grid-cols-3 gap-2">
-                
                 <div className="glass-panel p-2.5 rounded-xl border border-white/5 text-center">
                   <Flame size={14} className="text-rose-400 mx-auto mb-1.5" />
                   <p className="text-[9px] text-gray-400">Priority</p>
-                  <p className="text-xs font-extrabold text-white mt-0.5">{priorityScore}/100</p>
+                  <p className="text-xs font-extrabold text-white mt-0.5">
+                    {priorityScore}/100
+                  </p>
                 </div>
 
                 <div className="glass-panel p-2.5 rounded-xl border border-white/5 text-center">
                   <Clock size={14} className="text-amber-400 mx-auto mb-1.5" />
                   <p className="text-[9px] text-gray-400">Urgency</p>
-                  <p className="text-xs font-extrabold text-white mt-0.5">{email.analysis?.urgency_score || 50}/100</p>
+                  <p className="text-xs font-extrabold text-white mt-0.5">
+                    {email.analysis?.urgency_score || 50}/100
+                  </p>
                 </div>
 
                 <div className="glass-panel p-2.5 rounded-xl border border-white/5 text-center">
-                  <ClipboardList size={14} className="text-indigo-400 mx-auto mb-1.5" />
+                  <ClipboardList
+                    size={14}
+                    className="text-indigo-400 mx-auto mb-1.5"
+                  />
                   <p className="text-[9px] text-gray-400">Action</p>
-                  <p className="text-xs font-extrabold text-white mt-0.5">{email.analysis?.actionability_score || 50}/100</p>
+                  <p className="text-xs font-extrabold text-white mt-0.5">
+                    {email.analysis?.actionability_score || 50}/100
+                  </p>
                 </div>
-
               </div>
             </div>
 
@@ -403,26 +481,38 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
                 {actionItems.map((action, idx) => {
                   const isChecked = checkedActions[idx];
                   return (
-                    <div 
+                    <div
                       key={idx}
                       onClick={() => toggleAction(idx)}
                       className={`flex items-start gap-3 p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
-                        isChecked 
-                          ? 'bg-emerald-500/[0.03] border-emerald-500/20 text-gray-500' 
+                        isChecked
+                          ? 'bg-emerald-500/[0.03] border-emerald-500/20 text-gray-500'
                           : 'bg-white/5 border-white/5 text-gray-200 hover:border-white/10 hover:bg-white/10'
                       }`}
                     >
-                      <button 
+                      <button
                         type="button"
                         className={`mt-0.5 shrink-0 ${isChecked ? 'text-emerald-400' : 'text-gray-500'}`}
                       >
-                        {isChecked ? <CheckCircle2 size={14} fill="currentColor" className="text-emerald-500" /> : <CheckSquare size={14} />}
+                        {isChecked ? (
+                          <CheckCircle2
+                            size={14}
+                            fill="currentColor"
+                            className="text-emerald-500"
+                          />
+                        ) : (
+                          <CheckSquare size={14} />
+                        )}
                       </button>
                       <div className="min-w-0">
-                        <p className={`text-xs leading-normal ${isChecked ? 'line-through text-gray-500' : 'text-gray-200'}`}>
+                        <p
+                          className={`text-xs leading-normal ${isChecked ? 'line-through text-gray-500' : 'text-gray-200'}`}
+                        >
                           {action.desc}
                         </p>
-                        <span className={`text-[9px] font-semibold flex items-center gap-1.5 mt-1.5 ${isChecked ? 'text-gray-500' : 'text-indigo-400'}`}>
+                        <span
+                          className={`text-[9px] font-semibold flex items-center gap-1.5 mt-1.5 ${isChecked ? 'text-gray-500' : 'text-indigo-400'}`}
+                        >
                           <Calendar size={10} />
                           <span>{action.date}</span>
                         </span>
@@ -446,33 +536,31 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({ emailId, onBack }) => 
                 </div>
               </div>
             )}
-
           </div>
 
           {/* Quick Action buttons */}
           <div className="flex gap-3">
-            <button 
-              onClick={() => openCompose({
-                to: email.sender,
-                subject: `Re: ${email.subject}`,
-                body: email.analysis?.suggested_reply || ''
-              })}
+            <button
+              onClick={() =>
+                openCompose({
+                  to: email.sender,
+                  subject: `Re: ${email.subject}`,
+                  body: email.analysis?.suggested_reply || '',
+                })
+              }
               className="flex-1 py-3.5 text-xs font-semibold rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-center transition-all glow-accent min-h-[44px]"
             >
               Reply Draft
             </button>
-            <button 
+            <button
               onClick={() => alert('Archived Inbound.')}
               className="px-4 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/5 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
               <Trash2 size={16} />
             </button>
           </div>
-
         </aside>
-
       </div>
-
     </div>
   );
 };

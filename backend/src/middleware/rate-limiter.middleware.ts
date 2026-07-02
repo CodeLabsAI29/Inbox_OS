@@ -4,18 +4,25 @@ import RedisStore from 'rate-limit-redis';
 import Redis from 'ioredis';
 import { AuthService } from '../services/auth.service';
 
+const isTest = process.env.NODE_ENV === 'test';
+
 // Initialize Redis client using container environment variable, fallback to default local Redis URL
-const redisClient = new Redis(process.env.REDIS_URL || 'redis://redis:6379/0');
+const redisClient = !isTest
+  ? new Redis(process.env.REDIS_URL || 'redis://redis:6379/0')
+  : null;
 
 /**
  * Global rate-limiting middleware for all /api endpoints.
  * Integrates with Redis to store request count across service restarts and scale-outs.
  */
 export const rateLimiter = rateLimit({
-  store: new RedisStore({
-    // @ts-expect-error - compatibility mapping for ioredis and rate-limit-redis sendCommand structure
-    sendCommand: (...args: string[]) => redisClient.call(args[0], ...args.slice(1)),
-  }),
+  store: redisClient
+    ? new RedisStore({
+        // @ts-expect-error - compatibility mapping for ioredis and rate-limit-redis sendCommand structure
+        sendCommand: (...args: string[]) =>
+          redisClient.call(args[0], ...args.slice(1)),
+      })
+    : undefined, // Use default memory store in test env
   validate: false, // Suppress validations for custom configuration
   windowMs: 15 * 60 * 1000, // 15-minute window
   limit: async (req: Request) => {
@@ -45,7 +52,11 @@ export const rateLimiter = rateLimit({
       }
     }
     // Fallback to client IP address for public/anonymous requests
-    const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'anonymous';
+    const ip =
+      req.ip ||
+      req.headers['x-forwarded-for'] ||
+      req.socket.remoteAddress ||
+      'anonymous';
     const cleanIp = Array.isArray(ip) ? ip[0] : ip;
     return `rate-limit:public:${cleanIp}`;
   },

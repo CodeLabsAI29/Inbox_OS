@@ -4,7 +4,9 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 // Load environment variables from the shared configuration directory
-dotenv.config({ path: path.resolve(__dirname, '../../infrastructure/config/env/.env') });
+dotenv.config({
+  path: path.resolve(__dirname, '../../infrastructure/config/env/.env'),
+});
 
 const prisma = new PrismaClient();
 
@@ -12,8 +14,14 @@ async function runTest() {
   console.log('🧪 Starting AIService Thread Summarization Tests...');
   const activeProvider = process.env.AI_PROVIDER || 'openai';
   console.log(`Active AI_PROVIDER: ${activeProvider}`);
-  console.log('OpenAI API Key: ', process.env.OPENAI_API_KEY ? 'Present' : 'Missing');
-  console.log('Gemini API Key: ', process.env.GEMINI_API_KEY ? 'Present' : 'Missing');
+  console.log(
+    'OpenAI API Key: ',
+    process.env.OPENAI_API_KEY ? 'Present' : 'Missing'
+  );
+  console.log(
+    'Gemini API Key: ',
+    process.env.GEMINI_API_KEY ? 'Present' : 'Missing'
+  );
 
   try {
     // 1. Fetch or create a test User
@@ -49,7 +57,7 @@ async function runTest() {
       },
       {
         subject: 'Re: Project Launch Sync',
-        body: 'Awesome! I will handle the final DNS switchover on Friday at 6 AM. Let\'s meet tomorrow at 10 AM for a final sync before the release.',
+        body: "Awesome! I will handle the final DNS switchover on Friday at 6 AM. Let's meet tomorrow at 10 AM for a final sync before the release.",
         offsetMinutes: 20,
       },
     ];
@@ -69,17 +77,29 @@ async function runTest() {
           createdAt: new Date(baseTime.getTime() + item.offsetMinutes * 60000),
         },
       });
-      console.log(`📩 Created Email: ID = ${email.id}, CreatedAt = ${email.createdAt.toISOString()}`);
+      console.log(
+        `📩 Created Email: ID = ${email.id}, CreatedAt = ${email.createdAt.toISOString()}`
+      );
     }
 
     // Check if API keys are present and are not placeholders
     const openaiKey = process.env.OPENAI_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY;
-    const hasOpenAI = openaiKey && openaiKey !== 'sk-...' && openaiKey !== '...' && openaiKey !== '';
-    const hasGemini = geminiKey && geminiKey !== 'placeholder' && geminiKey !== '...' && geminiKey !== '';
+    const hasOpenAI =
+      openaiKey &&
+      openaiKey !== 'sk-...' &&
+      openaiKey !== '...' &&
+      openaiKey !== '';
+    const hasGemini =
+      geminiKey &&
+      geminiKey !== 'placeholder' &&
+      geminiKey !== '...' &&
+      geminiKey !== '';
 
     if (!hasOpenAI && !hasGemini) {
-      console.log('\n⚠️ Skipping AI integration tests in CI/dev environment due to missing/placeholder API keys.');
+      console.log(
+        '\n⚠️ Skipping AI integration tests in CI/dev environment due to missing/placeholder API keys.'
+      );
       return;
     }
 
@@ -97,15 +117,20 @@ async function runTest() {
       where: { id: thread.id },
     });
 
-    console.log(`\n💾 Persisted summary in Thread DB record:\n"${updatedThread?.summary}"`);
+    console.log(
+      `\n💾 Persisted summary in Thread DB record:\n"${updatedThread?.summary}"`
+    );
 
     if (updatedThread?.summary === summary) {
-      console.log('\n✅ PASSED: Thread record updated correctly with the generated summary!');
+      console.log(
+        '\n✅ PASSED: Thread record updated correctly with the generated summary!'
+      );
     } else {
-      console.error('\n❌ FAILED: Persisted summary does not match returned summary.');
+      console.error(
+        '\n❌ FAILED: Persisted summary does not match returned summary.'
+      );
       process.exit(1);
     }
-
   } catch (error: any) {
     console.error('\n❌ Test run failed with error:', error.message || error);
     process.exit(1);

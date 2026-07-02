@@ -18,17 +18,22 @@ export class TelegramNotificationService {
     };
     const emoji = emojiMap[priority] || '🔔';
     const text = `*${emoji} ${title}*\n\n${content}`;
-    
+
     try {
       const res = await TelegramBotService.sendMessage(chatId, text);
       if (res.ok) {
-        logger.info(`[TelegramNotification] Notification "${title}" sent successfully to chat ${chatId}`);
+        logger.info(
+          `[TelegramNotification] Notification "${title}" sent successfully to chat ${chatId}`
+        );
         return true;
       }
       logger.error(`[TelegramNotification] Telegram API returned error:`, res);
       return false;
     } catch (err: any) {
-      logger.error(`[TelegramNotification] Exception sending message: ${err.message}`, err);
+      logger.error(
+        `[TelegramNotification] Exception sending message: ${err.message}`,
+        err
+      );
       return false;
     }
   }
@@ -51,7 +56,11 @@ export class TelegramNotificationService {
   /**
    * AI Summary generation alert.
    */
-  public static async sendAISummaryAlert(chatId: string, emailSubject: string, summary: string): Promise<boolean> {
+  public static async sendAISummaryAlert(
+    chatId: string,
+    emailSubject: string,
+    summary: string
+  ): Promise<boolean> {
     const title = 'AI Summary Generated';
     const content = `*Email Subject:* ${emailSubject}\n\n*Summary:*\n_${summary}_`;
     return this.sendNotification(chatId, title, content, 'normal');
@@ -60,7 +69,10 @@ export class TelegramNotificationService {
   /**
    * Task completed alert.
    */
-  public static async sendTaskCompletedAlert(chatId: string, taskDescription: string): Promise<boolean> {
+  public static async sendTaskCompletedAlert(
+    chatId: string,
+    taskDescription: string
+  ): Promise<boolean> {
     const title = 'Task Completed';
     const content = `✅ *Description:* ${taskDescription}`;
     return this.sendNotification(chatId, title, content, 'normal');
@@ -69,7 +81,10 @@ export class TelegramNotificationService {
   /**
    * Workflow finished alert.
    */
-  public static async sendWorkflowFinishedAlert(chatId: string, workflowName: string): Promise<boolean> {
+  public static async sendWorkflowFinishedAlert(
+    chatId: string,
+    workflowName: string
+  ): Promise<boolean> {
     const title = 'Workflow Completed';
     const content = `⛓️ *Workflow:* \`${workflowName}\` executed successfully.`;
     return this.sendNotification(chatId, title, content, 'normal');
@@ -78,7 +93,10 @@ export class TelegramNotificationService {
   /**
    * Authentication alert.
    */
-  public static async sendAuthAlert(chatId: string, message: string): Promise<boolean> {
+  public static async sendAuthAlert(
+    chatId: string,
+    message: string
+  ): Promise<boolean> {
     const title = 'Security Alert';
     const content = `🔒 ${message}`;
     return this.sendNotification(chatId, title, content, 'high');
@@ -87,7 +105,10 @@ export class TelegramNotificationService {
   /**
    * System error alert.
    */
-  public static async sendSystemErrorAlert(chatId: string, errorMsg: string): Promise<boolean> {
+  public static async sendSystemErrorAlert(
+    chatId: string,
+    errorMsg: string
+  ): Promise<boolean> {
     const title = 'System Error Logged';
     const content = `⚠️ *Error Details:*\n\`\`\`\n${errorMsg}\n\`\`\``;
     return this.sendNotification(chatId, title, content, 'high');

@@ -1,8 +1,10 @@
 import { Email } from '@prisma/client';
 import { SlackNotifier } from './services/SlackNotifier';
 
+import * as dotenv from 'dotenv';
+
 // Load env configuration
-require('dotenv').config();
+dotenv.config();
 
 async function runTest() {
   const mockEmail: Email = {
@@ -18,14 +20,18 @@ async function runTest() {
     createdAt: new Date(),
     userId: 'user-id-abc',
     threadId: 'thread-id-xyz',
-    embedding: null
+    embedding: null,
   };
 
-  const mockSummary = 'Production database cluster is down in US-EAST-1 since 10:15 AM UTC. Site is currently returning 500 errors. DevOps team is actively troubleshooting the node and investigating replication lag issues.';
+  const mockSummary =
+    'Production database cluster is down in US-EAST-1 since 10:15 AM UTC. Site is currently returning 500 errors. DevOps team is actively troubleshooting the node and investigating replication lag issues.';
 
   console.log('Starting Slack notification test...');
-  const success = await SlackNotifier.sendEmailNotification(mockEmail, mockSummary);
-  
+  const success = await SlackNotifier.sendEmailNotification(
+    mockEmail,
+    mockSummary
+  );
+
   if (success) {
     console.log('Test completed: Slack notification sent successfully!');
   } else {

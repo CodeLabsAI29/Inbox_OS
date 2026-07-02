@@ -4,7 +4,9 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 // Load environment variables from the shared configuration directory
-dotenv.config({ path: path.resolve(__dirname, '../../infrastructure/config/env/.env') });
+dotenv.config({
+  path: path.resolve(__dirname, '../../infrastructure/config/env/.env'),
+});
 
 const prisma = new PrismaClient();
 
@@ -38,11 +40,21 @@ async function runTest() {
     // Check if API keys are present and are not placeholders
     const openaiKey = process.env.OPENAI_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY;
-    const hasOpenAI = openaiKey && openaiKey !== 'sk-...' && openaiKey !== '...' && openaiKey !== '';
-    const hasGemini = geminiKey && geminiKey !== 'placeholder' && geminiKey !== '...' && geminiKey !== '';
+    const hasOpenAI =
+      openaiKey &&
+      openaiKey !== 'sk-...' &&
+      openaiKey !== '...' &&
+      openaiKey !== '';
+    const hasGemini =
+      geminiKey &&
+      geminiKey !== 'placeholder' &&
+      geminiKey !== '...' &&
+      geminiKey !== '';
 
     if (!hasOpenAI && !hasGemini) {
-      console.log('\n⚠️ Skipping AI integration tests in CI/dev environment due to missing/placeholder API keys.');
+      console.log(
+        '\n⚠️ Skipping AI integration tests in CI/dev environment due to missing/placeholder API keys.'
+      );
       return;
     }
 
@@ -57,7 +69,10 @@ async function runTest() {
     console.log(`Email Body:\n"${emailWithActionsData.body}"`);
 
     // A. Call AI extraction
-    const actions1 = await AIService.extractActions(emailWithActionsData.subject, emailWithActionsData.body);
+    const actions1 = await AIService.extractActions(
+      emailWithActionsData.subject,
+      emailWithActionsData.body
+    );
     console.log('Extracted actions:', JSON.stringify(actions1, null, 2));
 
     // B. Save email to DB
@@ -93,7 +108,9 @@ async function runTest() {
     console.log('Saved actions in DB:', JSON.stringify(savedActions1, null, 2));
 
     if (savedActions1.length > 0) {
-      console.log('✅ Test Case 1 PASSED: Action items successfully extracted and saved to DB!');
+      console.log(
+        '✅ Test Case 1 PASSED: Action items successfully extracted and saved to DB!'
+      );
     } else {
       console.error('❌ Test Case 1 FAILED: No action items found in DB.');
       process.exit(1);
@@ -104,14 +121,20 @@ async function runTest() {
     console.log('Test Case 2: Email with no actionable requests');
     const emailNoActionsData = {
       subject: 'Just saying hi!',
-      body: 'Hey, just wanted to check in and see how you are doing. Hope you have a wonderful weekend! Let\'s catch up sometime next month.',
+      body: "Hey, just wanted to check in and see how you are doing. Hope you have a wonderful weekend! Let's catch up sometime next month.",
     };
 
     console.log(`Email Body:\n"${emailNoActionsData.body}"`);
 
     // A. Call AI extraction
-    const actions2 = await AIService.extractActions(emailNoActionsData.subject, emailNoActionsData.body);
-    console.log('Extracted actions (should be empty):', JSON.stringify(actions2, null, 2));
+    const actions2 = await AIService.extractActions(
+      emailNoActionsData.subject,
+      emailNoActionsData.body
+    );
+    console.log(
+      'Extracted actions (should be empty):',
+      JSON.stringify(actions2, null, 2)
+    );
 
     // B. Save email to DB
     const email2 = await prisma.email.create({
@@ -143,17 +166,26 @@ async function runTest() {
       where: { emailId: email2.id },
     });
 
-    console.log('Saved actions in DB (should be empty):', JSON.stringify(savedActions2, null, 2));
+    console.log(
+      'Saved actions in DB (should be empty):',
+      JSON.stringify(savedActions2, null, 2)
+    );
 
     if (savedActions2.length === 0) {
-      console.log('✅ Test Case 2 PASSED: Handles empty action item cases gracefully!');
+      console.log(
+        '✅ Test Case 2 PASSED: Handles empty action item cases gracefully!'
+      );
     } else {
-      console.error('❌ Test Case 2 FAILED: Saved action items when none were expected.');
+      console.error(
+        '❌ Test Case 2 FAILED: Saved action items when none were expected.'
+      );
       process.exit(1);
     }
-
   } catch (error: any) {
-    console.error('❌ Test execution failed with error:', error.message || error);
+    console.error(
+      '❌ Test execution failed with error:',
+      error.message || error
+    );
     process.exit(1);
   } finally {
     await prisma.$disconnect();

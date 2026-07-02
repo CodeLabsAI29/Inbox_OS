@@ -4,7 +4,9 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 
 // Load environment variables from the shared configuration directory
-dotenv.config({ path: path.resolve(__dirname, '../../infrastructure/config/env/.env') });
+dotenv.config({
+  path: path.resolve(__dirname, '../../infrastructure/config/env/.env'),
+});
 
 const prisma = new PrismaClient();
 
@@ -59,7 +61,12 @@ async function runTest() {
       const email = await prisma.email.create({
         data: {
           messageId: `msg-embed-${i}-${Date.now()}`,
-          sender: i === 0 ? 'billing@cloud.com' : i === 1 ? 'friend@gmail.com' : 'newsletter@jsweekly.com',
+          sender:
+            i === 0
+              ? 'billing@cloud.com'
+              : i === 1
+                ? 'friend@gmail.com'
+                : 'newsletter@jsweekly.com',
           recipient: user.email,
           subject: data.subject,
           body: data.body,
@@ -69,7 +76,9 @@ async function runTest() {
         },
       });
       emailIds.push(email.id);
-      console.log(`📩 Created Email: ID = ${email.id}, Subject = "${email.subject}"`);
+      console.log(
+        `📩 Created Email: ID = ${email.id}, Subject = "${email.subject}"`
+      );
     }
 
     // 4. Generate embeddings for each email
@@ -77,7 +86,9 @@ async function runTest() {
     for (const emailId of emailIds) {
       console.log(`Generating embedding for email: ${emailId}...`);
       const embedding = await AIService.embedEmail(emailId);
-      console.log(`✅ Embedding generated successfully! Dimension: ${embedding.length}`);
+      console.log(
+        `✅ Embedding generated successfully! Dimension: ${embedding.length}`
+      );
     }
 
     // 5. Query similarity search
@@ -87,18 +98,26 @@ async function runTest() {
 
     console.log('\n📊 Ranked Search Results:');
     results.forEach((res, index) => {
-      console.log(`[Rank ${index + 1}] Similarity: ${res.similarity.toFixed(4)} | Subject: "${res.subject}"`);
+      console.log(
+        `[Rank ${index + 1}] Similarity: ${res.similarity.toFixed(4)} | Subject: "${res.subject}"`
+      );
     });
 
     // 6. Assertions
     if (results.length > 0 && results[0].subject.includes('Invoice')) {
-      console.log('\n✅ PASSED: The semantic search correctly ranked the invoice email as the top result!');
+      console.log(
+        '\n✅ PASSED: The semantic search correctly ranked the invoice email as the top result!'
+      );
     } else {
-      console.error('\n❌ FAILED: The invoice email was not ranked as the top result.');
+      console.error(
+        '\n❌ FAILED: The invoice email was not ranked as the top result.'
+      );
     }
-
   } catch (error: any) {
-    console.error('\n❌ Test execution failed with error:', error.message || error);
+    console.error(
+      '\n❌ Test execution failed with error:',
+      error.message || error
+    );
   } finally {
     await prisma.$disconnect();
   }

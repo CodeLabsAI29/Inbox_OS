@@ -14,7 +14,7 @@ export class KeywordFilter {
     /click here to/i,
     /weekly digest/i,
     /monthly digest/i,
-    /newsletter/i
+    /newsletter/i,
   ];
 
   private static readonly SPAM_KEYWORDS: RegExp[] = [
@@ -33,18 +33,21 @@ export class KeywordFilter {
     /get rich/i,
     /100% free/i,
     /casino/i,
-    /viagra/i
+    /viagra/i,
   ];
 
   /**
    * Scans the email body text using fast regex matching.
    * Returns a category ('newsletter', 'spam') if a threshold of keywords is hit.
    * Returns null if no threshold is met.
-   * 
+   *
    * @param body The email body content.
    * @param threshold The number of unique keyword matches required to trigger the classification (default: 1).
    */
-  public static classify(body: string, threshold: number = 1): EmailCategory | null {
+  public static classify(
+    body: string,
+    threshold: number = 1
+  ): EmailCategory | null {
     if (!body) {
       return null;
     }

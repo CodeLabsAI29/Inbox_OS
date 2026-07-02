@@ -12,7 +12,7 @@ const SENSITIVE_KEYS = [
   'jwt',
   'client_secret',
   'clientsecret',
-  'secret'
+  'secret',
 ];
 
 /**
@@ -27,13 +27,13 @@ const redactFormat = winston.format((info) => {
       return {
         message: obj.message,
         stack: obj.stack,
-        ...redact({ ...obj })
+        ...redact({ ...obj }),
       };
     }
-    
+
     const newObj = { ...obj };
     for (const key of Object.keys(newObj)) {
-      if (SENSITIVE_KEYS.some(s => key.toLowerCase().includes(s))) {
+      if (SENSITIVE_KEYS.some((s) => key.toLowerCase().includes(s))) {
         newObj[key] = '[REDACTED]';
       } else if (typeof newObj[key] === 'object') {
         newObj[key] = redact(newObj[key]);
@@ -64,9 +64,7 @@ export const logger = winston.createLogger({
     redactFormat(),
     winston.format.json()
   ),
-  transports: [
-    new winston.transports.Console()
-  ]
+  transports: [new winston.transports.Console()],
 });
 
 export default logger;

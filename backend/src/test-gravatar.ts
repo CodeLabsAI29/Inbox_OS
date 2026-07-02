@@ -2,10 +2,19 @@ import { getGravatarUrl } from './utils/gravatar';
 
 function runTest() {
   const tests = [
-    { input: 'MyEmailAddress@example.com', expectedHash: '0bc83cb571cd1c50ba6f3e8a78ef1346' },
-    { input: '  myemailaddress@example.com  ', expectedHash: '0bc83cb571cd1c50ba6f3e8a78ef1346' },
-    { input: 'myemailaddress@example.com', expectedHash: '0bc83cb571cd1c50ba6f3e8a78ef1346' },
-    { input: '', expectedHash: '00000000000000000000000000000000' }
+    {
+      input: 'MyEmailAddress@example.com',
+      expectedHash: '0bc83cb571cd1c50ba6f3e8a78ef1346',
+    },
+    {
+      input: '  myemailaddress@example.com  ',
+      expectedHash: '0bc83cb571cd1c50ba6f3e8a78ef1346',
+    },
+    {
+      input: 'myemailaddress@example.com',
+      expectedHash: '0bc83cb571cd1c50ba6f3e8a78ef1346',
+    },
+    { input: '', expectedHash: '00000000000000000000000000000000' },
   ];
 
   console.log('==================================================');
@@ -17,7 +26,7 @@ function runTest() {
   for (const t of tests) {
     const url = getGravatarUrl(t.input);
     const expectedUrl = `https://www.gravatar.com/avatar/${t.expectedHash}?d=identicon`;
-    
+
     console.log(`Input: "${t.input}"`);
     console.log(`Result URL:   ${url}`);
     console.log(`Expected URL: ${expectedUrl}`);

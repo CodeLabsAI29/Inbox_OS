@@ -13,7 +13,9 @@ export class RulesEngineService {
    */
   public static async evaluateRules(email: any, userId: string): Promise<void> {
     try {
-      logger.info(`[RulesEngine] Evaluating rules for user: ${userId} on email: ${email.id}`);
+      logger.info(
+        `[RulesEngine] Evaluating rules for user: ${userId} on email: ${email.id}`
+      );
 
       // 1. Fetch active rules ordered by priority DESC
       const rules = await prisma.rule.findMany({
@@ -21,8 +23,8 @@ export class RulesEngineService {
         orderBy: { priority: 'desc' },
         include: {
           conditions: true,
-          actions: true
-        }
+          actions: true,
+        },
       });
 
       if (rules.length === 0) {
@@ -42,8 +44,10 @@ export class RulesEngineService {
         }
 
         if (match) {
-          logger.info(`[RulesEngine] Email ${email.id} matched rule: "${rule.name}" (${rule.id})`);
-          
+          logger.info(
+            `[RulesEngine] Email ${email.id} matched rule: "${rule.name}" (${rule.id})`
+          );
+
           let status: 'success' | 'failed' = 'success';
           let errorMessage: string | undefined = undefined;
 
@@ -55,7 +59,10 @@ export class RulesEngineService {
           } catch (actionErr: any) {
             status = 'failed';
             errorMessage = actionErr.message || String(actionErr);
-            logger.error(`[RulesEngine] Action execution failed for rule ${rule.id}:`, actionErr);
+            logger.error(
+              `[RulesEngine] Action execution failed for rule ${rule.id}:`,
+              actionErr
+            );
           }
 
           // 4. Log rule execution to the database
@@ -64,8 +71,8 @@ export class RulesEngineService {
               ruleId: rule.id,
               emailId: email.id,
               status,
-              errorMessage
-            }
+              errorMessage,
+            },
           });
 
           // Trigger WebSocket/EventBus notifications if necessary
@@ -76,7 +83,7 @@ export class RulesEngineService {
               ruleName: rule.name,
               emailId: email.id,
               status,
-              errorMessage
+              errorMessage,
             });
           } catch (wsErr) {
             // Ignore WS errors silently
@@ -85,7 +92,7 @@ export class RulesEngineService {
           // Alert user via Telegram about rule/workflow execution
           try {
             const userSettings = await prisma.userSettings.findFirst({
-              where: { userId, telegramEnabled: true }
+              where: { userId, telegramEnabled: true },
             });
             if (userSettings && userSettings.telegramChatId) {
               await TelegramNotificationService.sendWorkflowFinishedAlert(
@@ -94,7 +101,10 @@ export class RulesEngineService {
               );
             }
           } catch (teleErr) {
-            logger.error(`[RulesEngine] Failed to send Telegram rule notification:`, teleErr);
+            logger.error(
+              `[RulesEngine] Failed to send Telegram rule notification:`,
+              teleErr
+            );
           }
 
           // Stop at first matching rule to prevent rule collisions (standard priority rule execution)
@@ -102,11 +112,17 @@ export class RulesEngineService {
         }
       }
     } catch (err: any) {
-      logger.error(`[RulesEngine] Failed to evaluate rules:`, err.message || err);
+      logger.error(
+        `[RulesEngine] Failed to evaluate rules:`,
+        err.message || err
+      );
     }
   }
 
-  private static evaluateCondition(condition: RuleCondition, email: any): boolean {
+  private static evaluateCondition(
+    condition: RuleCondition,
+    email: any
+  ): boolean {
     const field = condition.field.toLowerCase();
     const operator = condition.operator.toLowerCase();
     const targetValue = condition.value;
@@ -161,47 +177,60 @@ export class RulesEngineService {
         case 'lt':
           return parseFloat(actualValue) < parseFloat(targetValue);
         case 'in':
-          const values = targetStr.split(',').map(v => v.trim());
+          const values = targetStr.split(',').map((v) => v.trim());
           return values.includes(actualStr);
         default:
-          logger.warn(`[RulesEngine] Unsupported condition operator: ${operator}`);
+          logger.warn(
+            `[RulesEngine] Unsupported condition operator: ${operator}`
+          );
           return false;
       }
     } catch (err) {
-      logger.error(`[RulesEngine] Operator evaluation error (${operator}):`, err);
+      logger.error(
+        `[RulesEngine] Operator evaluation error (${operator}):`,
+        err
+      );
       return false;
     }
   }
 
-  private static async executeAction(action: RuleAction, email: any, userId: string): Promise<void> {
+  private static async executeAction(
+    action: RuleAction,
+    email: any,
+    userId: string
+  ): Promise<void> {
     const config = action.config as any;
     const actionType = action.type.toLowerCase();
 
-    logger.info(`[RulesEngine] Executing action: ${action.type} for email: ${email.id}`);
+    logger.info(
+      `[RulesEngine] Executing action: ${action.type} for email: ${email.id}`
+    );
 
     switch (actionType) {
       case 'markasread':
         await prisma.email.update({
           where: { id: email.id },
-          data: { status: 'READ' }
+          data: { status: 'READ' },
         });
         break;
 
       case 'markasurgent':
         await prisma.email.update({
           where: { id: email.id },
-          data: { category: 'urgent' }
+          data: { category: 'urgent' },
         });
         break;
 
       case 'forwardto':
         if (!config || !config.forwardToEmail) {
-          throw new Error('Action forwardTo requires forwardToEmail in configuration');
+          throw new Error(
+            'Action forwardTo requires forwardToEmail in configuration'
+          );
         }
         await EmailSenderService.send(userId, {
           to: config.forwardToEmail,
           subject: `FWD: ${email.subject}`,
-          text: `---------- Forwarded message ----------\nFrom: ${email.sender}\nTo: ${email.recipient}\nSubject: ${email.subject}\nDate: ${email.createdAt}\n\n${email.body}`
+          text: `---------- Forwarded message ----------\nFrom: ${email.sender}\nTo: ${email.recipient}\nSubject: ${email.subject}\nDate: ${email.createdAt}\n\n${email.body}`,
         });
         break;
 
@@ -210,13 +239,18 @@ export class RulesEngineService {
           throw new Error('Action webhook requires targetUrl in configuration');
         }
         const secret = config.secret || 'rules-secret-key-123';
-        WebhookDispatcher.dispatch(config.targetUrl, secret, 'email.rule_match', {
-          emailId: email.id,
-          sender: email.sender,
-          recipient: email.recipient,
-          subject: email.subject,
-          category: email.category
-        });
+        WebhookDispatcher.dispatch(
+          config.targetUrl,
+          secret,
+          'email.rule_match',
+          {
+            emailId: email.id,
+            sender: email.sender,
+            recipient: email.recipient,
+            subject: email.subject,
+            category: email.category,
+          }
+        );
         break;
 
       case 'movetofolder':
@@ -224,7 +258,7 @@ export class RulesEngineService {
         if (config && config.folderName) {
           await prisma.email.update({
             where: { id: email.id },
-            data: { status: `FOLDER_${config.folderName.toUpperCase()}` }
+            data: { status: `FOLDER_${config.folderName.toUpperCase()}` },
           });
         }
         break;
@@ -234,29 +268,36 @@ export class RulesEngineService {
         if (config && config.labelName) {
           await prisma.email.update({
             where: { id: email.id },
-            data: { subject: `[${config.labelName}] ${email.subject}` }
+            data: { subject: `[${config.labelName}] ${email.subject}` },
           });
         }
         break;
 
       case 'sendtelegram':
         const userSettings = await prisma.userSettings.findFirst({
-          where: { userId, telegramEnabled: true }
+          where: { userId, telegramEnabled: true },
         });
         if (userSettings && userSettings.telegramChatId) {
-          await TelegramNotificationService.sendImportantEmailAlert(userSettings.telegramChatId, {
-            sender: email.sender,
-            subject: email.subject,
-            summary: email.body // Pass email body content
-          });
+          await TelegramNotificationService.sendImportantEmailAlert(
+            userSettings.telegramChatId,
+            {
+              sender: email.sender,
+              subject: email.subject,
+              summary: email.body, // Pass email body content
+            }
+          );
         } else {
-          logger.warn(`[RulesEngine] Telegram alert not sent: User settings missing or telegram disabled/unlinked for user ${userId}`);
+          logger.warn(
+            `[RulesEngine] Telegram alert not sent: User settings missing or telegram disabled/unlinked for user ${userId}`
+          );
         }
         break;
 
       case 'sendwhatsapp':
         // Log "not yet implemented" since adapters are missing in Node stack, but track execution successfully
-        logger.warn(`[RulesEngine] Output adapter action ${actionType} is queued but unrouted on Node stack`);
+        logger.warn(
+          `[RulesEngine] Output adapter action ${actionType} is queued but unrouted on Node stack`
+        );
         break;
 
       default:

@@ -1,6 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { logger } from '../utils/logger';
-import { TelegramConfig, validateTelegramConfig } from '../config/telegram.config';
+import {
+  TelegramConfig,
+  validateTelegramConfig,
+} from '../config/telegram.config';
 
 const prisma = new PrismaClient();
 
@@ -19,7 +22,9 @@ export class TelegramBotService {
   public static async init(): Promise<void> {
     // Gracefully handle hot-reloads: stop active polling if already running
     if (this.isPollingActive) {
-      logger.info('[TelegramBot] Active polling session detected on initialization. Shutting down previous session...');
+      logger.info(
+        '[TelegramBot] Active polling session detected on initialization. Shutting down previous session...'
+      );
       this.shutdown();
     }
 
@@ -31,38 +36,57 @@ export class TelegramBotService {
       // 1. Verify Bot Token validity via getMe
       const me = await this.apiCall('getMe', {});
       if (!me.ok) {
-        logger.error('[TelegramBot] Failed to connect using the configured bot token. Bot services are disabled.', me);
+        logger.error(
+          '[TelegramBot] Failed to connect using the configured bot token. Bot services are disabled.',
+          me
+        );
         return;
       }
 
-      logger.info(`[TelegramBot] Bot authenticated. Username: @${me.result.username}`);
+      logger.info(
+        `[TelegramBot] Bot authenticated. Username: @${me.result.username}`
+      );
 
       // Warn if configured bot username doesn't match authenticated bot info
-      if (TelegramConfig.botUsername && TelegramConfig.botUsername !== me.result.username) {
-        logger.warn(`[TelegramBot] Configured username @${TelegramConfig.botUsername} does not match verified username @${me.result.username}`);
+      if (
+        TelegramConfig.botUsername &&
+        TelegramConfig.botUsername !== me.result.username
+      ) {
+        logger.warn(
+          `[TelegramBot] Configured username @${TelegramConfig.botUsername} does not match verified username @${me.result.username}`
+        );
       }
 
       // 2. Select Run Mode
       if (TelegramConfig.mode === 'webhook') {
         const registerUrl = `${TelegramConfig.webhookUrl}/api/telegram/webhook`;
-        logger.info(`[TelegramBot] Running in WEBHOOK mode. Registering: ${registerUrl}`);
-        
+        logger.info(
+          `[TelegramBot] Running in WEBHOOK mode. Registering: ${registerUrl}`
+        );
+
         const res = await this.apiCall('setWebhook', {
           url: registerUrl,
-          secret_token: TelegramConfig.webhookSecret || undefined
+          secret_token: TelegramConfig.webhookSecret || undefined,
         });
 
         if (res.ok) {
-          logger.info('[TelegramBot] Webhook registered successfully with Telegram API.');
+          logger.info(
+            '[TelegramBot] Webhook registered successfully with Telegram API.'
+          );
         } else {
           logger.error('[TelegramBot] Webhook registration failed:', res);
         }
       } else {
-        logger.info('[TelegramBot] Running in POLLING mode. Starting background long-polling loop.');
+        logger.info(
+          '[TelegramBot] Running in POLLING mode. Starting background long-polling loop.'
+        );
         this.startPolling();
       }
     } catch (err: any) {
-      logger.error(`[TelegramBot] Exception during bot initialization: ${err.message}`, err);
+      logger.error(
+        `[TelegramBot] Exception during bot initialization: ${err.message}`,
+        err
+      );
     }
   }
 
@@ -82,7 +106,11 @@ export class TelegramBotService {
   /**
    * Diagnostic indicator returning connection, webhook, and API health status.
    */
-  public static async checkHealth(): Promise<{ connected: boolean; webhookActive: boolean; reachable: boolean }> {
+  public static async checkHealth(): Promise<{
+    connected: boolean;
+    webhookActive: boolean;
+    reachable: boolean;
+  }> {
     if (!TelegramConfig.botToken) {
       return { connected: false, webhookActive: false, reachable: false };
     }
@@ -91,11 +119,17 @@ export class TelegramBotService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000); // 3-second timeout
 
-      const res = await fetch(`${this.baseUrl}/getMe`, { signal: controller.signal });
+      const res = await fetch(`${this.baseUrl}/getMe`, {
+        signal: controller.signal,
+      });
       clearTimeout(timeoutId);
 
       if (!res.ok) {
-        return { connected: true, webhookActive: TelegramConfig.mode === 'webhook', reachable: false };
+        return {
+          connected: true,
+          webhookActive: TelegramConfig.mode === 'webhook',
+          reachable: false,
+        };
       }
 
       const info = await this.apiCall('getWebhookInfo', {});
@@ -108,10 +142,14 @@ export class TelegramBotService {
       return {
         connected: true,
         webhookActive,
-        reachable: true
+        reachable: true,
       };
     } catch {
-      return { connected: true, webhookActive: TelegramConfig.mode === 'webhook', reachable: false };
+      return {
+        connected: true,
+        webhookActive: TelegramConfig.mode === 'webhook',
+        reachable: false,
+      };
     }
   }
 
@@ -128,13 +166,23 @@ export class TelegramBotService {
     const text = (message.text || '').trim();
 
     // Check Whitelist security filter
-    if (TelegramConfig.allowedChatIds.size > 0 && !TelegramConfig.allowedChatIds.has(chatId)) {
-      logger.warn(`[TelegramBot] Rejected unauthorized message attempt from chat ID: ${chatId}.`);
-      await this.sendMessage(chatId, '⚠️ *Access Denied.*\nYour chat ID is not authorized to interact with this InboxOS instance.');
+    if (
+      TelegramConfig.allowedChatIds.size > 0 &&
+      !TelegramConfig.allowedChatIds.has(chatId)
+    ) {
+      logger.warn(
+        `[TelegramBot] Rejected unauthorized message attempt from chat ID: ${chatId}.`
+      );
+      await this.sendMessage(
+        chatId,
+        '⚠️ *Access Denied.*\nYour chat ID is not authorized to interact with this InboxOS instance.'
+      );
       return;
     }
 
-    logger.info(`[TelegramBot] Received command: "${text}" from chat: ${chatId}`);
+    logger.info(
+      `[TelegramBot] Received command: "${text}" from chat: ${chatId}`
+    );
 
     try {
       if (text.startsWith('/start')) {
@@ -148,18 +196,31 @@ export class TelegramBotService {
       } else if (text.startsWith('/done')) {
         await this.handleDoneCommand(chatId, text);
       } else {
-        await this.sendMessage(chatId, '❓ *Unknown Command.*\nSend /help to see the list of available commands.');
+        await this.sendMessage(
+          chatId,
+          '❓ *Unknown Command.*\nSend /help to see the list of available commands.'
+        );
       }
     } catch (err: any) {
-      logger.error(`[TelegramBot] Error executing command handler: ${err.message}`, err);
-      await this.sendMessage(chatId, '❌ *An error occurred* while processing your request.');
+      logger.error(
+        `[TelegramBot] Error executing command handler: ${err.message}`,
+        err
+      );
+      await this.sendMessage(
+        chatId,
+        '❌ *An error occurred* while processing your request.'
+      );
     }
   }
 
   /**
    * Low-level fetch wrapper calling Telegram Bot API. Handles HTTP 429 rate limiting with exponential backoff.
    */
-  public static async apiCall(method: string, body: any, attempt = 1): Promise<any> {
+  public static async apiCall(
+    method: string,
+    body: any,
+    attempt = 1
+  ): Promise<any> {
     if (!TelegramConfig.botToken) {
       return { ok: false, error: 'Token missing' };
     }
@@ -178,11 +239,17 @@ export class TelegramBotService {
 
       if (response.status === 429) {
         const retryAfterHeader = response.headers.get('retry-after');
-        const retryAfterSeconds = retryAfterHeader ? parseInt(retryAfterHeader, 10) : Math.pow(2, attempt);
-        logger.warn(`[TelegramBot] Rate limited (429) on API call "${method}". Retrying in ${retryAfterSeconds}s...`);
+        const retryAfterSeconds = retryAfterHeader
+          ? parseInt(retryAfterHeader, 10)
+          : Math.pow(2, attempt);
+        logger.warn(
+          `[TelegramBot] Rate limited (429) on API call "${method}". Retrying in ${retryAfterSeconds}s...`
+        );
 
         if (attempt < maxAttempts) {
-          await new Promise((resolve) => setTimeout(resolve, retryAfterSeconds * 1000));
+          await new Promise((resolve) =>
+            setTimeout(resolve, retryAfterSeconds * 1000)
+          );
           return this.apiCall(method, body, attempt + 1);
         }
       }
@@ -190,10 +257,14 @@ export class TelegramBotService {
       const data = await response.json();
       return data;
     } catch (err: any) {
-      logger.error(`[TelegramBot] API connection error on "${method}": ${err.message}`);
+      logger.error(
+        `[TelegramBot] API connection error on "${method}": ${err.message}`
+      );
       if (attempt < maxAttempts) {
         const delay = Math.pow(2, attempt) * 1000;
-        logger.warn(`[TelegramBot] Retrying connection to "${method}" in ${delay / 1000}s...`);
+        logger.warn(
+          `[TelegramBot] Retrying connection to "${method}" in ${delay / 1000}s...`
+        );
         await new Promise((resolve) => setTimeout(resolve, delay));
         return this.apiCall(method, body, attempt + 1);
       }
@@ -238,7 +309,10 @@ export class TelegramBotService {
   /**
    * Helper deleting message payload.
    */
-  public static async deleteMessage(chatId: string | number, messageId: number): Promise<any> {
+  public static async deleteMessage(
+    chatId: string | number,
+    messageId: number
+  ): Promise<any> {
     return this.apiCall('deleteMessage', {
       chat_id: String(chatId),
       message_id: messageId,
@@ -247,7 +321,10 @@ export class TelegramBotService {
 
   // ─── Command Handlers ──────────────────────────────────────────────────────────
 
-  private static async handleStartCommand(chatId: string, text: string): Promise<void> {
+  private static async handleStartCommand(
+    chatId: string,
+    text: string
+  ): Promise<void> {
     const parts = text.split(/\s+/);
     if (parts.length < 2) {
       await this.sendMessage(
@@ -258,14 +335,17 @@ export class TelegramBotService {
     }
 
     const token = parts[1];
-    
+
     // Validate User id exists in Postgres
     const user = await prisma.user.findUnique({
       where: { id: token },
     });
 
     if (!user) {
-      await this.sendMessage(chatId, '❌ *Linking failed.*\nInvalid token or user workspace not found.');
+      await this.sendMessage(
+        chatId,
+        '❌ *Linking failed.*\nInvalid token or user workspace not found.'
+      );
       return;
     }
 
@@ -318,7 +398,10 @@ export class TelegramBotService {
     });
 
     if (!settings) {
-      await this.sendMessage(chatId, '⚠️ Please link your InboxOS account first by sending:\n`/start <your-user-id>`');
+      await this.sendMessage(
+        chatId,
+        '⚠️ Please link your InboxOS account first by sending:\n`/start <your-user-id>`'
+      );
       return;
     }
 
@@ -338,7 +421,10 @@ export class TelegramBotService {
     });
 
     if (actionItems.length === 0) {
-      await this.sendMessage(chatId, '📥 *Your InboxOS is clean!*\nNo pending actions.');
+      await this.sendMessage(
+        chatId,
+        '📥 *Your InboxOS is clean!*\nNo pending actions.'
+      );
       return;
     }
 
@@ -352,7 +438,10 @@ export class TelegramBotService {
     await this.sendMessage(chatId, msg);
   }
 
-  private static async handleDoneCommand(chatId: string, text: string): Promise<void> {
+  private static async handleDoneCommand(
+    chatId: string,
+    text: string
+  ): Promise<void> {
     const parts = text.split(/\s+/);
     if (parts.length < 2) {
       await this.sendMessage(chatId, '⚠️ Usage: \`/done <task-id>\`');
@@ -366,7 +455,10 @@ export class TelegramBotService {
     });
 
     if (!settings) {
-      await this.sendMessage(chatId, '⚠️ Please link your InboxOS account first by sending:\n`/start <your-user-id>`');
+      await this.sendMessage(
+        chatId,
+        '⚠️ Please link your InboxOS account first by sending:\n`/start <your-user-id>`'
+      );
       return;
     }
 
@@ -380,7 +472,10 @@ export class TelegramBotService {
     });
 
     if (!actionItem) {
-      await this.sendMessage(chatId, '❌ *Task not found* in your pending backlog.');
+      await this.sendMessage(
+        chatId,
+        '❌ *Task not found* in your pending backlog.'
+      );
       return;
     }
 
@@ -389,7 +484,10 @@ export class TelegramBotService {
       data: { isCompleted: true },
     });
 
-    await this.sendMessage(chatId, `✅ *Task completed:* ${actionItem.taskDescription}`);
+    await this.sendMessage(
+      chatId,
+      `✅ *Task completed:* ${actionItem.taskDescription}`
+    );
   }
 
   // ─── Polling fallback loop ─────────────────────────────────────────────────────
@@ -416,21 +514,32 @@ export class TelegramBotService {
         let nextOffset = offset;
         for (const update of res.result) {
           nextOffset = Math.max(nextOffset, update.update_id + 1);
-          this.handleUpdate(update).catch((e) => logger.error('[TelegramBot] Polling update handling error:', e));
+          this.handleUpdate(update).catch((e) =>
+            logger.error('[TelegramBot] Polling update handling error:', e)
+          );
         }
 
         if (!this.shouldStopPolling) {
-          this.pollingTimeoutId = setTimeout(() => this.pollUpdates(nextOffset), 500);
+          this.pollingTimeoutId = setTimeout(
+            () => this.pollUpdates(nextOffset),
+            500
+          );
         }
       } else {
         if (!this.shouldStopPolling) {
-          this.pollingTimeoutId = setTimeout(() => this.pollUpdates(offset), 5000);
+          this.pollingTimeoutId = setTimeout(
+            () => this.pollUpdates(offset),
+            5000
+          );
         }
       }
     } catch (err: any) {
       logger.error(`[TelegramBot] Polling connection error: ${err.message}`);
       if (!this.shouldStopPolling) {
-        this.pollingTimeoutId = setTimeout(() => this.pollUpdates(offset), 5000);
+        this.pollingTimeoutId = setTimeout(
+          () => this.pollUpdates(offset),
+          5000
+        );
       }
     }
   }

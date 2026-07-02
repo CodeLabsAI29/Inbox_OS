@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default_secret_key_32_chars_long!'; 
+const ENCRYPTION_KEY =
+  process.env.ENCRYPTION_KEY || 'default_secret_key_32_chars_long!';
 const IV_LENGTH = 16;
 const keyBuffer = Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').slice(0, 32));
 
