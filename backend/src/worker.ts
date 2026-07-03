@@ -1,6 +1,7 @@
 import { EventBus } from './services/event-bus.service';
 import { PrismaClient } from '@prisma/client';
 import { AIService } from './services/ai.service';
+import { indexEmailsWorker } from './jobs/index-emails.job';
 import { logger } from './utils/logger';
 import { emailsProcessedCounter } from './utils/metrics';
 import { RulesEngineService } from './services/rules-engine.service';
@@ -13,10 +14,14 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const prisma = new PrismaClient();
 
-/**
- * Subscribes to the event bus and processes emails asynchronously.
- * Logs structured JSON events and updates Prometheus metrics.
- */
+// Wire BullMQ worker events for logging
+indexEmailsWorker.on('completed', (job) => {
+  console.log(`[BullMQ] Job ${job.id} completed successfully.`);
+});
+indexEmailsWorker.on('failed', (job, err) => {
+  console.error(`[BullMQ] Job ${job?.id} failed with error:`, err);
+});
+
 export async function registerWorkerHandlers() {
   logger.info('Registering email processing workers...');
 
@@ -98,21 +103,22 @@ export async function registerWorkerHandlers() {
 
         // 4. Extract and save actions
         logger.info('[Worker] Extracting action items from email', { emailId });
-        const actions = await AIService.extractActions(
+        const actionItems = await AIService.extractActionItems(
           email.subject,
           email.body
         );
 
-        if (actions && actions.length > 0) {
+        if (actionItems && actionItems.length > 0) {
           logger.info('[Worker] Saving extracted action items', {
             emailId,
-            count: actions.length,
+            count: actionItems.length,
           });
           await prisma.actionItem.createMany({
-            data: actions.map((task) => ({
+            data: actionItems.map((item) => ({
               emailId: email.id,
-              taskDescription: task,
+              taskDescription: item.taskDescription,
               isCompleted: false,
+              deadline: item.deadline ? new Date(item.deadline) : null,
             })),
           });
           logger.info('[Worker] Saved action items successfully', { emailId });

@@ -19,9 +19,7 @@ import {
   ChevronRight,
   TrendingUp,
   Lock,
-  MessageSquare,
   Check,
-  Terminal,
 } from 'lucide-react';
 
 // Custom SVG replacement for Github Icon because of lucide-react version compatibility

@@ -56,11 +56,31 @@ model Email {
   threadId  String
   thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
   actionItems ActionItem[]
-  embedding String?
+  embedding Unsupported("vector(1536)")?
+
+  analysis  EmailAnalysis?
 
   @@index([userId])
   @@index([threadId])
   @@index([createdAt])
+}
+
+model EmailAnalysis {
+  id              String   @id @default(uuid())
+  emailId         String   @unique
+  email           Email    @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  deadlines       String[] // Added deadlines string[]
+  category        String?
+  priorityScore   Float?   @default(0.0)
+  urgencyScore    Float?   @default(0.0)
+  actionabilityScore Float? @default(0.0)
+  confidenceScore Float?   @default(0.0)
+  summary         String?
+  reasoning       String?
+  suggestedReply  String?
+  extractedData   Json?
+  aiProvider      String?  @default("mock")
+  analyzedAt      DateTime @default(now())
 }
 
 model ActionItem {
@@ -69,9 +89,11 @@ model ActionItem {
   taskDescription String
   isCompleted     Boolean  @default(false)
   createdAt       DateTime @default(now())
+  deadline        DateTime? // Added deadline DateTime?
 
   email           Email    @relation(fields: [emailId], references: [id], onDelete: Cascade)
 }
+
 
 model EmailAccount {
   id              String    @id @default(uuid())

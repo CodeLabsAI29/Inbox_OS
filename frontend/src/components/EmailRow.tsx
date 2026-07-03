@@ -15,6 +15,7 @@ export interface EmailData {
   createdAt?: string; // from Node backend
   received_at?: string; // from Python backend
   received?: string; // from UI mock data
+  similarity?: number; // added similarity field
   analysis?: {
     category: string;
     priority_score: number;
@@ -180,6 +181,11 @@ export const EmailRow = React.memo(function EmailRow({
           {/* Desktop-only Date & Score */}
           <div className="hidden md:flex items-center gap-2.5 shrink-0">
             <span className="text-[10px] text-gray-500">{displayDate}</span>
+            {email.similarity !== undefined && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-md font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                {(email.similarity * 100).toFixed(0)}% Match
+              </span>
+            )}
             <span
               className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold ${
                 priorityScore > 85

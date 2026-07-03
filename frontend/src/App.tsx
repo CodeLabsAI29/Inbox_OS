@@ -18,7 +18,6 @@ import { SocketProvider, useSocket } from './context/SocketContext';
 import {
   ShieldAlert,
   CheckCircle2,
-  Clock,
   Sparkles,
   TrendingUp,
   Inbox,

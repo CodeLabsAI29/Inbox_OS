@@ -97,7 +97,6 @@ app.get('/metrics', async (req: Request, res: Response) => {
 
 app.use(express.json());
 app.use(cookieParser());
-app.use('/api', rateLimiter);
 
 /**
  * GET /api/health

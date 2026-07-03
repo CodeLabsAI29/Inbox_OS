@@ -329,6 +329,11 @@ export const EmailList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
 
+  // AI Search states
+  const [isAiSearch, setIsAiSearch] = useState<boolean>(false);
+  const [aiResults, setAiResults] = useState<EmailData[]>([]);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+
   const { socket } = useSocket();
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -447,6 +452,52 @@ export const EmailList: React.FC = () => {
     return filteredEmails.slice(startIndex, endIndex);
   }, [filteredEmails, startIndex, endIndex]);
 
+  // AI-powered search API query
+  useEffect(() => {
+    if (!isAiSearch) {
+      setAiResults([]);
+      return;
+    }
+
+    if (!searchQuery.trim()) {
+      setAiResults([]);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const response = await fetch(`${API_BASE}/api/rag/search`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query: searchQuery, limit: pageSize }),
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setAiResults(data);
+        } else {
+          console.error('Failed to fetch AI search results');
+        }
+      } catch (error) {
+        console.error('Error fetching AI search results:', error);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, isAiSearch, pageSize]);
+
+  const displayedEmails = useMemo(() => {
+    if (isAiSearch && searchQuery.trim()) {
+      return aiResults;
+    }
+    return paginatedEmails;
+  }, [isAiSearch, searchQuery, aiResults, paginatedEmails]);
+
   const handlePageChange = useCallback(
     (page: number) => {
       if (page >= 1 && page <= totalPages) {
@@ -541,6 +592,19 @@ export const EmailList: React.FC = () => {
 
         {/* Local Search Input & Options */}
         <div className="flex items-center gap-3 w-full xl:w-auto shrink-0">
+          <label className="flex items-center gap-2 cursor-pointer bg-white/5 border border-white/5 rounded-xl px-3.5 py-2.5 text-xs text-gray-400 hover:text-white hover:bg-white/10 transition-all select-none">
+            <input
+              type="checkbox"
+              checked={isAiSearch}
+              onChange={(e) => {
+                setIsAiSearch(e.target.checked);
+                setCurrentPage(1);
+              }}
+              className="rounded border-white/10 text-indigo-600 focus:ring-indigo-500 bg-white/5 w-3.5 h-3.5 cursor-pointer accent-indigo-600"
+            />
+            <span className="font-medium">AI Search</span>
+          </label>
+
           <div className="relative flex-1 xl:flex-none xl:w-[260px]">
             <Search
               size={14}
@@ -548,7 +612,7 @@ export const EmailList: React.FC = () => {
             />
             <input
               type="text"
-              placeholder="Search local inbox..."
+              placeholder={isAiSearch ? "AI-powered search..." : "Search local inbox..."}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -602,8 +666,14 @@ export const EmailList: React.FC = () => {
         />
       ) : (
         <div className="space-y-3">
+          {isSearching && (
+            <div className="text-center py-4 text-xs text-gray-400 flex items-center justify-center gap-2 bg-white/5 rounded-2xl border border-white/5 mb-3 w-full">
+              <RefreshCw size={14} className="animate-spin text-indigo-400" />
+              <span>Analyzing semantics...</span>
+            </div>
+          )}
           {/* Email row renders */}
-          {paginatedEmails.map((email) => (
+          {displayedEmails.map((email) => (
             <EmailRow
               key={email.id}
               email={email}
