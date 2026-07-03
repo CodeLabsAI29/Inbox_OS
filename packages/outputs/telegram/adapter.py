@@ -47,3 +47,21 @@ class TelegramAdapter(BaseAdapter):
 
         full_content = "\n".join(bullets)
         return self.send_notification(recipient, title, full_content, priority="digest")
+
+    async def send_message_async(self, chat_id: int, text: str, parse_mode: str = "HTML") -> Dict[str, Any]:
+        """Send message payload asynchronously to Telegram."""
+        if not self.bot_token:
+            return {"status": "success", "mode": "mock"}
+        url = f"{self.base_url}/sendMessage"
+        payload = {
+            "chat_id": chat_id,
+            "text": text,
+            "parse_mode": parse_mode
+        }
+        try:
+            async with httpx.AsyncClient() as client:
+                res = await client.post(url, json=payload, timeout=10.0)
+                res.raise_for_status()
+                return {"status": "success", "mode": "live", "telegram_id": res.json()["result"]["message_id"]}
+        except Exception as e:
+            return {"status": "failed", "error": str(e)}

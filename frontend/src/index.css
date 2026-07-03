@@ -5,6 +5,8 @@
 @layer base {
   :root {
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --accent: #6366f1;
+    --text-muted: #9ca3af;
   }
   
   body {

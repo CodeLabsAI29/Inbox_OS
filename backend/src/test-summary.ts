@@ -72,6 +72,17 @@ async function runTest() {
       console.log(`📩 Created Email: ID = ${email.id}, CreatedAt = ${email.createdAt.toISOString()}`);
     }
 
+    // Check if API keys are present and are not placeholders
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY;
+    const hasOpenAI = openaiKey && openaiKey !== 'sk-...' && openaiKey !== '...' && openaiKey !== '';
+    const hasGemini = geminiKey && geminiKey !== 'placeholder' && geminiKey !== '...' && geminiKey !== '';
+
+    if (!hasOpenAI && !hasGemini) {
+      console.log('\n⚠️ Skipping AI integration tests in CI/dev environment due to missing/placeholder API keys.');
+      return;
+    }
+
     // 4. Generate the summary
     console.log('\n✨ Generating summary using AIService.generateSummary()...');
     const start = Date.now();
@@ -92,10 +103,12 @@ async function runTest() {
       console.log('\n✅ PASSED: Thread record updated correctly with the generated summary!');
     } else {
       console.error('\n❌ FAILED: Persisted summary does not match returned summary.');
+      process.exit(1);
     }
 
   } catch (error: any) {
     console.error('\n❌ Test run failed with error:', error.message || error);
+    process.exit(1);
   } finally {
     await prisma.$disconnect();
   }
@@ -103,4 +116,5 @@ async function runTest() {
 
 runTest().catch((err) => {
   console.error('Test run failed unexpectedly:', err);
+  process.exit(1);
 });

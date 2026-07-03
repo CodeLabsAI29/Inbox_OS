@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { LoginForm } from './components/LoginForm';
 import { RegisterForm } from './components/RegisterForm';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { EmailList } from './components/EmailList';
 import { ComposeModal } from './components/ComposeModal';
+import { LandingPage } from './components/LandingPage';
 import { 
   ShieldAlert, 
   CheckCircle2, 
@@ -15,7 +16,13 @@ import {
   Inbox,
   Filter,
   Zap,
-  Play
+  Play,
+  Sliders,
+  User,
+  Bot,
+  Mail,
+  Radio,
+  Bell
 } from 'lucide-react';
 
 interface MetricCardProps {
@@ -50,7 +57,54 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, isPositiv
 
 // Extracted Dashboard Component to protect via ProtectedRoute
 const DashboardContent: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('inbox');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path.endsWith('/tasks') || path.includes('/tasks/')) return 'tasks';
+    if (path.endsWith('/rules') || path.includes('/rules/')) return 'rules';
+    if (path.endsWith('/settings') || path.includes('/settings/')) return 'settings';
+    return 'inbox';
+  };
+
+  const activeTab = getActiveTab();
+  const setActiveTab = (tab: string) => {
+    if (tab === 'inbox') {
+      navigate('/dashboard');
+    } else {
+      navigate(`/dashboard/${tab}`);
+    }
+  };
+
+  // Settings/Preferences states
+  const [settingsSubTab, setSettingsSubTab] = useState('profile');
+  const [profileName, setProfileName] = useState('Alex Chen');
+  const [profileEmail, setProfileEmail] = useState('demo@inboxos.app');
+  const [aiProvider, setAiProvider] = useState('openai');
+  const [openaiKey, setOpenaiKey] = useState('sk-proj-••••••••••••••••••••');
+  const [geminiKey, setGeminiKey] = useState('');
+  const [ollamaUrl, setOllamaUrl] = useState('http://localhost:11434');
+  const [gmailConnected, setGmailConnected] = useState(true);
+  const [outlookConnected, setOutlookConnected] = useState(false);
+  const [telegramConnected, setTelegramConnected] = useState(true);
+  const [telegramToken, setTelegramToken] = useState('6978452144:AAH_••••••••');
+  const [pushEnabled, setPushEnabled] = useState(true);
+  const [telegramAlerts, setTelegramAlerts] = useState(true);
+  const [whatsappAlerts, setWhatsappAlerts] = useState(false);
+  const [minPriority, setMinPriority] = useState(70);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    setTimeout(() => {
+      setIsSaving(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    }, 800);
+  };
 
   const metrics = [
     { title: 'Total Ingested', value: '1,284', change: '+12%', isPositive: true, icon: <Inbox size={18} /> },
@@ -58,6 +112,392 @@ const DashboardContent: React.FC = () => {
     { title: 'Auto-resolved / Closed', value: '84%', change: '+3.5%', isPositive: true, icon: <CheckCircle2 size={18} className="text-emerald-400" /> },
     { title: 'Average Action Time', value: '1.2m', change: '-12%', isPositive: true, icon: <Clock size={18} /> },
   ];
+
+  if (activeTab === 'settings') {
+    return (
+      <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+        <div className="space-y-6 animate-fadeIn">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-5">
+            <div className="text-left">
+              <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                System Preferences <Sliders className="text-indigo-400 animate-pulse" size={18} />
+              </h2>
+              <p className="text-xs text-gray-400">
+                Configure your AI operating system settings, LLM integration, and outbound channels.
+              </p>
+            </div>
+            {saveSuccess && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold animate-bounce">
+                <CheckCircle2 size={14} />
+                <span>Changes saved successfully</span>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
+            
+            {/* Preferences sub-navigation */}
+            <div className="md:col-span-1 flex flex-col gap-1.5">
+              {[
+                { id: 'profile', label: 'General Profile', icon: <User size={16} /> },
+                { id: 'ai', label: 'AI Intelligence', icon: <Bot size={16} /> },
+                { id: 'integrations', label: 'Connections', icon: <Mail size={16} /> },
+                { id: 'notifications', label: 'Alert Rules', icon: <Bell size={16} /> },
+              ].map((subTab) => (
+                <button
+                  key={subTab.id}
+                  onClick={() => setSettingsSubTab(subTab.id)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all border text-left ${
+                    settingsSubTab === subTab.id
+                      ? 'bg-indigo-600/15 border-indigo-500/30 text-indigo-300 shadow-[0_0_15px_rgba(99,102,241,0.05)]'
+                      : 'bg-transparent border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                  }`}
+                >
+                  {subTab.icon}
+                  <span>{subTab.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Form card */}
+            <div className="md:col-span-3 glass border border-white/5 rounded-2xl p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-2xl rounded-full" />
+              
+              {settingsSubTab === 'profile' && (
+                <form onSubmit={handleSave} className="space-y-6 text-left">
+                  <h3 className="text-sm font-semibold text-white">General & Account Profile</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Full Name</label>
+                      <input
+                        type="text"
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value)}
+                        className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/40 focus:ring-1 focus:ring-indigo-500/25 transition-all"
+                        placeholder="Alex Chen"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Email Address</label>
+                      <input
+                        type="email"
+                        value={profileEmail}
+                        onChange={(e) => setProfileEmail(e.target.value)}
+                        className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/40 focus:ring-1 focus:ring-indigo-500/25 transition-all"
+                        placeholder="alex@inboxos.app"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border-t border-white/5 pt-5 space-y-4">
+                    <h4 className="text-xs font-semibold text-gray-300">Theme Preferences</h4>
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
+                      <div>
+                        <p className="text-xs font-semibold text-gray-200">Interface Dark Mode</p>
+                        <p className="text-[10px] text-gray-500">Toggle between dark and light themes.</p>
+                      </div>
+                      <button type="button" className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5 text-[10px] font-bold transition-all uppercase tracking-wider">
+                        Toggle Light Mode
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all active:scale-[0.98] disabled:opacity-50 uppercase tracking-wider"
+                    >
+                      {isSaving ? 'Saving...' : 'Save Settings'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {settingsSubTab === 'ai' && (
+                <form onSubmit={handleSave} className="space-y-6 text-left">
+                  <div>
+                    <h3 className="text-sm font-semibold text-white mb-1">AI Processor Model</h3>
+                    <p className="text-[11px] text-gray-500">Choose the LLM engine that parses, scores, and classifies incoming streams.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">AI Provider</label>
+                      <select
+                        value={aiProvider}
+                        onChange={(e) => setAiProvider(e.target.value)}
+                        className="w-full bg-[#131625] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-gray-100 focus:outline-none focus:border-indigo-500/40 focus:ring-1 focus:ring-indigo-500/25 transition-all"
+                      >
+                        <option value="openai">OpenAI GPT-4o API (Cloud)</option>
+                        <option value="gemini">Google Gemini 1.5 Pro API (Cloud)</option>
+                        <option value="ollama">Ollama Llama 3 (Local Self-Hosted)</option>
+                      </select>
+                    </div>
+
+                    {aiProvider === 'openai' && (
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">OpenAI API Key</label>
+                        <input
+                          type="password"
+                          value={openaiKey}
+                          onChange={(e) => setOpenaiKey(e.target.value)}
+                          className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/40 focus:ring-1 focus:ring-indigo-500/25 transition-all"
+                          placeholder="sk-proj-..."
+                        />
+                      </div>
+                    )}
+
+                    {aiProvider === 'gemini' && (
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Gemini API Key</label>
+                        <input
+                          type="password"
+                          value={geminiKey}
+                          onChange={(e) => setGeminiKey(e.target.value)}
+                          className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/40 focus:ring-1 focus:ring-indigo-500/25 transition-all"
+                          placeholder="AIzaSy..."
+                        />
+                      </div>
+                    )}
+
+                    {aiProvider === 'ollama' && (
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Ollama Connection URL</label>
+                        <input
+                          type="url"
+                          value={ollamaUrl}
+                          onChange={(e) => setOllamaUrl(e.target.value)}
+                          className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/40 focus:ring-1 focus:ring-indigo-500/25 transition-all"
+                          placeholder="http://localhost:11434"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all active:scale-[0.98] disabled:opacity-50 uppercase tracking-wider"
+                    >
+                      {isSaving ? 'Saving...' : 'Save AI Config'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {settingsSubTab === 'integrations' && (
+                <div className="space-y-6 text-left">
+                  <div>
+                    <h3 className="text-sm font-semibold text-white mb-1">Inbox Connections</h3>
+                    <p className="text-[11px] text-gray-500">Enable ingestion sources or connection webhooks to monitor and fetch mail.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Gmail */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-red-500/10 text-red-400 rounded-xl flex items-center justify-center shrink-0">
+                          <Mail size={18} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-white">Gmail Account</p>
+                          <p className="text-[10px] text-emerald-400 flex items-center gap-1 font-medium">
+                            <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse" /> Connected
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setGmailConnected(!gmailConnected)}
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
+                          gmailConnected 
+                            ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5' 
+                            : 'bg-indigo-600 hover:bg-indigo-500 text-white border-transparent'
+                        }`}
+                      >
+                        {gmailConnected ? 'Disconnect' : 'Connect'}
+                      </button>
+                    </div>
+
+                    {/* Outlook */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-blue-500/10 text-blue-400 rounded-xl flex items-center justify-center shrink-0">
+                          <Mail size={18} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-white">Outlook / Exchange</p>
+                          <p className="text-[10px] text-gray-500">Not Connected</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setOutlookConnected(!outlookConnected)}
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
+                          outlookConnected 
+                            ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5' 
+                            : 'bg-indigo-600 hover:bg-indigo-500 text-white border-transparent'
+                        }`}
+                      >
+                        {outlookConnected ? 'Disconnect' : 'Connect'}
+                      </button>
+                    </div>
+
+                    {/* Telegram Bot */}
+                    <div className="border-t border-white/5 pt-5 space-y-4">
+                      <h4 className="text-xs font-semibold text-gray-300">Telegram Control Channel</h4>
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 bg-sky-500/10 text-sky-400 rounded-xl flex items-center justify-center shrink-0">
+                            <Radio size={18} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-white">Telegram Ingestion Bot</p>
+                            <p className={`text-[10px] flex items-center gap-1 font-medium ${telegramConnected ? 'text-emerald-400' : 'text-gray-500'}`}>
+                              {telegramConnected ? (
+                                <>
+                                  <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse" /> Active
+                                </>
+                              ) : 'Inactive'}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setTelegramConnected(!telegramConnected)}
+                          className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
+                            telegramConnected 
+                              ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/5' 
+                              : 'bg-indigo-600 hover:bg-indigo-500 text-white border-transparent'
+                          }`}
+                        >
+                          {telegramConnected ? 'Deactivate' : 'Activate'}
+                        </button>
+                      </div>
+
+                      {telegramConnected && (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Bot Token</label>
+                          <input
+                            type="password"
+                            value={telegramToken}
+                            onChange={(e) => setTelegramToken(e.target.value)}
+                            className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:border-indigo-500/40 focus:ring-1 focus:ring-indigo-500/25 transition-all"
+                            placeholder="Enter Telegram bot token"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {settingsSubTab === 'notifications' && (
+                <form onSubmit={handleSave} className="space-y-6 text-left">
+                  <div>
+                    <h3 className="text-sm font-semibold text-white mb-1">Notification Routing Rules</h3>
+                    <p className="text-[11px] text-gray-500">Configure thresholds and channels where InboxOS alerts you about incoming emails.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Push Alerts */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
+                      <div>
+                        <p className="text-xs font-semibold text-gray-200">Dashboard Banner Alerts</p>
+                        <p className="text-[10px] text-gray-500">Display popup overlays when matching tasks run.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPushEnabled(!pushEnabled)}
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
+                          pushEnabled 
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                            : 'bg-white/5 border-white/5 text-gray-500'
+                        }`}
+                      >
+                        {pushEnabled ? 'Enabled' : 'Disabled'}
+                      </button>
+                    </div>
+
+                    {/* Telegram Delivery */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
+                      <div>
+                        <p className="text-xs font-semibold text-gray-200">Telegram Escalation</p>
+                        <p className="text-[10px] text-gray-500">Forward high-urgency notifications directly to your chat.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setTelegramAlerts(!telegramAlerts)}
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
+                          telegramAlerts 
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                            : 'bg-white/5 border-white/5 text-gray-500'
+                        }`}
+                      >
+                        {telegramAlerts ? 'Enabled' : 'Disabled'}
+                      </button>
+                    </div>
+
+                    {/* WhatsApp */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-white/3 border border-white/5">
+                      <div>
+                        <p className="text-xs font-semibold text-gray-200">WhatsApp Urgent Alerts</p>
+                        <p className="text-[10px] text-gray-500">Use Twilio to SMS high importance tasks or billing alerts.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setWhatsappAlerts(!whatsappAlerts)}
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
+                          whatsappAlerts 
+                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                            : 'bg-white/5 border-white/5 text-gray-500'
+                        }`}
+                      >
+                        {whatsappAlerts ? 'Enabled' : 'Disabled'}
+                      </button>
+                    </div>
+
+                    {/* Priority Slider */}
+                    <div className="border-t border-white/5 pt-5 space-y-3">
+                      <div className="flex justify-between items-center text-xs font-semibold text-gray-300">
+                        <span>Minimum Priority Alert Score</span>
+                        <span className="text-indigo-400 font-extrabold">{minPriority}%</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="10"
+                        max="100"
+                        step="5"
+                        value={minPriority}
+                        onChange={(e) => setMinPriority(Number(e.target.value))}
+                        className="w-full accent-indigo-500 h-1 bg-white/10 rounded-lg cursor-pointer"
+                      />
+                      <p className="text-[10px] text-gray-500">
+                        Only emails with AI importance rating at or above {minPriority} will trigger instant push notifications.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSaving}
+                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all active:scale-[0.98] disabled:opacity-50 uppercase tracking-wider"
+                    >
+                      {isSaving ? 'Saving...' : 'Save Rules'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout 
@@ -190,17 +630,18 @@ export default function App() {
   return (
     <>
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route 
-          path="/" 
+          path="/dashboard/*" 
           element={
             <ProtectedRoute>
               <DashboardContent />
             </ProtectedRoute>
           } 
         />
-        {/* Fallback to dashboard */}
+        {/* Fallback to landing page */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <ComposeModal />

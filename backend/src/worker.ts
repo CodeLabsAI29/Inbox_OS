@@ -1,7 +1,6 @@
 import { EventBus } from './services/event-bus.service';
 import { PrismaClient } from '@prisma/client';
 import { AIService } from './services/ai.service';
-import { indexEmailsWorker } from './jobs/index-emails.job';
 
 const prisma = new PrismaClient();
 
@@ -15,12 +14,11 @@ indexEmailsWorker.on('failed', (job, err) => {
 
 async function main() {
   console.log('Worker starting...');
-  console.log('[Worker] BullMQ indexEmailsWorker is listening...');
 
   // Subscribe to 'email.received' topic
   await EventBus.subscribe('email.received', async (payload: { emailId: string }) => {
     const { emailId } = payload;
-    console.log(`[Worker] Received email.received event! emailId: ${emailId}`);
+    logger.info('[Worker] Received email.received event', { emailId });
 
     try {
       // 1. Fetch the email from database
@@ -29,15 +27,15 @@ async function main() {
       });
 
       if (!email) {
-        console.error(`[Worker] Email with ID ${emailId} not found in database.`);
+        logger.error('[Worker] Email not found in database', { emailId });
         return;
       }
 
-      console.log(`[Worker] Processing email classification for: "${email.subject}"`);
+      logger.info('[Worker] Processing email classification', { emailId });
 
       // 2. Classify email using AIService
       const result = await AIService.classifyEmail(email.subject, email.body);
-      console.log(`[Worker] Classification result for "${email.subject}": category = ${result.category}, confidence = ${result.confidence}, deadlines = ${JSON.stringify(result.deadlines)}`);
+      console.log(`[Worker] Classification result for "${email.subject}": category = ${result.category}, confidence = ${result.confidence}`);
 
       // 3. Update the email with the category
       await prisma.email.update({
@@ -47,36 +45,14 @@ async function main() {
         },
       });
 
-      // Upsert the email analysis with deadlines
-      await prisma.emailAnalysis.upsert({
-        where: { emailId: email.id },
-        update: {
-          deadlines: result.deadlines,
-          category: result.category,
-          confidenceScore: result.confidence,
-        },
-        create: {
-          emailId: email.id,
-          deadlines: result.deadlines,
-          category: result.category,
-          confidenceScore: result.confidence,
-        },
-      });
-
-      console.log(`[Worker] Email and EmailAnalysis updated successfully!`);
+      console.log(`[Worker] Email updated successfully!`);
 
       // 4. Extract and save actions
       console.log(`[Worker] Extracting actions for: "${email.subject}"`);
-      const actionItems = await AIService.extractActionItems(email.subject, email.body);
-      
-      if (actionItems && actionItems.length > 0) {
-        console.log(`[Worker] Found ${actionItems.length} action items. Saving...`);
-        
-        // Remove any existing action items for this email to avoid duplicates on reprocessing
-        await prisma.actionItem.deleteMany({
-          where: { emailId: email.id },
-        });
+      const actions = await AIService.extractActions(email.subject, email.body);
 
+      if (actions && actions.length > 0) {
+        console.log(`[Worker] Found ${actions.length} action items. Saving...`);
         await prisma.actionItem.createMany({
           data: actionItems.map((item) => ({
             emailId: email.id,
@@ -85,14 +61,20 @@ async function main() {
             deadline: item.deadline ? new Date(item.deadline) : null,
           })),
         });
-        console.log(`[Worker] Saved action items successfully.`);
+        logger.info('[Worker] Saved action items successfully', { emailId });
       } else {
-        console.log(`[Worker] No action items extracted.`);
+        logger.info('[Worker] No action items extracted from email', { emailId });
       }
 
+      // Increment successful processing counter
+      emailsProcessedCounter.inc({ status: 'success' });
+
     } catch (error: any) {
-      console.error(`[Worker] Classification failed for emailId ${emailId}:`, error.message || error);
-      
+      logger.error('[Worker] Classification/extraction failed for email', { emailId, error: error.message || error });
+
+      // Increment failed processing counter
+      emailsProcessedCounter.inc({ status: 'failed' });
+
       // Mark email status as 'FAILED'
       try {
         await prisma.email.update({
@@ -101,9 +83,9 @@ async function main() {
             status: 'FAILED',
           },
         });
-        console.log(`[Worker] Updated email ${emailId} status to 'FAILED'.`);
-      } catch (dbError) {
-        console.error(`[Worker] Failed to update email ${emailId} status to 'FAILED':`, dbError);
+        logger.info('[Worker] Updated email status to FAILED in database', { emailId });
+      } catch (dbError: any) {
+        logger.error('[Worker] Failed to update email status to FAILED in database', { emailId, error: dbError.message || dbError });
       }
     }
   });
@@ -115,4 +97,3 @@ main().catch((error) => {
   console.error('Worker failed to start:', error);
   process.exit(1);
 });
-

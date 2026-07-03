@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useCompose } from '../context/ComposeContext';
+import { Button } from './Button';
 import { 
   X, 
   Send, 
@@ -22,7 +23,7 @@ interface FormInputs {
   body: string;
 }
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const ComposeModal: React.FC = () => {
   const { isOpen, initialValues, closeCompose } = useCompose();
@@ -331,31 +332,26 @@ export const ComposeModal: React.FC = () => {
 
           {/* Form Submit Footer */}
           <div className="flex justify-end gap-3 pt-3 border-t border-white/5">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
               onClick={closeCompose}
               disabled={isSending}
-              className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/5 text-xs font-semibold transition-all active:scale-[0.98]"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={isSending}
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-all glow-accent active:scale-[0.98] disabled:opacity-50"
+              isLoading={isSending}
             >
               {isSending ? (
-                <>
-                  <Loader2 size={13} className="animate-spin" />
-                  <span>Dispatched...</span>
-                </>
+                <span>Dispatched...</span>
               ) : (
                 <>
                   <Send size={13} />
                   <span>Send Action</span>
                 </>
               )}
-            </button>
+            </Button>
           </div>
 
         </form>

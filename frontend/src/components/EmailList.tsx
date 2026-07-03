@@ -11,8 +11,9 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { EmailViewer } from './EmailViewer';
+import { EmptyState } from './EmptyState';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Comprehensive mock data list to fall back on if backend is down/missing endpoint
 const FALLBACK_MOCK_EMAILS: EmailData[] = [
@@ -228,7 +229,15 @@ export const EmailList: React.FC = () => {
       if (!response.ok) {
         throw new Error('API Endpoint not available');
       }
-      return response.json();
+      
+      const json = await response.json();
+      if (json && typeof json === 'object' && 'emails' in json && Array.isArray(json.emails)) {
+        return json.emails;
+      }
+      if (Array.isArray(json)) {
+        return json;
+      }
+      throw new Error('Invalid API response format');
     },
     // Fail silently to mock data fallback so frontend is functional out of the box
     gcTime: 1000 * 60 * 10,
@@ -434,15 +443,11 @@ export const EmailList: React.FC = () => {
           </button>
         </div>
       ) : paginatedEmails.length === 0 ? (
-        <div className="glass rounded-2xl p-12 border border-white/5 text-center flex flex-col items-center justify-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-gray-400">
-            <Inbox size={20} />
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-white">Zero Mail Load</h4>
-            <p className="text-xs text-gray-400 mt-1">No emails match the category or filter query.</p>
-          </div>
-        </div>
+        <EmptyState
+          title="Zero Mail Load"
+          description="No emails match the category or filter query."
+          icon={Inbox}
+        />
       ) : (
         <div className="space-y-3">
           {isSearching && (

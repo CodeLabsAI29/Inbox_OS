@@ -9,6 +9,7 @@ API Docs available at:
   http://localhost:8000/redoc
 """
 
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -16,7 +17,7 @@ from contextlib import asynccontextmanager
 
 from config import settings
 from database import create_tables
-from routers import auth, emails, rules, tasks, reminders, replies, dashboard, analytics, settings as settings_router, ai
+from routers import auth, emails, rules, tasks, reminders, replies, dashboard, analytics, settings as settings_router, ai, telegram
 
 
 @asynccontextmanager
@@ -27,6 +28,24 @@ async def lifespan(app: FastAPI):
     print(f"✅ InboxOS API started — {settings.APP_ENV} mode")
     print(f"📬 AI Provider: {settings.AI_PROVIDER}")
     print(f"🗄️  Database: {settings.DATABASE_URL}")
+
+    # Auto-register Telegram Webhook on startup
+    if settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_WEBHOOK_URL:
+        try:
+            async with httpx.AsyncClient() as client:
+                res = await client.post(
+                    f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/setWebhook",
+                    json={
+                        "url": settings.TELEGRAM_WEBHOOK_URL,
+                        "secret_token": settings.TELEGRAM_SECRET_TOKEN
+                    },
+                    timeout=5.0
+                )
+                res.raise_for_status()
+                print(f"🤖 Telegram Webhook registered: {settings.TELEGRAM_WEBHOOK_URL}")
+        except Exception as e:
+            print(f"⚠️ Telegram Webhook auto-registration failed: {str(e)}")
+
     yield
     # Shutdown
     print("👋 InboxOS API shutting down...")
@@ -76,6 +95,7 @@ app.include_router(dashboard.router)
 app.include_router(analytics.router)
 app.include_router(settings_router.router)
 app.include_router(ai.router)
+app.include_router(telegram.router)
 
 
 # ── Health & Root ─────────────────────────────────────────────────────────────

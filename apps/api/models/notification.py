@@ -38,7 +38,7 @@ class Notification(Base):
     status = Column(String, default="pending")  # pending | sent | failed | read
     sent_at = Column(DateTime(timezone=True), nullable=True)
     read_at = Column(DateTime(timezone=True), nullable=True)
-    metadata = Column(JSON, default=dict)
+    notification_metadata = Column("metadata", JSON, default=dict)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="notifications")

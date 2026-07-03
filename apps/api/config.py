@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: str = ""
     TWILIO_WHATSAPP_FROM: str = "whatsapp:+14155238886"
     TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_WEBHOOK_URL: str = ""
+    TELEGRAM_SECRET_TOKEN: str = ""
+    ADMIN_USER_ID: str = ""
 
     @property
     def cors_origins_list(self) -> List[str]:
