@@ -26,7 +26,7 @@ export class IMAPService {
     this.config = {
       ...config,
       tls: true, // Enforcement from constraints
-      tlsOptions: { rejectUnauthorized: process.env.NODE_ENV === 'production' }
+      tlsOptions: { rejectUnauthorized: process.env.NODE_ENV === 'production' },
     };
   }
 
@@ -55,7 +55,9 @@ export class IMAPService {
       });
 
       this.imap.once('close', (hasError: boolean) => {
-        console.log(`[IMAP] Connection closed for user ${this.userId}. Error: ${hasError}`);
+        console.log(
+          `[IMAP] Connection closed for user ${this.userId}. Error: ${hasError}`
+        );
         this.reconnect();
       });
 
@@ -79,10 +81,13 @@ export class IMAPService {
 
       // Start keep-alive (IMAP timeout is often ~29 mins, ping every 15 mins)
       if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
-      this.keepAliveTimer = setInterval(() => {
-         // status check keeps the connection alive safely
-         this.imap?.status('INBOX', () => {});
-      }, 15 * 60 * 1000);
+      this.keepAliveTimer = setInterval(
+        () => {
+          // status check keeps the connection alive safely
+          this.imap?.status('INBOX', () => {});
+        },
+        15 * 60 * 1000
+      );
 
       this.imap!.on('mail', (numNewMsgs: number) => {
         console.log(`[IMAP] Detected ${numNewMsgs} new messages`);
@@ -92,64 +97,76 @@ export class IMAPService {
   }
 
   private fetchLatestMessages(totalMessages: number, numNewMsgs: number) {
-     if (!this.imap) return;
-     // Fetch the newly arrived messages
-     const fetchStart = Math.max(1, totalMessages - numNewMsgs + 1);
-     const fetchQuery = `${fetchStart}:*`;
+    if (!this.imap) return;
+    // Fetch the newly arrived messages
+    const fetchStart = Math.max(1, totalMessages - numNewMsgs + 1);
+    const fetchQuery = `${fetchStart}:*`;
 
-     const f = this.imap.seq.fetch(fetchQuery, {
-       bodies: '',
-       struct: true,
-       markSeen: false
-     });
+    const f = this.imap.seq.fetch(fetchQuery, {
+      bodies: '',
+      struct: true,
+      markSeen: false,
+    });
 
-     f.on('message', (msg, seqno) => {
-       msg.on('body', (stream, info) => {
-         let rawEml = '';
-         stream.on('data', (chunk) => {
-           rawEml += chunk.toString('utf8');
-         });
-         stream.once('end', async () => {
-           await this.processRawEmail(rawEml, seqno);
-         });
-       });
-     });
+    f.on('message', (msg, seqno) => {
+      msg.on('body', (stream, info) => {
+        let rawEml = '';
+        stream.on('data', (chunk) => {
+          rawEml += chunk.toString('utf8');
+        });
+        stream.once('end', async () => {
+          await this.processRawEmail(rawEml, seqno);
+        });
+      });
+    });
 
-     f.once('error', (err) => {
-       console.error('[IMAP] Fetch error:', err);
-     });
+    f.once('error', (err) => {
+      console.error('[IMAP] Fetch error:', err);
+    });
   }
 
   private async processRawEmail(rawEml: string, seqno: number) {
     try {
       const parsed: ParsedMail = await simpleParser(rawEml);
-      
+
       const messageId = parsed.messageId || `imap-seq-${seqno}-${Date.now()}`;
-      
+
       // Check for duplicates
       const existing = await prisma.email.findUnique({ where: { messageId } });
       if (existing) return;
 
       const subject = parsed.subject || 'No Subject';
-      
-      const getAddressText = (addr: any) => Array.isArray(addr) ? addr.map(a => a.text).join(', ') : addr?.text || '';
-      
+
+      const getAddressText = (addr: any) =>
+        Array.isArray(addr)
+          ? addr.map((a) => a.text).join(', ')
+          : addr?.text || '';
+
       const sender = getAddressText(parsed.from) || 'Unknown Sender';
       const recipient = getAddressText(parsed.to) || this.config.user;
-      
+
       const inReplyTo = parsed.inReplyTo || null;
-      const body = typeof parsed.text === 'string' ? parsed.text : (typeof parsed.html === 'string' ? parsed.html : '');
+      const body =
+        typeof parsed.text === 'string'
+          ? parsed.text
+          : typeof parsed.html === 'string'
+            ? parsed.html
+            : '';
 
       // Thread resolution
       let threadId = null;
       if (inReplyTo) {
-         const parent = await prisma.email.findFirst({ where: { messageId: inReplyTo } });
-         if (parent) threadId = parent.threadId;
+        const parent = await prisma.email.findFirst({
+          where: { messageId: inReplyTo },
+        });
+        if (parent) threadId = parent.threadId;
       }
-      
+
       if (!threadId) {
-         const thread = await prisma.thread.create({ data: { summary: subject }});
-         threadId = thread.id;
+        const thread = await prisma.thread.create({
+          data: { summary: subject },
+        });
+        threadId = thread.id;
       }
 
       const emailRecord = await prisma.email.create({
@@ -162,8 +179,8 @@ export class IMAPService {
           body,
           status: 'UNREAD',
           userId: this.userId,
-          threadId: threadId as string
-        }
+          threadId: threadId as string,
+        },
       });
 
       // Dispatch event
@@ -179,15 +196,15 @@ export class IMAPService {
     if (this.isReconnecting) return;
     this.isReconnecting = true;
     if (this.keepAliveTimer) clearInterval(this.keepAliveTimer);
-    
+
     const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 60000); // max 60s
     this.reconnectAttempts++;
     if (this.reconnectAttempts > 10) {
       console.error('[IMAP] Max reconnect attempts reached. Giving up.');
       return;
     }
-    
-    console.log(`[IMAP] Reconnecting in ${delay/1000} seconds...`);
+
+    console.log(`[IMAP] Reconnecting in ${delay / 1000} seconds...`);
     setTimeout(async () => {
       try {
         await this.connect();

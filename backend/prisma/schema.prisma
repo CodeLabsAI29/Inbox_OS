@@ -16,6 +16,7 @@ model User {
   settings      UserSettings?
   emailAccounts EmailAccount[]
   webhooks      WebhookEndpoint[]
+  rules         Rule[]
 }
 
 model UserSettings {
@@ -23,6 +24,8 @@ model UserSettings {
   theme     String  @default("dark")
   signature String?
   autoReply Boolean @default(false)
+  telegramChatId String?
+  telegramEnabled Boolean @default(false)
 
   userId    String  @unique
   user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -98,6 +101,7 @@ model EmailAccount {
   emailAddress    String
   encryptedTokens String    // Encrypted refresh & access tokens
   syncState       String    @default("connected")
+  isActive        Boolean   @default(true)
   lastSyncAt      DateTime?
   lastMessageId   String?
   smtpHost        String?
@@ -122,4 +126,52 @@ model WebhookEndpoint {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("webhook_endpoints")
+}
+
+model Rule {
+  id           String          @id @default(uuid())
+  userId       String
+  name         String
+  description  String?
+  isActive     Boolean         @default(true)
+  priority     Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conditions   RuleCondition[]
+  actions      RuleAction[]
+  logs         RuleExecutionLog[]
+}
+
+model RuleCondition {
+  id        String   @id @default(uuid())
+  ruleId    String
+  field     String   // 'from', 'to', 'subject', 'body', 'category', 'priority', 'hasAttachments', 'senderDomain'
+  operator  String   // 'equals', 'contains', 'startsWith', 'endsWith', 'regex', 'gt', 'lt', 'in'
+  value     String
+  createdAt DateTime @default(now())
+
+  rule      Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+}
+
+model RuleAction {
+  id        String   @id @default(uuid())
+  ruleId    String
+  type      String   // 'moveToFolder', 'applyLabel', 'markAsRead', 'markAsUrgent', 'forwardTo', 'webhook', 'sendTelegram', 'sendWhatsApp'
+  config    Json
+  createdAt DateTime @default(now())
+
+  rule      Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+}
+
+model RuleExecutionLog {
+  id           String   @id @default(uuid())
+  ruleId       String
+  emailId      String
+  status       String   // 'success', 'failed'
+  executedAt   DateTime @default(now())
+  errorMessage String?
+
+  rule         Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
 }

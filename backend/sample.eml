@@ -1,0 +1,33 @@
+From: Alice <alice@example.com>
+To: Bob <bob@inboxos.dev>
+Subject: Sample Email with Attachments
+Date: Thu, 02 Jul 2026 20:00:00 +0000
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="boundary-example-12345"
+
+--boundary-example-12345
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Hi Bob,
+
+Here are the files you requested.
+
+Best,
+Alice
+
+--boundary-example-12345
+Content-Type: text/plain; name="document.txt"
+Content-Disposition: attachment; filename="document.txt"
+Content-Transfer-Encoding: base64
+
+VGhpcyBpcyBhIHNhbXBsZSB0ZXh0IGZpbGUgYXR0YWNobWVudC4=
+
+--boundary-example-12345
+Content-Type: image/png; name="photo.png"
+Content-Disposition: attachment; filename="photo.png"
+Content-Transfer-Encoding: base64
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
+
+--boundary-example-12345--

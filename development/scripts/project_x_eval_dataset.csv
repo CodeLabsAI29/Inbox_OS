@@ -1,0 +1,101 @@
+Email_ID,Sender,Recipient,Subject,Body,Timestamp,Query,GroundTruth
+c6d932b2-956a-40bc-911b-a3abe83175a3,Sarah Jenkins (Project Manager) <sarah.jenkins@inboxos.dev>,"John Doe <john.doe@inboxos.dev>, Emily Smith <emily.smith@inboxos.dev>",Project X: Kickoff and Proposed Timeline,"Hi team,
+
+Welcome to Project X! We are integrating the new billing system and Microsoft Graph API token synchronization.
+
+Here is the proposed timeline:
+- Kickoff: June 15
+- Staging Environment ready: July 8
+- QA testing: July 9 - July 14
+- Launch: July 15
+
+Our budget for this project is capped at $15,000.
+
+John, you will lead the API integration. Emily, you will handle the QA automation.
+
+Let me know if you see any conflicts.
+
+Best,
+Sarah",2026-06-15T09:00:00Z,"What is the final approved budget for Project X, and who approved it?","The final approved budget is $16,500. It was approved by Marcus Vance from Finance, who agreed to a maximum 10% ($1,500) increase over the initial $15,000 proposal to accommodate timeline changes."
+baa595e1-c7cf-4fe8-a26e-da1092a09956,John Doe <john.doe@inboxos.dev>,"Sarah Jenkins <sarah.jenkins@inboxos.dev>, Emily Smith <emily.smith@inboxos.dev>",Re: Project X: Kickoff and Proposed Timeline,"Hi Sarah,
+
+The timeline looks tight. I have concerns about the Microsoft Graph API token synchronization. The OAuth2 token refresh flow has known latency issues, and we might face token sync lag during peak times.
+
+I propose we delay the launch to July 20 to allow for thorough testing of the token refresh logic.
+
+Also, will we need to integrate Gmail API in this phase as well?
+
+Thanks,
+John",2026-06-15T11:30:00Z,"What technical issue did John raise regarding the Microsoft Graph API, and what solution did he propose if credentials are delayed?","John Doe raised concerns about OAuth2 token synchronization refresh flow latency and sync lag. If credentials are delayed, John proposed setting up a local Mock Server by July 8 to simulate token refresh responses so that QA testing is not blocked."
+b88b74d6-34d7-4169-84ee-a35a8e7f95ae,Marcus Vance (Finance) <marcus.vance@inboxos.dev>,"Sarah Jenkins <sarah.jenkins@inboxos.dev>, John Doe <john.doe@inboxos.dev>",Re: Project X: Budget & Timeline,"Hi Sarah and John,
+
+I saw the thread about delaying the launch to July 20.
+
+From a budget perspective, delaying the launch will increase our staging server lease and contractor costs. We can approve a maximum budget increase of 10% ($1,500), bringing the total budget to $16,500. We cannot exceed this.
+
+Also, to John's question: Gmail API integration is NOT in scope for Phase 1. We must focus exclusively on Microsoft Graph API.
+
+Regards,
+Marcus",2026-06-16T10:00:00Z,"What are the start and end dates of Emily Smith's upcoming Out of Office (OOO) period, and who is her backup?","Emily Smith will be Out of Office (OOO) from July 5 to July 8, 2026. Her colleague Dave will cover critical bug checks during her absence."
+cfcf9b8d-34f7-4f8f-b8cc-a496aeb3735b,Sarah Jenkins <sarah.jenkins@inboxos.dev>,"John Doe <john.doe@inboxos.dev>, Marcus Vance <marcus.vance@inboxos.dev>, Emily Smith <emily.smith@inboxos.dev>",Re: Project X: Budget & Timeline Approved,"Hi all,
+
+Thanks for the quick feedback.
+
+1. Timeline: We will move the launch date to July 20 as John suggested.
+2. Budget: Marcus, thank you for approving the budget increase to $16,500. We will keep costs within this limit.
+3. Scope: John, as Marcus confirmed, Gmail API is out of scope for Phase 1 and will be postponed to Phase 2.
+
+Emily, does the new launch date of July 20 work for the QA schedule?
+
+Best,
+Sarah",2026-06-16T14:00:00Z,"By what date did Emily request the staging environment to be ready, and when did John promise it would actually be ready?","Emily Smith requested that the staging environment be ready by July 12, 2026. John Doe promised to have it ready by July 10, 2026, which is two days earlier than requested."
+040800f8-cc69-4bed-85f6-c7fda434db95,Emily Smith <emily.smith@inboxos.dev>,"Sarah Jenkins <sarah.jenkins@inboxos.dev>, John Doe <john.doe@inboxos.dev>",Re: Project X: QA Schedule and OOO,"Hi Sarah and John,
+
+The July 20 launch works, but I have some personal time off planned.
+I will be Out of Office (OOO) from July 5 to July 8.
+
+To make this work, I need the staging environment to be fully ready by July 12 so I can execute the automated test suites.
+My colleague Dave will cover any urgent bug checks while I am away from July 5-8.
+
+Thanks,
+Emily",2026-06-17T09:15:00Z,"What is the configuration variable name introduced by John to toggle between the mock server and the live Microsoft Graph API, and what is its default setting on the staging environment?",The configuration variable is `MS_GRAPH_USE_MOCK`. It is set to `true` on the staging environment.
+e1babc46-23f0-416a-8a03-ea9cf629f549,John Doe <john.doe@inboxos.dev>,"Emily Smith <emily.smith@inboxos.dev>, Sarah Jenkins <sarah.jenkins@inboxos.dev>",Re: Project X: QA Schedule and OOO,"Hi Emily,
+
+Understood. I will ensure the staging environment is ready by July 10, which is two days before your July 12 deadline.
+
+Regarding the Microsoft Graph API token sync: if the staging credentials from Microsoft are delayed, I will set up a local Mock Server to simulate the token refresh responses so that QA testing isn't blocked. We should know if we need the Mock Server by July 8.
+
+Thanks,
+John",2026-06-17T16:45:00Z,"When is the Steering Committee MVP Demo scheduled, and by what date does John need to prepare the demo materials?","The Steering Committee MVP Demo is scheduled for July 15, 2026. John Doe must prepare the demo materials by July 14, 2026."
+26bc6bd0-41d5-4194-aa32-c69ce74f352d,Marcus Vance <marcus.vance@inboxos.dev>,Sarah Jenkins <sarah.jenkins@inboxos.dev>,Project X: Steering Committee Demo,"Hi Sarah,
+
+Just a reminder that we have the Steering Committee MVP Demo on July 15. They will want to see the progress on the Microsoft Graph integration.
+
+Does the mock server setup that John mentioned impact the demo or add to the $16,500 budget?
+
+Thanks,
+Marcus",2026-06-18T11:00:00Z,"Is the Gmail API integration included in the initial launch scope of Project X, and what is the plan for its future integration?","No, Gmail API integration is not in the scope for Phase 1 (initial launch) of Project X. It is postponed and will be planned for Phase 2."
+8e6b6c27-fb0d-45e1-ab63-d6cb5f74d058,Sarah Jenkins <sarah.jenkins@inboxos.dev>,"Marcus Vance <marcus.vance@inboxos.dev>, John Doe <john.doe@inboxos.dev>",Re: Project X: Steering Committee Demo,"Hi Marcus,
+
+No, the mock server setup will not exceed the budget. It is fully covered under the $16,500 allocation.
+
+John will prepare the demo materials by July 14, so we are ready for the Steering Committee on July 15. John, please make sure we have a clear fallback demo path in case Microsoft credentials are still pending.
+
+Best,
+Sarah",2026-06-18T13:30:00Z,"Does the setup of the Mock Server increase the final budget of Project X beyond the approved $16,500?","No, the mock server setup is fully covered under the approved $16,500 budget and does not increase the final costs beyond it."
+b6426d7d-97b4-404e-9a5e-966ae2adc4a0,Emily Smith <emily.smith@inboxos.dev>,"John Doe <john.doe@inboxos.dev>, Sarah Jenkins <sarah.jenkins@inboxos.dev>",Re: Project X: Mock Server QA Configuration,"Hi John and Sarah,
+
+If we use a mock server for the July 15 demo, the QA automation runs on staging will fail unless we have a toggle.
+
+Can we add an environment variable to toggle between the mock server and the live Microsoft Graph API? This will let us test the real token refresh flow once credentials arrive without changing code.
+
+Thanks,
+Emily",2026-06-19T10:00:00Z,"Why did John propose delaying the project launch, and what was the new agreed launch date?","John proposed delaying the launch due to latency concerns and token sync lag in the Microsoft Graph API's OAuth2 token refresh flow. The new agreed launch date is July 20, 2026."
+6028b356-15ff-4c88-9474-c9ac0682ebab,John Doe <john.doe@inboxos.dev>,"Emily Smith <emily.smith@inboxos.dev>, Sarah Jenkins <sarah.jenkins@inboxos.dev>",Re: Project X: Mock Server QA Configuration,"Hi Emily,
+
+Great point. I have added a configuration toggle variable `MS_GRAPH_USE_MOCK` to the backend service.
+
+Setting `MS_GRAPH_USE_MOCK=true` will route all token synchronization calls to the mock server, while `MS_GRAPH_USE_MOCK=false` will use the real Microsoft Graph API endpoint. I have set it to `true` on staging for now.
+
+Thanks,
+John",2026-06-19T15:20:00Z,"What concern did Emily raise regarding automated tests if a mock server is used for the demo, and how was it resolved?",Emily raised concerns that automated QA tests run on staging would fail for real API flows if a mock server was used. This was resolved by John introducing an environment variable toggle (`MS_GRAPH_USE_MOCK`) to route calls to either the mock server (when `true`) or the live Microsoft Graph API (when `false`).

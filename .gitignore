@@ -41,8 +41,10 @@ htmlcov/
 # Environment
 .env
 .env.local
+.env.development
 .env.development.local
 .env.test.local
+.env.production
 .env.production.local
 
 # IDE
@@ -76,5 +78,5 @@ coverage/
 .turbo/
 
 # Configuration exceptions
-!config/env/
-!config/env/.env.example
+!infrastructure/config/env/
+!infrastructure/config/env/.env.example

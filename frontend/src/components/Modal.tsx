@@ -10,7 +10,7 @@ export interface ModalProps {
 }
 
 // Selector of focusable elements for accessibility focus trapping
-const FOCUSABLE_SELECTOR = 
+const FOCUSABLE_SELECTOR =
   'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
 
 export const Modal: React.FC<ModalProps> = ({
@@ -30,7 +30,8 @@ export const Modal: React.FC<ModalProps> = ({
 
       // Focus the modal content area or the first focusable element
       if (modalRef.current) {
-        const focusableElements = modalRef.current.querySelectorAll(FOCUSABLE_SELECTOR);
+        const focusableElements =
+          modalRef.current.querySelectorAll(FOCUSABLE_SELECTOR);
         if (focusableElements.length > 0) {
           (focusableElements[0] as HTMLElement).focus();
         } else {
@@ -84,7 +85,7 @@ export const Modal: React.FC<ModalProps> = ({
       return () => {
         document.removeEventListener('keydown', handleKeyDown);
         document.body.style.overflow = originalOverflow;
-        
+
         // Restore focus to original trigger element
         if (previousActiveElement.current) {
           previousActiveElement.current.focus();
@@ -108,7 +109,7 @@ export const Modal: React.FC<ModalProps> = ({
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
-      aria-labelledby={title ? "modal-title" : undefined}
+      aria-labelledby={title ? 'modal-title' : undefined}
     >
       {/* Modal Dialog Content Panel */}
       <div
@@ -119,13 +120,16 @@ export const Modal: React.FC<ModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
           {title ? (
-            <h2 id="modal-title" className="text-base font-bold text-white tracking-tight">
+            <h2
+              id="modal-title"
+              className="text-base font-bold text-white tracking-tight"
+            >
               {title}
             </h2>
           ) : (
             <div />
           )}
-          
+
           <button
             onClick={onClose}
             className="p-1.5 rounded-xl bg-white/5 border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
@@ -136,9 +140,7 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {/* Modal Body content */}
-        <div className="flex-1 overflow-y-auto min-h-0 pr-1">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto min-h-0 pr-1">{children}</div>
       </div>
     </div>
   );

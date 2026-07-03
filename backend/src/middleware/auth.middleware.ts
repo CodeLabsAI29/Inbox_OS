@@ -27,7 +27,9 @@ export function requireAuth(
 
   const payload = AuthService.verifyToken(token);
   if (!payload) {
-    return res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
+    return res
+      .status(401)
+      .json({ error: 'Unauthorized: Invalid or expired token' });
   }
 
   req.user = payload;

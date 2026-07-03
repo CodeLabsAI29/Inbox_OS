@@ -13,7 +13,7 @@ export interface AvatarProps {
  */
 const getInitials = (name: string): string => {
   if (!name) return '?';
-  
+
   let cleanName = name.trim();
   if (!cleanName) return '?';
 
@@ -78,7 +78,7 @@ export const Avatar: React.FC<AvatarProps> = ({
   }, [imageUrl]);
 
   const isPresetSize = typeof size === 'string';
-  
+
   // Tailwind mapping for preset sizes
   const sizeClass = isPresetSize
     ? {
@@ -101,7 +101,8 @@ export const Avatar: React.FC<AvatarProps> = ({
   const gradient = getGradientStyle(name);
 
   // perfect circle style: rounded-full overflow-hidden
-  const baseClasses = 'relative flex items-center justify-center rounded-full overflow-hidden shrink-0 font-bold select-none transition-all duration-200';
+  const baseClasses =
+    'relative flex items-center justify-center rounded-full overflow-hidden shrink-0 font-bold select-none transition-all duration-200';
 
   if (imageUrl && !hasError) {
     return (
