@@ -28,6 +28,7 @@ import { registerWorkerHandlers } from './worker';
 import { Server as SocketIoServer } from 'socket.io';
 import { WebSocketService } from './services/websocket.service';
 import { TelegramBotService } from './services/telegram-bot.service';
+import { LinkAttachmentExtractorService } from './services/parser/link-attachment-extractor.service';
 import { TelegramNotificationService } from './services/telegram-notification.service';
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
@@ -537,6 +538,7 @@ app.post('/api/webhooks/incoming', async (req: Request, res: Response) => {
     }
 
     // 4. Create the Email record
+    const links = await LinkAttachmentExtractorService.extractLinks(body);
     const emailRecord = await prisma.email.create({
       data: {
         messageId,
@@ -548,6 +550,8 @@ app.post('/api/webhooks/incoming', async (req: Request, res: Response) => {
         status: 'UNREAD',
         userId: user.id,
         threadId,
+        links: links as any,
+        attachments: [],
       },
     });
 

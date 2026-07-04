@@ -2,6 +2,7 @@ import Imap from 'imap';
 import { simpleParser, ParsedMail } from 'mailparser';
 import { PrismaClient } from '@prisma/client';
 import { EventBus } from './event-bus.service';
+import { LinkAttachmentExtractorService } from './parser/link-attachment-extractor.service';
 
 const prisma = new PrismaClient();
 
@@ -169,6 +170,9 @@ export class IMAPService {
         threadId = thread.id;
       }
 
+      const links = await LinkAttachmentExtractorService.extractLinks(parsed.html || parsed.text || '');
+      const attachments = LinkAttachmentExtractorService.extractAttachments(parsed);
+
       const emailRecord = await prisma.email.create({
         data: {
           messageId,
@@ -180,6 +184,8 @@ export class IMAPService {
           status: 'UNREAD',
           userId: this.userId,
           threadId: threadId as string,
+          links: links as any,
+          attachments: attachments as any,
         },
       });
 

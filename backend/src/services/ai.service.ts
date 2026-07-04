@@ -1091,5 +1091,90 @@ If there are no explicit, concrete tasks, return an empty array.`;
       throw new Error(`AI generateReply failed: ${err.message}`);
     }
   }
+
+  /**
+   * Categorizes a link's purpose using LLM (OpenAI, Gemini, or Ollama)
+   */
+  public static async categorizeLink(href: string, text: string): Promise<string> {
+    const provider = process.env.AI_PROVIDER || 'openai';
+    const systemPrompt = `You are a link classification assistant. Categorize the given link (based on URL and anchor text) into one of the following categories:
+- unsubscribe
+- confirm
+- download
+- meeting
+- payment
+- other
+
+Provide the result as a JSON object with a single field 'category'.`;
+    const userPrompt = `URL: ${href}\nAnchor Text: ${text}`;
+
+    try {
+      if (provider === 'gemini') {
+        const gemini = this.getGemini();
+        const response = await gemini.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: userPrompt,
+          config: {
+            systemInstruction: systemPrompt,
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'OBJECT',
+              properties: {
+                category: {
+                  type: 'STRING',
+                  enum: ['unsubscribe', 'confirm', 'download', 'meeting', 'payment', 'other'],
+                },
+              },
+              required: ['category'],
+            },
+          },
+        });
+        const parsed = JSON.parse(response.text || '{}');
+        return parsed.category || 'other';
+      } else if (provider === 'mock') {
+        const lowerHref = href.toLowerCase();
+        if (lowerHref.includes('zoom.us') || lowerHref.includes('meet.google.com')) {
+          return 'meeting';
+        }
+        return 'other';
+      } else {
+        return await this.categorizeLinkWithOpenAI(systemPrompt, userPrompt);
+      }
+    } catch (err: any) {
+      console.warn(`[AIService] Link categorization fallback to 'other' due to error:`, err.message);
+      return 'other';
+    }
+  }
+
+  private static async categorizeLinkWithOpenAI(systemPrompt: string, userPrompt: string): Promise<string> {
+    const openai = this.getOpenAI();
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'link_categorization',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              category: {
+                type: 'string',
+                enum: ['unsubscribe', 'confirm', 'download', 'meeting', 'payment', 'other'],
+              },
+            },
+            required: ['category'],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+    const parsed = JSON.parse(response.choices[0]?.message?.content || '{}');
+    return parsed.category || 'other';
+  }
 }
 

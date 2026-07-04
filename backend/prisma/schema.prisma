@@ -59,6 +59,8 @@ model Email {
   status      String   @default("UNREAD")
   category    String?  // Added for email classification
   createdAt   DateTime @default(now())
+  links       Json?
+  attachments Json?
 
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
