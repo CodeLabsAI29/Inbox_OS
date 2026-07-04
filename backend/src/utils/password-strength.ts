@@ -1,6 +1,6 @@
 /**
  * Synchronously checks the strength of a password and returns a score from 0 to 5.
- * 
+ *
  * Criteria (1 point each):
  * 1. Length > 8 characters
  * 2. Contains at least one uppercase letter

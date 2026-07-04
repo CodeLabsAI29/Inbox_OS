@@ -1,8 +1,10 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
+  plugins: ['security'],
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
+    'plugin:security/recommended-legacy',
   ],
   parserOptions: {
     ecmaVersion: 2020,
