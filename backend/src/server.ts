@@ -23,6 +23,8 @@ import { registerWorkerHandlers } from './worker';
 import { Server as SocketIoServer } from 'socket.io';
 import { WebSocketService } from './services/websocket.service';
 
+import { setupSwagger } from './config/swagger';
+
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 8000;
@@ -47,6 +49,17 @@ app.use((req, res, next) => {
   next();
 });
 
+/**
+ * @swagger
+ * /metrics:
+ *   get:
+ *     summary: Prometheus metrics endpoint
+ *     tags:
+ *       - Metrics
+ *     responses:
+ *       200:
+ *         description: Metrics data in Prometheus format
+ */
 app.get('/metrics', async (req: Request, res: Response) => {
   const ip = req.ip || req.socket.remoteAddress || '';
   const cleanIp = ip.startsWith('::ffff:') ? ip.substring(7) : ip;
@@ -83,10 +96,30 @@ app.get('/metrics', async (req: Request, res: Response) => {
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api', rateLimiter);
+setupSwagger(app);
 
 /**
- * GET /api/health
- * Lightweight API health check endpoint.
+ * @swagger
+ * /api/health:
+ *   get:
+ *     summary: Health check
+ *     tags:
+ *       - Health
+ *     responses:
+ *       200:
+ *         description: Service is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: '2023-01-01T00:00:00Z'
  */
 app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({
@@ -97,8 +130,55 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 
 /**
- * POST /api/auth/register
- * Creates a new user in the database.
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: secret123
+ *     responses:
+ *       201:
+ *         description: User successfully registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User registered successfully
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Bad request (missing fields or email already exists)
+ *       500:
+ *         description: Internal server error
  */
 app.post('/api/auth/register', async (req: Request, res: Response) => {
   try {
@@ -154,8 +234,53 @@ app.post('/api/auth/register', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/auth/login
- * Validates credentials and sets an HTTP-only JWT cookie.
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login a user and set JWT cookie
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 example: secret123
+ *     responses:
+ *       200:
+ *         description: Successful login
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Logged in successfully
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *       400:
+ *         description: Missing email or password
+ *       401:
+ *         description: Invalid credentials
+ *       500:
+ *         description: Internal server error
  */
 app.post('/api/auth/login', async (req: Request, res: Response) => {
   try {
@@ -205,8 +330,25 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/auth/logout
- * Clears the HTTP-only auth cookie.
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout the current user (clears JWT cookie)
+ *     tags:
+ *       - Auth
+ *     responses:
+ *       200:
+ *         description: Successfully logged out
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Logged out successfully
+ *       500:
+ *         description: Internal server error
  */
 app.post('/api/auth/logout', (_req: Request, res: Response) => {
   res.clearCookie('token');
@@ -214,8 +356,26 @@ app.post('/api/auth/logout', (_req: Request, res: Response) => {
 });
 
 /**
- * GET /api/auth/me
- * Protected endpoint to fetch current authenticated user profile.
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Get current authenticated user profile
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Authenticated user profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized
  */
 app.get('/api/auth/me', requireAuth, (req: AuthenticatedRequest, res: Response) => {
   return res.status(200).json({
@@ -224,8 +384,43 @@ app.get('/api/auth/me', requireAuth, (req: AuthenticatedRequest, res: Response) 
 });
 
 /**
- * GET /api/users/profile
- * Protected endpoint to fetch current authenticated user profile.
+ * @swagger
+ * /api/users/profile:
+ *   get:
+ *     summary: Get user profile with settings
+ *     tags:
+ *       - Users
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                 settings:
+ *                   type: object
+ *                   properties:
+ *                     theme:
+ *                       type: string
+ *                     signature:
+ *                       type: string
+ *                       nullable: true
+ *                     autoReply:
+ *                       type: boolean
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
  */
 app.get('/api/users/profile', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -279,9 +474,25 @@ app.get('/api/users/profile', requireAuth, async (req: AuthenticatedRequest, res
 });
 
 /**
- * POST /api/webhooks/incoming
- * Webhook endpoint that ingests incoming emails, checks for thread association,
- * validates body structures via Zod, and creates records in PostgreSQL.
+ * @swagger
+ * /api/webhooks/incoming:
+ *   post:
+ *     summary: Ingest incoming email webhook
+ *     tags:
+ *       - Webhooks
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/IncomingEmail'
+ *     responses:
+ *       201:
+ *         description: Email ingested successfully
+ *       400:
+ *         description: Invalid payload
+ *       500:
+ *         description: Internal server error
  */
 const incomingEmailSchema = z.object({
   sender: z.string().email(),
@@ -376,8 +587,32 @@ app.post('/api/webhooks/incoming', async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/users/me/settings
- * Fetches user-specific preferences. If not initialized, returns system defaults.
+ * @swagger
+ * /api/users/me/settings:
+ *   get:
+ *     summary: Retrieve current user settings
+ *     tags:
+ *       - Users
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Settings object
+ *       401:
+ *         description: Unauthorized
+ */
+/**
+ * @swagger
+ * /api/users/me/settings:
+ *   get:
+ *     summary: Get current user's settings
+ *     tags:
+ *       - Users
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: User settings object
  */
 app.get('/api/users/me/settings', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -419,6 +654,48 @@ const updateSettingsSchema = z.object({
   autoReply: z.boolean().optional(),
 });
 
+/**
+ * @swagger
+ * /api/users/me/settings:
+ *   put:
+ *     summary: Update user settings
+ *     tags:
+ *       - Users
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserSettings'
+ *     responses:
+ *       200:
+ *         description: Settings updated
+ *       400:
+ *         description: Invalid payload
+ *       401:
+ *         description: Unauthorized
+ */
+/**
+ * @swagger
+ * /api/users/me/settings:
+ *   put:
+ *     summary: Update current user's settings
+ *     tags:
+ *       - Users
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserSettings'
+ *     responses:
+ *       200:
+ *         description: Settings updated
+ */
 app.put('/api/users/me/settings', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
@@ -476,6 +753,32 @@ const oauth2Client = new google.auth.OAuth2(
  * GET /api/integrations/gmail/auth
  * Generates the Google OAuth URL.
  */
+/**
+ * @swagger
+ * /api/integrations/gmail/auth:
+ *   get:
+ *     summary: Generate Google OAuth URL
+ *     tags:
+ *       - Integrations
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: OAuth URL
+ */
+/**
+ * @swagger
+ * /api/integrations/gmail/auth:
+ *   get:
+ *     summary: Initiate Gmail OAuth flow
+ *     tags:
+ *       - Integrations
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       302:
+ *         description: Redirect to Google OAuth consent screen
+ */
 app.get('/api/integrations/gmail/auth', requireAuth, (req: AuthenticatedRequest, res: Response) => {
   const url = oauth2Client.generateAuthUrl({
     access_type: 'offline',
@@ -489,6 +792,43 @@ app.get('/api/integrations/gmail/auth', requireAuth, (req: AuthenticatedRequest,
 /**
  * GET /api/integrations/gmail/callback
  * Exchanges the auth code for tokens and saves them to Prisma securely.
+ */
+/**
+ * @swagger
+ * /api/integrations/gmail/callback:
+ *   get:
+ *     summary: Google OAuth callback
+ *     tags:
+ *       - Integrations
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: state
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Gmail connected
+ *       400:
+ *         description: Missing parameters
+ *       500:
+ *         description: Server error
+ */
+/**
+ * @swagger
+ * /api/integrations/gmail/callback:
+ *   get:
+ *     summary: Gmail OAuth callback handling
+ *     tags:
+ *       - Integrations
+ *     responses:
+ *       200:
+ *         description: OAuth callback processed
  */
 app.get('/api/integrations/gmail/callback', async (req: Request, res: Response) => {
   const code = req.query.code as string;
@@ -581,6 +921,48 @@ app.get('/api/integrations/gmail/callback', async (req: Request, res: Response) 
  * POST /api/emails/send
  * Sends an outbound email via SMTP
  */
+/**
+ * @swagger
+ * /api/emails/send:
+ *   post:
+ *     summary: Send an email
+ *     tags:
+ *       - Emails
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SendEmailRequest'
+ *     responses:
+ *       200:
+ *         description: Email sent
+ *       400:
+ *         description: Invalid request
+ *       401:
+ *         description: Unauthorized
+ */
+/**
+ * @swagger
+ * /api/emails/send:
+ *   post:
+ *     summary: Send an email
+ *     tags:
+ *       - Emails
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/SendEmailRequest'
+ *     responses:
+ *       202:
+ *         description: Email queued for sending
+ */
 app.post('/api/emails/send', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { to, subject, text, html, inReplyTo } = req.body;
@@ -602,6 +984,48 @@ app.post('/api/emails/send', requireAuth, async (req: AuthenticatedRequest, res:
 /**
  * Webhook Config Routes
  */
+/**
+ * @swagger
+ * /api/webhooks/config:
+ *   post:
+ *     summary: Create webhook config
+ *     tags:
+ *       - Webhooks
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/WebhookConfig'
+ *     responses:
+ *       200:
+ *         description: Webhook created
+ *       400:
+ *         description: Invalid request
+ *       401:
+ *         description: Unauthorized
+ */
+/**
+ * @swagger
+ * /api/webhooks/config:
+ *   post:
+ *     summary: Create a new webhook configuration
+ *     tags:
+ *       - Webhooks
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/WebhookConfig'
+ *     responses:
+ *       201:
+ *         description: Webhook configuration created
+ */
 app.post('/api/webhooks/config', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { targetUrl, events } = req.body;
@@ -620,6 +1044,34 @@ app.post('/api/webhooks/config', requireAuth, async (req: AuthenticatedRequest, 
   }
 });
 
+/**
+ * @swagger
+ * /api/webhooks/config:
+ *   get:
+ *     summary: List webhook configs
+ *     tags:
+ *       - Webhooks
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: List of webhooks
+ *       401:
+ *         description: Unauthorized
+ */
+/**
+ * @swagger
+ * /api/webhooks/config:
+ *   get:
+ *     summary: List webhook configurations
+ *     tags:
+ *       - Webhooks
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: List of webhook configs
+ */
 app.get('/api/webhooks/config', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
@@ -633,6 +1085,35 @@ app.get('/api/webhooks/config', requireAuth, async (req: AuthenticatedRequest, r
   }
 });
 
+/**
+ * @swagger
+ * /api/webhooks/config/{id}:
+ *   patch:
+ *     summary: Update webhook config
+ *     tags:
+ *       - Webhooks
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/WebhookConfig'
+ *     responses:
+ *       200:
+ *         description: Updated
+ *       400:
+ *         description: Invalid request
+ *       401:
+ *         description: Unauthorized
+ */
 app.patch('/api/webhooks/config/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
@@ -656,6 +1137,46 @@ app.patch('/api/webhooks/config/:id', requireAuth, async (req: AuthenticatedRequ
   }
 });
 
+/**
+ * @swagger
+ * /api/webhooks/config/{id}:
+ *   delete:
+ *     summary: Delete webhook config
+ *     tags:
+ *       - Webhooks
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Deleted
+ *       401:
+ *         description: Unauthorized
+ */
+/**
+ * @swagger
+ * /api/webhooks/config/{id}:
+ *   delete:
+ *     summary: Delete a webhook configuration
+ *     tags:
+ *       - Webhooks
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Webhook deleted
+ */
 app.delete('/api/webhooks/config/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
@@ -677,6 +1198,47 @@ app.delete('/api/webhooks/config/:id', requireAuth, async (req: AuthenticatedReq
  * GET /api/emails
  * Returns paginated email list for the logged-in user.
  * Called by frontend EmailList.tsx
+ */
+/**
+ * @swagger
+ * /api/emails:
+ *   get:
+ *     summary: List emails
+ *     tags:
+ *       - Emails
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Email list
+ *       401:
+ *         description: Unauthorized
+ */
+/**
+ * @swagger
+ * /api/emails:
+ *   get:
+ *     summary: List sent emails
+ *     tags:
+ *       - Emails
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of email objects
  */
 app.get('/api/emails', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -715,6 +1277,48 @@ app.get('/api/emails', requireAuth, async (req: AuthenticatedRequest, res: Respo
 /**
  * GET /api/emails/:id
  * Returns a single email with its thread list and action items.
+ */
+/**
+ * @swagger
+ * /api/emails/{id}:
+ *   get:
+ *     summary: Get email by ID
+ *     tags:
+ *       - Emails
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Email details
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Not found
+ */
+/**
+ * @swagger
+ * /api/emails/{id}:
+ *   get:
+ *     summary: Get a single email by ID
+ *     tags:
+ *       - Emails
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Email object
  */
 app.get('/api/emails/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -780,6 +1384,34 @@ const createRuleSchema = z.object({
  * GET /api/rules
  * List all rules for authenticated user, ordered by priority
  */
+/**
+ * @swagger
+ * /api/rules:
+ *   get:
+ *     summary: List rules
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Rules list
+ *       401:
+ *         description: Unauthorized
+ */
+/**
+ * @swagger
+ * /api/rules:
+ *   get:
+ *     summary: List rule definitions
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Array of rule objects
+ */
 app.get('/api/rules', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
@@ -804,6 +1436,48 @@ app.get('/api/rules', requireAuth, async (req: AuthenticatedRequest, res: Respon
 /**
  * POST /api/rules
  * Create a new rule with conditions and actions
+ */
+/**
+ * @swagger
+ * /api/rules:
+ *   post:
+ *     summary: Create a rule
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RuleCreate'
+ *     responses:
+ *       201:
+ *         description: Rule created
+ *       400:
+ *         description: Invalid request
+ *       401:
+ *         description: Unauthorized
+ */
+/**
+ * @swagger
+ * /api/rules:
+ *   post:
+ *     summary: Create a new rule
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RuleCreate'
+ *     responses:
+ *       201:
+ *         description: Rule created
  */
 app.post('/api/rules', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -850,6 +1524,48 @@ app.post('/api/rules', requireAuth, async (req: AuthenticatedRequest, res: Respo
  * GET /api/rules/:id
  * Retrieve single rule details
  */
+/**
+ * @swagger
+ * /api/rules/{id}:
+ *   get:
+ *     summary: Get rule by ID
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Rule details
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Not found
+ */
+/**
+ * @swagger
+ * /api/rules/{id}:
+ *   get:
+ *     summary: Get rule by ID
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Rule object
+ */
 app.get('/api/rules/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
@@ -878,6 +1594,62 @@ app.get('/api/rules/:id', requireAuth, async (req: AuthenticatedRequest, res: Re
 /**
  * PUT /api/rules/:id
  * Update rule by replacing conditions and actions
+ */
+/**
+ * @swagger
+ * /api/rules/{id}:
+ *   put:
+ *     summary: Update rule
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RuleUpdate'
+ *     responses:
+ *       200:
+ *         description: Rule updated
+ *       400:
+ *         description: Invalid request
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Not found
+ */
+/**
+ * @swagger
+ * /api/rules/{id}:
+ *   put:
+ *     summary: Update rule by ID
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/RuleUpdate'
+ *     responses:
+ *       200:
+ *         description: Rule updated
  */
 app.put('/api/rules/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -936,6 +1708,48 @@ app.put('/api/rules/:id', requireAuth, async (req: AuthenticatedRequest, res: Re
  * DELETE /api/rules/:id
  * Deletes a rule
  */
+/**
+ * @swagger
+ * /api/rules/{id}:
+ *   delete:
+ *     summary: Delete rule
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Rule deleted
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Not found
+ */
+/**
+ * @swagger
+ * /api/rules/{id}:
+ *   delete:
+ *     summary: Delete rule by ID
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       204:
+ *         description: Rule deleted
+ */
 app.delete('/api/rules/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
@@ -959,6 +1773,48 @@ app.delete('/api/rules/:id', requireAuth, async (req: AuthenticatedRequest, res:
 /**
  * POST /api/rules/:id/toggle
  * Toggles isActive status
+ */
+/**
+ * @swagger
+ * /api/rules/{id}/toggle:
+ *   post:
+ *     summary: Toggle rule active state
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Rule toggled
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Not found
+ */
+/**
+ * @swagger
+ * /api/rules/{id}/toggle:
+ *   post:
+ *     summary: Toggle rule enabled state
+ *     tags:
+ *       - Rules
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Rule toggled
  */
 app.post('/api/rules/:id/toggle', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -987,6 +1843,28 @@ app.post('/api/rules/:id/toggle', requireAuth, async (req: AuthenticatedRequest,
  * GET /api/auth/google
  * PUBLIC — Generates Google OAuth URL for sign-in/sign-up via Google.
  * No JWT required. The callback handles user creation automatically.
+ */
+/**
+ * @swagger
+ * /api/auth/google:
+ *   get:
+ *     summary: Get Google OAuth URL
+ *     tags:
+ *       - Auth
+ *     responses:
+ *       200:
+ *         description: OAuth URL
+ */
+/**
+ * @swagger
+ * /api/auth/google:
+ *   get:
+ *     summary: Initiate Google OAuth login
+ *     tags:
+ *       - Auth
+ *     responses:
+ *       302:
+ *         description: Redirect to Google OAuth URL
  */
 app.get('/api/auth/google', (req: Request, res: Response) => {
   const url = oauth2Client.generateAuthUrl({
