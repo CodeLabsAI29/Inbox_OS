@@ -701,7 +701,7 @@ If there are no explicit, concrete tasks, return an empty array.`;
 
     if (isPostgres) {
       const embeddingString = `[${queryEmbedding.join(',')}]`;
-      const results = await prisma.$queryRawUnsafe<any[]>(
+      const results = await prisma.$queryRawUnsafe(
         `SELECT id, "messageId", sender, recipient, subject, body, status, category, "createdAt", "userId", "threadId",
                 (1 - (embedding <=> $1::vector)) as similarity
          FROM "Email"
@@ -710,7 +710,7 @@ If there are no explicit, concrete tasks, return an empty array.`;
          LIMIT $2`,
         embeddingString,
         limit
-      );
+      ) as any[];
       return results;
     } else {
       const emails = await prisma.email.findMany({
