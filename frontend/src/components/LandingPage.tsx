@@ -8,7 +8,6 @@ import {
   Cpu,
   Zap,
   Send,
-  X,
   ArrowRight,
   CheckCircle2,
   Clock,
@@ -233,7 +232,7 @@ const mockEmails: MockEmail[] = [
   },
 ];
 
-const sectionVariants = {
+const sectionVariants: any = {
   hidden: { opacity: 0, y: 24 },
   visible: {
     opacity: 1,
@@ -246,7 +245,7 @@ const sectionVariants = {
   }
 };
 
-const itemVariants = {
+const itemVariants: any = {
   hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,

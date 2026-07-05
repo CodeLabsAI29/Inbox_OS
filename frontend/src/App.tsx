@@ -38,10 +38,7 @@ import {
   Trash2,
   ListChecks,
   AlertCircle,
-  Tag,
-  ChevronRight,
   Plus,
-  ExternalLink,
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
@@ -62,7 +59,6 @@ const MetricCard: React.FC<MetricCardProps> = ({
   change,
   isPositive,
   icon,
-  bg,
   accent,
 }) => {
   const accentColor = accent || (isPositive ? 'var(--color-success)' : 'var(--color-danger)');
