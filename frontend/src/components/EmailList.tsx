@@ -535,7 +535,6 @@ export const EmailList: React.FC = () => {
         {/* Search & Options */}
         <div className="flex items-center gap-2 shrink-0">
           <label
-          <label
             className="flex items-center gap-2 cursor-pointer select-none px-3 py-1.5 font-medium text-[12px] rounded-full transition-all"
             style={{
               backgroundColor: isAiSearch ? 'rgba(93,107,47,.10)' : 'var(--color-surface)',

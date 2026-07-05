@@ -118,24 +118,26 @@ export const ComposeModal: React.FC = () => {
     backgroundColor: 'var(--color-surface)',
     border: `1px solid ${hasError ? 'var(--color-danger)' : 'var(--color-ink)'}`,
     color: 'var(--color-ink)',
-    fontFamily: 'var(--font-body)',
     fontSize: '13px',
     padding: '10px 14px',
     outline: 'none',
-    boxShadow: hasError ? '3px 3px 0 var(--color-danger)' : undefined,
+    borderRadius: '10px',
+    boxShadow: hasError ? '0 0 0 2px rgba(217,104,87,.25)' : undefined,
   });
 
   const toolbarBtnStyle: React.CSSProperties = {
-    padding: '6px 8px',
+    padding: '5px 8px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'var(--color-surface)',
-    border: '1px solid var(--color-ink)',
-    color: 'var(--color-ink)',
+    backgroundColor: 'transparent',
+    border: '1px solid transparent',
+    color: 'var(--color-muted)',
     cursor: 'pointer',
-    minHeight: '36px',
-    minWidth: '36px',
+    borderRadius: '6px',
+    minHeight: '30px',
+    minWidth: '30px',
+    transition: 'all 0.15s',
   };
 
   return (
@@ -150,19 +152,15 @@ export const ComposeModal: React.FC = () => {
       {/* Success Toast */}
       {toastMessage && (
         <div
-          className="fixed top-6 right-6 z-50 px-5 py-3 flex items-center gap-3 animate-slideIn"
+          className="fixed top-6 right-6 z-50 px-5 py-3 flex items-center gap-3 animate-slideIn rounded-[14px]"
           style={{
             backgroundColor: 'var(--color-success)',
-            border: '1px solid var(--color-ink)',
-            boxShadow: 'var(--shadow-offset)',
+            boxShadow: '0 8px 28px rgba(63,167,106,.30)',
             color: '#fff',
           }}
         >
-          <CheckCircle size={18} />
-          <span
-            className="text-xs font-bold uppercase tracking-wider"
-            style={{ fontFamily: 'var(--font-body)' }}
-          >
+          <CheckCircle size={16} />
+          <span className="text-[13px] font-medium">
             {toastMessage}
           </span>
         </div>
@@ -170,42 +168,47 @@ export const ComposeModal: React.FC = () => {
 
       {/* Main Compose Card */}
       <div
-        className="relative w-full max-w-[640px] flex flex-col max-h-[90vh] z-10 overflow-hidden animate-scaleUp"
+        className="relative w-full max-w-[640px] flex flex-col max-h-[90vh] z-10 overflow-hidden animate-scaleUp rounded-[22px]"
         style={{
           backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-ink)',
-          boxShadow: '8px 8px 0px var(--color-ink)',
+          border: '1px solid var(--color-border)',
+          boxShadow: '0 20px 60px rgba(0,0,0,.15)',
         }}
       >
         {/* Modal Header */}
         <div
           className="flex items-center justify-between px-6 py-4"
-          style={{ borderBottom: '1px solid var(--color-ink)', backgroundColor: 'var(--color-accent)' }}
+          style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'rgba(93,107,47,.04)' }}
         >
           <div className="flex items-center gap-2">
-            <Mail size={16} style={{ color: 'var(--color-ink)' }} />
+            <Mail size={15} style={{ color: 'var(--color-primary)' }} />
             <h2
-              className="text-sm font-bold uppercase tracking-wider"
-              style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}
+              className="text-[15px] font-semibold"
+              style={{ color: 'var(--color-ink)' }}
             >
-              Compose Outbound Action
+              Compose Message
             </h2>
           </div>
           <button
             onClick={closeCompose}
-            className="p-2 flex items-center justify-center transition-all min-h-[44px] min-w-[44px]"
+            className="p-1.5 flex items-center justify-center transition-all min-h-[36px] min-w-[36px] rounded-lg"
             style={{
-              border: '1px solid var(--color-ink)',
-              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              backgroundColor: 'transparent',
+              color: 'var(--color-muted)',
             }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.backgroundColor = '#eee';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-danger)';
+              (e.currentTarget as HTMLElement).style.color = 'var(--color-danger)';
+              (e.currentTarget as HTMLElement).style.backgroundColor = '#FEF0EE';
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--color-surface)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)';
+              (e.currentTarget as HTMLElement).style.color = 'var(--color-muted)';
+              (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
             }}
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
@@ -218,8 +221,8 @@ export const ComposeModal: React.FC = () => {
           <div className="space-y-1">
             <div className="flex justify-between items-center mb-1">
               <label
-                className="text-[10px] font-bold uppercase tracking-widest"
-                style={{ fontFamily: 'var(--font-body)', color: 'var(--color-ink)' }}
+                className="text-[11px] font-medium"
+                style={{ color: 'var(--color-muted)' }}
               >
                 To
               </label>
@@ -248,8 +251,8 @@ export const ComposeModal: React.FC = () => {
           {/* CC Field */}
           <div className="space-y-1">
             <label
-              className="text-[10px] font-bold uppercase tracking-widest block mb-1"
-              style={{ fontFamily: 'var(--font-body)', color: 'var(--color-ink)' }}
+              className="text-[11px] font-medium block mb-1"
+              style={{ color: 'var(--color-muted)' }}
             >
               CC
             </label>
@@ -266,8 +269,8 @@ export const ComposeModal: React.FC = () => {
           <div className="space-y-1">
             <div className="flex justify-between items-center mb-1">
               <label
-                className="text-[10px] font-bold uppercase tracking-widest"
-                style={{ fontFamily: 'var(--font-body)', color: 'var(--color-ink)' }}
+                className="text-[11px] font-medium"
+                style={{ color: 'var(--color-muted)' }}
               >
                 Subject
               </label>
@@ -294,8 +297,8 @@ export const ComposeModal: React.FC = () => {
           <div className="space-y-1 flex-1 flex flex-col min-h-[220px]">
             <div className="flex justify-between items-center mb-1">
               <label
-                className="text-[10px] font-bold uppercase tracking-widest"
-                style={{ fontFamily: 'var(--font-body)', color: 'var(--color-ink)' }}
+                className="text-[11px] font-medium"
+                style={{ color: 'var(--color-muted)' }}
               >
                 Message Body
               </label>
@@ -311,15 +314,15 @@ export const ComposeModal: React.FC = () => {
             </div>
 
             <div
-              className="flex flex-col flex-1 overflow-hidden"
-              style={{ border: '1px solid var(--color-ink)' }}
+              className="flex flex-col flex-1 overflow-hidden rounded-[12px]"
+              style={{ border: '1px solid var(--color-border)' }}
             >
               {/* Text formatting bar */}
               <div
                 className="flex items-center justify-between px-2 py-1.5"
-                style={{ borderBottom: '1px solid var(--color-ink)', backgroundColor: '#f8f8f8' }}
+                style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'rgba(93,107,47,.03)' }}
               >
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                   {[
                     { symbol: 'bold', icon: <Bold size={12} />, title: 'Bold' },
                     { symbol: 'italic', icon: <Italic size={12} />, title: 'Italic' },
@@ -333,12 +336,14 @@ export const ComposeModal: React.FC = () => {
                       title={title}
                       style={toolbarBtnStyle}
                       onMouseEnter={e => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--color-ink)';
-                        (e.currentTarget as HTMLElement).style.color = '#fff';
+                        (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(93,107,47,.10)';
+                        (e.currentTarget as HTMLElement).style.color = 'var(--color-primary)';
+                        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(93,107,47,.20)';
                       }}
                       onMouseLeave={e => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--color-surface)';
-                        (e.currentTarget as HTMLElement).style.color = 'var(--color-ink)';
+                        (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+                        (e.currentTarget as HTMLElement).style.color = 'var(--color-muted)';
+                        (e.currentTarget as HTMLElement).style.borderColor = 'transparent';
                       }}
                     >
                       {icon}
@@ -351,22 +356,29 @@ export const ComposeModal: React.FC = () => {
                   type="button"
                   onClick={triggerAiDraft}
                   disabled={isAiLoading || isSending}
-                  className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-full disabled:opacity-50 transition-all"
                   style={{
-                    backgroundColor: 'var(--color-accent-cta)',
-                    border: '1px solid var(--color-ink)',
-                    color: '#fff',
-                    boxShadow: '2px 2px 0 var(--color-ink)',
+                    backgroundColor: 'rgba(93,107,47,.10)',
+                    color: 'var(--color-primary)',
+                    border: '1px solid rgba(93,107,47,.20)',
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--color-primary)';
+                    (e.currentTarget as HTMLElement).style.color = '#fff';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(93,107,47,.10)';
+                    (e.currentTarget as HTMLElement).style.color = 'var(--color-primary)';
                   }}
                 >
                   {isAiLoading ? (
                     <>
-                      <Loader2 size={10} className="animate-spin" />
+                      <Loader2 size={11} className="animate-spin" />
                       <span>Drafting...</span>
                     </>
                   ) : (
                     <>
-                      <Sparkles size={10} />
+                      <Sparkles size={11} />
                       <span>AI Draft</span>
                     </>
                   )}
@@ -376,14 +388,13 @@ export const ComposeModal: React.FC = () => {
               {/* Textarea */}
               <textarea
                 id="compose-body"
-                placeholder="Write your email here... Use formatting bar above."
+                placeholder="Write your email here..."
                 disabled={isSending}
                 {...register('body', { required: 'Message body is required' })}
-                className="w-full flex-1 min-h-[160px] resize-none p-4 text-xs leading-relaxed"
+                className="w-full flex-1 min-h-[160px] resize-none p-4 text-[13px] leading-relaxed"
                 style={{
                   backgroundColor: 'var(--color-surface)',
                   color: 'var(--color-ink)',
-                  fontFamily: 'var(--font-body)',
                   outline: 'none',
                 }}
               />
@@ -392,8 +403,8 @@ export const ComposeModal: React.FC = () => {
 
           {/* Form Submit Footer */}
           <div
-            className="flex justify-end gap-3 pt-3"
-            style={{ borderTop: '1px solid var(--color-ink)' }}
+            className="flex justify-end gap-3 pt-4"
+            style={{ borderTop: '1px solid var(--color-border)' }}
           >
             <Button
               variant="secondary"

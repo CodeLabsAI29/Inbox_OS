@@ -114,18 +114,20 @@ const ReminderCard: React.FC<ReminderCardProps> = ({ reminder, onSnooze, onDone 
 
   return (
     <div
-      className="relative p-3 transition-all duration-200 group"
+      className="relative p-3 rounded-[16px] transition-all duration-200 group"
       id={`reminder-card-${reminder.id}`}
       style={{
         backgroundColor: cfg.bg,
         border: `1px solid ${cfg.border}`,
-        boxShadow: `3px 3px 0 ${cfg.border}`,
+        boxShadow: '0 2px 10px rgba(0,0,0,.05)',
       }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 18px rgba(0,0,0,.09)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(0,0,0,.05)'; (e.currentTarget as HTMLElement).style.transform = ''; }}
     >
       {/* Urgency pulse for overdue / critical */}
       {(timeLeft.urgency === 'overdue' || timeLeft.urgency === 'critical') && (
         <span
-          className="absolute top-2.5 right-2.5 h-2 w-2 animate-ping"
+          className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full animate-ping"
           style={{ backgroundColor: cfg.dot }}
         />
       )}
@@ -133,7 +135,7 @@ const ReminderCard: React.FC<ReminderCardProps> = ({ reminder, onSnooze, onDone 
       <div className="flex items-start gap-2.5">
         {/* Status dot */}
         <div
-          className={`mt-1.5 h-2 w-2 shrink-0 ${timeLeft.isOverdue ? 'animate-pulse' : ''}`}
+          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${timeLeft.isOverdue ? 'animate-pulse' : ''}`}
           style={{ backgroundColor: cfg.dot }}
         />
 
@@ -156,8 +158,8 @@ const ReminderCard: React.FC<ReminderCardProps> = ({ reminder, onSnooze, onDone 
           {/* Status + countdown */}
           <div className="flex items-center justify-between">
             <span
-              className="text-[10px] font-bold px-2 py-0.5"
-              style={{ backgroundColor: cfg.badge.bg, border: `1.5px solid var(--color-ink)`, color: cfg.badge.color, fontFamily: 'var(--font-body)' }}
+              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: cfg.badge.bg, color: cfg.badge.color }}
             >
               {timeLeft.isOverdue ? '⚠ OVERDUE' : `⏱ ${timeLeft.label} left`}
             </span>
@@ -179,8 +181,10 @@ const ReminderCard: React.FC<ReminderCardProps> = ({ reminder, onSnooze, onDone 
           <button
             id={`snooze-btn-${reminder.id}`}
             onClick={() => setShowSnooze(!showSnooze)}
-            className="w-full flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all"
-            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-ink)', boxShadow: '2px 2px 0 var(--color-ink)', color: 'var(--color-ink)' }}
+            className="w-full flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-medium rounded-[8px] transition-all"
+            style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-muted)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-primary)'; (e.currentTarget as HTMLElement).style.color = 'var(--color-primary)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; (e.currentTarget as HTMLElement).style.color = 'var(--color-muted)'; }}
           >
             <Bell size={10} />
             Snooze
@@ -189,8 +193,8 @@ const ReminderCard: React.FC<ReminderCardProps> = ({ reminder, onSnooze, onDone 
 
           {showSnooze && (
             <div
-              className="absolute bottom-full mb-1.5 left-0 right-0 z-50 overflow-hidden"
-              style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-ink)', boxShadow: '4px 4px 0 var(--color-ink)' }}
+              className="absolute bottom-full mb-1.5 left-0 right-0 z-50 overflow-hidden rounded-[12px]"
+              style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-hover)' }}
             >
               {SNOOZE_OPTIONS.map((opt) => (
                 <button
@@ -198,10 +202,12 @@ const ReminderCard: React.FC<ReminderCardProps> = ({ reminder, onSnooze, onDone 
                   id={`snooze-opt-${reminder.id}-${opt.value}`}
                   onClick={() => handleSnooze(opt.value)}
                   disabled={snoozingId === opt.value}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase transition-all disabled:opacity-50 hover:bg-yellow-50"
-                  style={{ color: 'var(--color-ink)', fontFamily: 'var(--font-body)', borderBottom: '1px solid var(--color-ink)' }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-medium transition-all disabled:opacity-50"
+                  style={{ color: 'var(--color-ink)', borderBottom: '1px solid var(--color-border)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(93,107,47,.05)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
                 >
-                  <Zap size={9} style={{ color: 'var(--color-pending)' }} />
+                  <Zap size={9} style={{ color: 'var(--color-warning)' }} />
                   {snoozingId === opt.value ? 'Snoozing…' : opt.label}
                 </button>
               ))}
@@ -213,8 +219,10 @@ const ReminderCard: React.FC<ReminderCardProps> = ({ reminder, onSnooze, onDone 
         <button
           id={`done-btn-${reminder.id}`}
           onClick={handleDone}
-          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all"
-          style={{ backgroundColor: 'var(--color-success)', border: '1px solid var(--color-ink)', boxShadow: '2px 2px 0 var(--color-ink)', color: '#fff', fontFamily: 'var(--font-body)' }}
+          className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-medium rounded-[8px] transition-all"
+          style={{ backgroundColor: 'rgba(63,167,106,.10)', border: '1px solid rgba(63,167,106,.25)', color: 'var(--color-success)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--color-success)'; (e.currentTarget as HTMLElement).style.color = '#fff'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(63,167,106,.10)'; (e.currentTarget as HTMLElement).style.color = 'var(--color-success)'; }}
         >
           <CheckCircle2 size={10} />
           Done
@@ -297,13 +305,13 @@ export const DeadlinesWidget: React.FC = () => {
     <div className="space-y-3" id="deadlines-widget">
       {/* Header */}
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-sm font-black flex items-center gap-2" style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}>
-          <Clock size={15} style={{ color: 'var(--color-accent-cta)' }} />
+        <h3 className="text-[14px] font-semibold flex items-center gap-2" style={{ color: 'var(--color-ink)' }}>
+          <Clock size={14} style={{ color: 'var(--color-primary)' }} />
           <span>Upcoming Deadlines</span>
           {overdueCount > 0 && (
             <span
-              className="text-[9px] font-bold px-1.5 py-0.5 animate-pulse"
-              style={{ backgroundColor: 'var(--color-danger)', border: '1.5px solid var(--color-ink)', color: '#fff', fontFamily: 'var(--font-body)' }}
+              className="text-[10px] font-semibold px-2 py-0.5 rounded-full animate-pulse"
+              style={{ backgroundColor: 'rgba(217,104,87,.12)', color: 'var(--color-danger)' }}
             >
               {overdueCount} overdue
             </span>
@@ -322,13 +330,13 @@ export const DeadlinesWidget: React.FC = () => {
 
       {/* Content */}
       <div
-        className="overflow-hidden"
-        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-ink)', boxShadow: 'var(--shadow-offset)' }}
+        className="overflow-hidden rounded-[22px]"
+        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-card)' }}
       >
         {loading && (
           <div className="space-y-2.5 p-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 animate-pulse" style={{ backgroundColor: '#e8e5d8', border: '1px solid #ccc' }} />
+              <div key={i} className="h-16 rounded-[12px] animate-pulse" style={{ backgroundColor: 'var(--color-border)' }} />
             ))}
           </div>
         )}
@@ -350,13 +358,13 @@ export const DeadlinesWidget: React.FC = () => {
         {!loading && !error && reminders.length === 0 && (
           <div className="flex flex-col items-center justify-center py-8 px-4 text-center gap-2">
             <div
-              className="h-10 w-10 flex items-center justify-center"
-              style={{ backgroundColor: 'var(--color-success)', border: '1px solid var(--color-ink)' }}
+              className="h-10 w-10 flex items-center justify-center rounded-full"
+              style={{ backgroundColor: 'rgba(63,167,106,.10)' }}
             >
-              <CheckCircle2 size={18} className="text-white" />
+              <CheckCircle2 size={18} style={{ color: 'var(--color-success)' }} />
             </div>
-            <p className="text-xs font-bold" style={{ color: 'var(--color-ink)', fontFamily: 'var(--font-body)' }}>No upcoming deadlines</p>
-            <p className="text-[10px]" style={{ color: '#666' }}>
+            <p className="text-[13px] font-medium" style={{ color: 'var(--color-ink)' }}>No upcoming deadlines</p>
+            <p className="text-[11px]" style={{ color: 'var(--color-muted)' }}>
               Deadlines are automatically extracted from emails
             </p>
           </div>

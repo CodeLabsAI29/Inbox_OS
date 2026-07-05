@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'accent';
+  variant?: 'primary' | 'secondary' | 'accent' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -21,66 +21,83 @@ export const Button: React.FC<ButtonProps> = ({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontFamily: 'var(--font-body)',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    border: '1px solid var(--color-ink)',
-    transition: 'box-shadow 0.1s ease, transform 0.1s ease',
+    fontWeight: 500,
+    borderRadius: '10px',
+    border: '1px solid transparent',
+    transition: 'all 0.18s ease',
     cursor: disabled || isLoading ? 'not-allowed' : 'pointer',
     opacity: disabled || isLoading ? 0.55 : 1,
+    outline: 'none',
   };
 
   const variantStyle: Record<string, React.CSSProperties> = {
     primary: {
-      backgroundColor: 'var(--color-accent-cta)',
+      backgroundColor: 'var(--color-primary)',
       color: '#ffffff',
-      boxShadow: 'var(--shadow-offset)',
+      boxShadow: '0 4px 14px rgba(93,107,47,.25)',
+      borderColor: 'transparent',
     },
     secondary: {
       backgroundColor: 'var(--color-surface)',
-      color: 'var(--color-ink)',
-      boxShadow: 'var(--shadow-offset)',
+      color: 'var(--color-muted)',
+      boxShadow: 'var(--shadow-sm)',
+      borderColor: 'var(--color-border)',
     },
     accent: {
-      backgroundColor: 'var(--color-accent)',
-      color: 'var(--color-ink)',
-      boxShadow: 'var(--shadow-offset)',
+      backgroundColor: 'rgba(228,184,92,.12)',
+      color: '#C49030',
+      boxShadow: 'none',
+      borderColor: 'rgba(228,184,92,.30)',
+    },
+    danger: {
+      backgroundColor: 'rgba(217,104,87,.10)',
+      color: 'var(--color-danger)',
+      boxShadow: 'none',
+      borderColor: 'rgba(217,104,87,.25)',
     },
   };
 
   const sizeStyle: Record<string, React.CSSProperties> = {
-    sm: { padding: '6px 12px', fontSize: '11px', gap: '6px' },
-    md: { padding: '10px 18px', fontSize: '12px', gap: '8px' },
-    lg: { padding: '14px 24px', fontSize: '13px', gap: '10px' },
+    sm: { padding: '5px 12px', fontSize: '12px', gap: '5px' },
+    md: { padding: '9px 18px', fontSize: '13px', gap: '7px' },
+    lg: { padding: '12px 24px', fontSize: '14px', gap: '8px' },
+  };
+
+  const hoverMap: Record<string, React.CSSProperties> = {
+    primary: { boxShadow: '0 6px 20px rgba(93,107,47,.35)', transform: 'translateY(-1px)' },
+    secondary: { boxShadow: 'var(--shadow-card)', borderColor: 'rgba(93,107,47,.25)', color: 'var(--color-ink)', transform: 'translateY(-1px)' },
+    accent: { backgroundColor: 'rgba(228,184,92,.20)', transform: 'translateY(-1px)' },
+    danger: { backgroundColor: 'rgba(217,104,87,.15)', transform: 'translateY(-1px)' },
   };
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled || isLoading) return;
     const el = e.currentTarget;
-    el.style.boxShadow = 'var(--shadow-offset-hover)';
-    el.style.transform = 'translate(3px, 3px)';
+    const hover = hoverMap[variant] || {};
+    Object.assign(el.style, hover);
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled || isLoading) return;
     const el = e.currentTarget;
-    el.style.boxShadow = 'var(--shadow-offset)';
+    const vs = variantStyle[variant] || {};
+    el.style.boxShadow = (vs.boxShadow as string) || 'none';
     el.style.transform = '';
+    el.style.borderColor = (vs.borderColor as string) || 'transparent';
+    el.style.backgroundColor = (vs.backgroundColor as string) || '';
+    el.style.color = (vs.color as string) || '';
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled || isLoading) return;
-    const el = e.currentTarget;
-    el.style.boxShadow = 'none';
-    el.style.transform = 'translate(6px, 6px)';
+    e.currentTarget.style.transform = 'translateY(0) scale(0.98)';
+    e.currentTarget.style.boxShadow = 'none';
   };
 
   const handleMouseUp = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (disabled || isLoading) return;
-    const el = e.currentTarget;
-    el.style.boxShadow = 'var(--shadow-offset-hover)';
-    el.style.transform = 'translate(3px, 3px)';
+    const hover = hoverMap[variant] || {};
+    Object.assign(e.currentTarget.style, hover);
   };
 
   return (

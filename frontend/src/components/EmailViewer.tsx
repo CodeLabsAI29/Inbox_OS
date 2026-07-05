@@ -600,18 +600,18 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { icon: <Flame size={13} />, label: 'Priority', value: `${priorityScore}`, color: 'var(--color-danger)' },
-                  { icon: <Clock size={13} />, label: 'Urgency', value: `${email.analysis?.urgency_score || 50}`, color: 'var(--color-pending)' },
+                  { icon: <Clock size={13} />, label: 'Urgency', value: `${email.analysis?.urgency_score || 50}`, color: 'var(--color-warning)' },
                   { icon: <ClipboardList size={13} />, label: 'Action', value: `${email.analysis?.actionability_score || 50}`, color: 'var(--color-info)' },
                 ].map(({ icon, label, value, color }) => (
                   <div
                     key={label}
-                    className="p-2 text-center"
-                    style={{ backgroundColor: color, border: '1px solid var(--color-ink)', boxShadow: '2px 2px 0 var(--color-ink)' }}
+                    className="p-2 text-center rounded-[12px]"
+                    style={{ backgroundColor: `${color}1A`, border: `1px solid ${color}30` }}
                   >
-                    <div className="mx-auto mb-1 flex justify-center" style={{ color: 'var(--color-ink)' }}>{icon}</div>
-                    <p className="text-[9px] font-bold uppercase" style={{ color: 'var(--color-ink)' }}>{label}</p>
-                    <p className="text-xs font-extrabold mt-0.5" style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}>
-                      {value}/100
+                    <div className="mx-auto mb-1 flex justify-center" style={{ color }}>{icon}</div>
+                    <p className="text-[10px] font-medium" style={{ color: 'var(--color-muted)' }}>{label}</p>
+                    <p className="text-[13px] font-bold mt-0.5" style={{ color }}>
+                      {value}
                     </p>
                   </div>
                 ))}
@@ -620,15 +620,15 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
 
             {/* Extracted Deadlines */}
             {email.analysis?.deadlines && email.analysis.deadlines.length > 0 && (
-              <div className="space-y-2" style={{ borderTop: '1px solid var(--color-ink)', paddingTop: '16px' }}>
+              <div className="space-y-2" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '14px' }}>
                 <h4
-                  className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5"
-                  style={{ color: '#666', fontFamily: 'var(--font-body)' }}
+                  className="text-[11px] font-medium flex items-center gap-1.5"
+                  style={{ color: 'var(--color-muted)' }}
                 >
-                  <Calendar size={11} style={{ color: 'var(--color-accent-cta)' }} />
+                  <Calendar size={11} style={{ color: 'var(--color-primary)' }} />
                   <span>Deadlines</span>
                 </h4>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {email.analysis.deadlines.map((deadlineStr: string, idx: number) => {
                     const formattedDate = (() => {
                       try {
@@ -642,16 +642,15 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
                     return (
                       <div
                         key={idx}
-                        className="flex items-center gap-3 p-3 transition-all"
+                        className="flex items-center gap-3 p-2.5 rounded-[10px]"
                         style={{
-                          backgroundColor: 'var(--color-surface)',
-                          border: '1px solid var(--color-ink)',
-                          boxShadow: '2px 2px 0 var(--color-ink)',
+                          backgroundColor: 'rgba(217,164,65,.08)',
+                          border: '1px solid rgba(217,164,65,.20)',
                         }}
                       >
-                        <Calendar size={14} className="shrink-0" style={{ color: 'var(--color-accent-cta)' }} />
+                        <Calendar size={13} className="shrink-0" style={{ color: 'var(--color-warning)' }} />
                         <div className="min-w-0">
-                          <p className="text-xs leading-normal font-bold" style={{ color: 'var(--color-ink)', fontFamily: 'var(--font-body)' }}>
+                          <p className="text-[12px] leading-normal font-medium" style={{ color: 'var(--color-ink)' }}>
                             {formattedDate}
                           </p>
                         </div>
@@ -663,29 +662,29 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
             )}
 
             {/* Extracted Action Items */}
-            <div className="space-y-2" style={{ borderTop: '1px solid var(--color-ink)', paddingTop: '16px' }}>
+            <div className="space-y-2" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '14px' }}>
               <h4
-                className="text-[10px] font-bold uppercase tracking-widest"
-                style={{ color: '#666', fontFamily: 'var(--font-body)' }}
+                className="text-[11px] font-medium"
+                style={{ color: 'var(--color-muted)' }}
               >
                 Extracted Action Items
               </h4>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {actionItems.map((action, idx) => {
                   const isChecked = checkedActions[idx];
                   return (
                     <div
                       key={idx}
                       onClick={() => toggleAction(idx)}
-                      className="flex items-start gap-3 p-3 cursor-pointer transition-all"
+                      className="flex items-start gap-3 p-3 cursor-pointer rounded-[10px] transition-all"
                       style={{
-                        backgroundColor: isChecked ? 'var(--color-success)' : 'var(--color-surface)',
-                        border: '1px solid var(--color-ink)',
-                        boxShadow: isChecked ? 'none' : '2px 2px 0 var(--color-ink)',
-                        transform: isChecked ? 'translate(2px,2px)' : '',
+                        backgroundColor: isChecked ? 'rgba(63,167,106,.10)' : 'var(--color-surface)',
+                        border: `1px solid ${isChecked ? 'rgba(63,167,106,.25)' : 'var(--color-border)'}`,
                       }}
+                      onMouseEnter={e => { if (!isChecked) { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-primary)'; } }}
+                      onMouseLeave={e => { if (!isChecked) { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)'; } }}
                     >
-                      <button type="button" className="mt-0.5 shrink-0" style={{ color: isChecked ? '#fff' : 'var(--color-ink)' }}>
+                      <button type="button" className="mt-0.5 shrink-0" style={{ color: isChecked ? 'var(--color-success)' : 'var(--color-muted)' }}>
                         {isChecked ? (
                           <CheckCircle2 size={14} fill="currentColor" />
                         ) : (
@@ -693,19 +692,18 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
                         )}
                       </button>
                       <div className="min-w-0">
-                        <p className="text-xs leading-normal"
+                        <p className="text-[12px] leading-normal"
                           style={{
                             textDecoration: isChecked ? 'line-through' : 'none',
-                            color: isChecked ? 'rgba(255,255,255,0.8)' : 'var(--color-ink)',
-                            fontFamily: 'var(--font-body)',
+                            color: isChecked ? 'var(--color-muted)' : 'var(--color-ink)',
                           }}
                         >
                           {action.desc}
                         </p>
-                        <span className="text-[9px] font-bold flex items-center gap-1.5 mt-1.5"
-                          style={{ color: isChecked ? 'rgba(255,255,255,0.7)' : 'var(--color-accent-cta)', fontFamily: 'var(--font-mono)' }}
+                        <span className="text-[10px] flex items-center gap-1.5 mt-1"
+                          style={{ color: isChecked ? 'var(--color-success)' : 'var(--color-primary)' }}
                         >
-                          <Calendar size={10} />
+                          <Calendar size={9} />
                           <span>{action.date}</span>
                         </span>
                       </div>
@@ -716,20 +714,20 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
             </div>
 
             {/* Upcoming Meetings */}
-            <div className="space-y-2" style={{ borderTop: '1px solid var(--color-ink)', paddingTop: '16px' }}>
+            <div className="space-y-2" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '14px' }}>
               <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5"
-                  style={{ color: '#666', fontFamily: 'var(--font-body)' }}
+                <h4 className="text-[11px] font-medium flex items-center gap-1.5"
+                  style={{ color: 'var(--color-muted)' }}
                 >
-                  <Calendar size={11} style={{ color: 'var(--color-accent-cta)' }} />
+                  <Calendar size={11} style={{ color: 'var(--color-primary)' }} />
                   <span>Upcoming Meetings</span>
                 </h4>
                 {calendarStatus?.connected && (
                   <button
                     onClick={triggerCalendarSync}
                     disabled={syncingCalendar}
-                    className="text-[10px] font-bold uppercase tracking-wider disabled:opacity-50"
-                    style={{ color: 'var(--color-accent-cta)' }}
+                    className="text-[11px] font-medium disabled:opacity-50"
+                    style={{ color: 'var(--color-primary)' }}
                   >
                     {syncingCalendar ? 'Syncing...' : 'Sync +'}
                   </button>
@@ -737,41 +735,41 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
               </div>
 
               {!calendarStatus?.connected ? (
-                <div className="p-3 space-y-2 text-center"
-                  style={{ backgroundColor: '#FFF0F0', border: '1px solid var(--color-danger)' }}
+                <div className="p-3 space-y-2 text-center rounded-[12px]"
+                  style={{ backgroundColor: 'rgba(217,104,87,.06)', border: '1px solid rgba(217,104,87,.20)' }}
                 >
-                  <p className="text-[11px] leading-normal" style={{ color: 'var(--color-danger)', fontFamily: 'var(--font-body)' }}>
+                  <p className="text-[11px] leading-normal" style={{ color: 'var(--color-danger)' }}>
                     Google Calendar not linked.
                   </p>
                   <button
                     onClick={connectCalendar}
-                    className="w-full py-1.5 text-[10px] font-bold uppercase tracking-wider"
-                    style={{ backgroundColor: 'var(--color-danger)', border: '1px solid var(--color-ink)', color: '#fff' }}
+                    className="w-full py-1.5 text-[12px] font-medium rounded-[8px]"
+                    style={{ backgroundColor: 'var(--color-danger)', color: '#fff' }}
                   >
                     Link Google Calendar
                   </button>
                 </div>
               ) : calendarEvents && calendarEvents.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {calendarEvents.map((evt, idx) => {
                     const isPending = evt.status === 'pending';
                     const isFailed = evt.status === 'failed';
-                    const statusBg = isPending ? 'var(--color-pending)' : isFailed ? 'var(--color-danger)' : 'var(--color-success)';
+                    const statusColor = isPending ? 'var(--color-warning)' : isFailed ? 'var(--color-danger)' : 'var(--color-success)';
                     return (
-                      <div key={idx} className="p-3 space-y-2"
-                        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-ink)', boxShadow: '2px 2px 0 var(--color-ink)' }}
+                      <div key={idx} className="p-3 space-y-2 rounded-[12px]"
+                        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}
                       >
                         <div className="flex justify-between items-start gap-2">
-                          <p className="text-xs font-bold leading-normal truncate" style={{ color: 'var(--color-ink)', fontFamily: 'var(--font-body)' }}>
+                          <p className="text-[12px] font-medium leading-normal truncate" style={{ color: 'var(--color-ink)' }}>
                             {evt.title}
                           </p>
-                          <span className="text-[9px] px-1.5 py-0.5 font-bold uppercase shrink-0"
-                            style={{ backgroundColor: statusBg, border: '1.5px solid var(--color-ink)', color: isFailed ? '#fff' : 'var(--color-ink)' }}
+                          <span className="text-[10px] px-2 py-0.5 font-medium rounded-full shrink-0"
+                            style={{ backgroundColor: `${statusColor}1A`, color: statusColor }}
                           >
                             {isPending ? 'Pending' : isFailed ? 'Failed' : 'Synced'}
                           </span>
                         </div>
-                        <div className="text-[10px] space-y-1" style={{ color: '#666', fontFamily: 'var(--font-mono)' }}>
+                        <div className="text-[11px] space-y-1" style={{ color: 'var(--color-muted)' }}>
                           <p className="flex items-center gap-1.5">
                             <Clock size={10} />
                             <span>{new Date(evt.startTime).toLocaleString()}</span>
@@ -780,8 +778,8 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
                         </div>
                         {evt.meetingLink && (
                           <a href={evt.meetingLink} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex w-full justify-center items-center py-1.5 text-[10px] font-bold uppercase tracking-wider"
-                            style={{ backgroundColor: 'var(--color-accent-cta)', border: '1px solid var(--color-ink)', color: '#fff' }}
+                            className="inline-flex w-full justify-center items-center py-1.5 text-[12px] font-medium rounded-[8px]"
+                            style={{ backgroundColor: 'var(--color-primary)', color: '#fff' }}
                           >
                             Join Meeting
                           </a>
@@ -791,15 +789,15 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
                   })}
                 </div>
               ) : (
-                <div className="p-3 text-center"
-                  style={{ backgroundColor: '#f9f9f9', border: '1px solid var(--color-ink)' }}
+                <div className="p-3 text-center rounded-[12px]"
+                  style={{ backgroundColor: 'rgba(93,107,47,.04)', border: '1px solid var(--color-border)' }}
                 >
-                  <p className="text-[11px] leading-normal mb-2" style={{ color: '#666', fontFamily: 'var(--font-body)' }}>
+                  <p className="text-[11px] leading-normal mb-2" style={{ color: 'var(--color-muted)' }}>
                     No calendar events extracted yet.
                   </p>
                   <button onClick={triggerCalendarSync} disabled={syncingCalendar}
-                    className="py-1.5 px-4 text-[10px] font-bold uppercase tracking-wider disabled:opacity-50"
-                    style={{ backgroundColor: 'var(--color-accent-cta)', border: '1px solid var(--color-ink)', color: '#fff' }}
+                    className="py-1.5 px-4 text-[12px] font-medium rounded-[8px] disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--color-primary)', color: '#fff' }}
                   >
                     {syncingCalendar ? 'Extracting...' : 'Extract & Create'}
                   </button>
@@ -808,17 +806,17 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
             </div>
 
             {/* Extracted Expenses */}
-            <div className="space-y-2" style={{ borderTop: '1px solid var(--color-ink)', paddingTop: '16px' }}>
+            <div className="space-y-2" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '14px' }}>
               <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5"
-                  style={{ color: '#666', fontFamily: 'var(--font-body)' }}
+                <h4 className="text-[11px] font-medium flex items-center gap-1.5"
+                  style={{ color: 'var(--color-muted)' }}
                 >
                   <Receipt size={11} style={{ color: 'var(--color-success)' }} />
                   <span>Extracted Expenses</span>
                 </h4>
                 {expenses && expenses.length > 0 && (
                   <button onClick={triggerExpenseExtraction} disabled={extractingExpense}
-                    className="text-[10px] font-bold uppercase tracking-wider disabled:opacity-50"
+                    className="text-[11px] font-medium disabled:opacity-50"
                     style={{ color: 'var(--color-success)' }}
                   >
                     {extractingExpense ? 'Re-extracting...' : 'Re-extract'}
@@ -827,39 +825,39 @@ export const EmailViewer: React.FC<EmailViewerProps> = ({
               </div>
 
               {expenses && expenses.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {expenses.map((exp, idx) => {
                     const isRecur = exp.isRecurring;
                     const displaySymbol = exp.currency === 'JPY' ? '¥' : exp.currency === 'EUR' ? '€' : exp.currency === 'GBP' ? '£' : '$';
                     return (
-                      <div key={idx} className="p-3 space-y-2"
-                        style={{ backgroundColor: '#F0FFF5', border: '1px solid var(--color-ink)', boxShadow: '2px 2px 0 var(--color-ink)' }}
+                      <div key={idx} className="p-3 space-y-2 rounded-[12px]"
+                        style={{ backgroundColor: 'rgba(63,167,106,.06)', border: '1px solid rgba(63,167,106,.18)' }}
                       >
                         <div className="flex justify-between items-start gap-2">
                           <div>
-                            <p className="text-xs font-bold leading-normal truncate max-w-[120px]" style={{ color: 'var(--color-ink)', fontFamily: 'var(--font-body)' }}>
+                            <p className="text-[12px] font-medium leading-normal truncate max-w-[120px]" style={{ color: 'var(--color-ink)' }}>
                               {exp.merchantName || 'Unknown Merchant'}
                             </p>
-                            <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: '#555' }}>
+                            <span className="text-[10px] font-medium" style={{ color: 'var(--color-muted)' }}>
                               {exp.category || 'other'}
                             </span>
                           </div>
                           <div className="flex flex-col items-end gap-1">
                             {isRecur && (
-                              <span className="text-[8px] px-1.5 py-0.5 font-bold uppercase tracking-wider flex items-center gap-0.5"
-                                style={{ backgroundColor: 'var(--color-success)', border: '1.5px solid var(--color-ink)', color: '#fff' }}
+                              <span className="text-[9px] px-1.5 py-0.5 font-semibold rounded-full flex items-center gap-0.5"
+                                style={{ backgroundColor: 'rgba(63,167,106,.15)', color: 'var(--color-success)' }}
                               >
                                 <TrendingDown size={8} /> Recurring
                               </span>
                             )}
-                            <span className="text-[9px] font-mono" style={{ color: '#666', fontFamily: 'var(--font-mono)' }}>
+                            <span className="text-[10px]" style={{ color: 'var(--color-muted)', fontFamily: 'var(--font-mono)' }}>
                               {exp.paymentMethod || 'Unknown'}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex justify-between items-center p-2"
-                          style={{ backgroundColor: 'var(--color-surface)', border: '1.5px solid var(--color-ink)' }}
+                        <div className="flex justify-between items-center p-2 rounded-[8px]"
+                          style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
                         >
                           <div>
                             <span className="text-xs font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}>

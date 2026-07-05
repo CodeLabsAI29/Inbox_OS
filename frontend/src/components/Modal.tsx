@@ -78,7 +78,7 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto animate-fadeIn"
-      style={{ backgroundColor: 'rgba(17,17,17,0.6)' }}
+      style={{ backgroundColor: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(4px)' }}
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
@@ -88,23 +88,23 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`relative p-6 md:p-8 outline-none text-left max-h-[90vh] overflow-y-auto flex flex-col animate-scaleUp ${className}`}
+        className={`relative p-6 md:p-8 outline-none text-left max-h-[90vh] overflow-y-auto flex flex-col rounded-[22px] ${className}`}
         style={{
           backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-ink)',
-          boxShadow: '8px 8px 0px var(--color-ink)',
+          border: '1px solid var(--color-border)',
+          boxShadow: '0 20px 60px rgba(0,0,0,.15)',
         }}
       >
         {/* Modal Header */}
         <div
           className="flex items-center justify-between mb-5 pb-4"
-          style={{ borderBottom: '1px solid var(--color-ink)' }}
+          style={{ borderBottom: '1px solid var(--color-border)' }}
         >
           {title ? (
             <h2
               id="modal-title"
-              className="text-base font-bold tracking-tight uppercase"
-              style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}
+              className="text-[16px] font-semibold tracking-tight"
+              style={{ color: 'var(--color-ink)' }}
             >
               {title}
             </h2>
@@ -114,23 +114,25 @@ export const Modal: React.FC<ModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 flex items-center justify-center transition-all focus:outline-none"
+            className="p-1.5 flex items-center justify-center transition-all focus:outline-none rounded-lg"
             style={{
-              border: '1px solid var(--color-ink)',
+              border: '1px solid var(--color-border)',
               backgroundColor: 'var(--color-surface)',
-              boxShadow: '2px 2px 0px var(--color-ink)',
+              color: 'var(--color-muted)',
             }}
             aria-label="Close modal"
             onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-              (e.currentTarget as HTMLElement).style.transform = 'translate(2px,2px)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-danger)';
+              (e.currentTarget as HTMLElement).style.color = 'var(--color-danger)';
+              (e.currentTarget as HTMLElement).style.backgroundColor = '#FEF0EE';
             }}
             onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.boxShadow = '2px 2px 0px var(--color-ink)';
-              (e.currentTarget as HTMLElement).style.transform = '';
+              (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)';
+              (e.currentTarget as HTMLElement).style.color = 'var(--color-muted)';
+              (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--color-surface)';
             }}
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
 
