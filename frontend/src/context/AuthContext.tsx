@@ -25,6 +25,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
+const getErrorMessage = async (response: Response, defaultMessage: string): Promise<string> => {
+  try {
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      return data.error || defaultMessage;
+    }
+    const text = await response.text();
+    if (text && (text.includes('<!DOCTYPE') || text.includes('<html'))) {
+      return `${response.status} ${response.statusText || 'Error'}`;
+    }
+    return text || `${response.status} ${response.statusText || 'Error'}`;
+  } catch {
+    return defaultMessage;
+  }
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -82,8 +99,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Invalid credentials');
+        const errorMsg = await getErrorMessage(response, 'Invalid credentials');
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
@@ -112,8 +129,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Registration failed');
+        const errorMsg = await getErrorMessage(response, 'Registration failed');
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
@@ -145,8 +162,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Firebase authentication failed');
+        const errorMsg = await getErrorMessage(response, 'Firebase authentication failed');
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
@@ -176,8 +193,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         credentials: 'include',
       });
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Check failed');
+        const errorMsg = await getErrorMessage(response, 'Check failed');
+        throw new Error(errorMsg);
       }
       return await response.json();
     } catch (err: any) {
@@ -197,8 +214,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         credentials: 'include',
       });
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Google registration failed');
+        const errorMsg = await getErrorMessage(response, 'Google registration failed');
+        throw new Error(errorMsg);
       }
       const data = await response.json();
       const authenticatedUser = {
@@ -227,8 +244,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         credentials: 'include',
       });
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Google login failed');
+        const errorMsg = await getErrorMessage(response, 'Google login failed');
+        throw new Error(errorMsg);
       }
       const data = await response.json();
       const authenticatedUser = {
