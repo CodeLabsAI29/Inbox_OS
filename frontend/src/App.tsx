@@ -32,6 +32,7 @@ import {
   Radio,
   Bell,
 } from 'lucide-react';
+import { Modal } from './components/Modal';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -77,6 +78,36 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
 // Extracted Dashboard Component to protect via ProtectedRoute
 const DashboardContent: React.FC = () => {
+  const [isDiagnosticOpen, setIsDiagnosticOpen] = useState(false);
+  const [diagnosticData, setDiagnosticData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleDiagnostic = async () => {
+    try {
+      setLoading(true);
+
+      const response = await fetch(`${API_BASE}/api/health`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch diagnostics');
+      }
+
+      const data = await response.json();
+
+      setDiagnosticData(data);
+      setIsDiagnosticOpen(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [isPipelineOpen, setIsPipelineOpen] = useState(false);
+  const handleRunPipeline = () => {
+    setIsPipelineOpen(true);
+  };
+
   const location = useLocation();
   const navigate = useNavigate();
   const { socket } = useSocket();
@@ -776,10 +807,16 @@ const DashboardContent: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="px-4 py-2 text-xs font-semibold rounded-xl bg-white/5 hover:bg-white/10 text-gray-200 border border-white/5 transition-all">
+            <button
+              onClick={handleDiagnostic}
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-white/5 hover:bg-white/10 text-gray-200 border border-white/5 transition-all"
+            >
               Diagnostics
             </button>
-            <button className="px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 transition-all glow-accent">
+            <button
+              onClick={handleRunPipeline}
+              className="px-4 py-2 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 transition-all glow-accent"
+            >
               <Play size={12} fill="currentColor" />
               <span>Run Pipeline</span>
             </button>
@@ -898,6 +935,70 @@ const DashboardContent: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={isPipelineOpen}
+        onClose={() => setIsPipelineOpen(false)}
+        title="InboxOS Pipeline"
+        className="max-w-3xl w-full"
+      >
+        <div className="space-y-5 text-sm text-gray-300">
+          <p className="text-gray-400">
+            This illustrates how an email moves through the InboxOS processing
+            pipeline.
+          </p>
+
+          {[
+            {
+              title: 'Layer 1 — Inbox Ingestion',
+              description:
+                'Connects to Gmail, Outlook, or IMAP and converts incoming emails into a standard internal format.',
+            },
+            {
+              title: 'Layer 2 — Intelligence Engine',
+              description:
+                'AI classifies the email, determines its importance, extracts entities, deadlines, and action items.',
+            },
+            {
+              title: 'Layer 3 — Decision Engine',
+              description:
+                'Rules combined with AI determine what should happen next, such as notifications, tasks, or calendar events.',
+            },
+            {
+              title: 'Layer 4 — Action Engine',
+              description:
+                'Executes the selected action, such as creating tasks, sending WhatsApp alerts, or labeling emails.',
+            },
+            {
+              title: 'Layer 5 — Delivery Channels',
+              description:
+                'Sends the final output to Slack, Telegram, WhatsApp, the dashboard, or other configured channels.',
+            },
+          ].map((layer, index) => (
+            <div
+              key={index}
+              className="rounded-xl border border-white/10 bg-white/5 p-4"
+            >
+              <div className="font-semibold text-white mb-1">{layer.title}</div>
+
+              <div className="text-gray-400 text-xs leading-6">
+                {layer.description}
+              </div>
+            </div>
+          ))}
+
+          <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/10 p-4">
+            <div className="text-indigo-300 font-semibold mb-2">
+              Pipeline Flow
+            </div>
+
+            <div className="text-xs text-gray-300 break-words">
+              Raw Email → Inbox Ingestion → Intelligence Engine → Decision
+              Engine → Action Engine → Delivery Channels
+            </div>
+          </div>
+        </div>
+      </Modal>
     </Layout>
   );
 };

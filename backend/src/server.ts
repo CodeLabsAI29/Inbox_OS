@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import express, { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient,Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { AuthService } from './services/auth.service';
 import {
@@ -28,10 +28,14 @@ import { WebSocketService } from './services/websocket.service';
 import { TelegramBotService } from './services/telegram-bot.service';
 import { TelegramNotificationService } from './services/telegram-notification.service';
 
+console.log("1");
 const app = express();
+console.log("2");
 const prisma = new PrismaClient();
+console.log("3");
 const PORT = process.env.PORT || 8000;
 
+console.log("4");
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (
@@ -774,7 +778,7 @@ app.get(
       const hooks = await prisma.webhookEndpoint.findMany({
         where: { userId },
       });
-      const formatted = hooks.map((h) => ({
+      const formatted = hooks.map((h: (typeof hooks)[number]) => ({
         id: h.id,
         targetUrl: h.targetUrl,
         events: JSON.parse(h.events),
@@ -1297,7 +1301,7 @@ app.put(
         validation.data;
 
       // Run delete-then-create inside a transaction
-      const updatedRule = await prisma.$transaction(async (tx) => {
+      const updatedRule = await prisma.$transaction(async (tx:Prisma.TransactionClient) => {
         await tx.ruleCondition.deleteMany({ where: { ruleId: id } });
         await tx.ruleAction.deleteMany({ where: { ruleId: id } });
 
@@ -1411,8 +1415,9 @@ app.get('/api/auth/google', (req: Request, res: Response) => {
 });
 
 // Start Server
-
+console.log("Reached app.listen");
 const server = app.listen(PORT, () => {
+  console.log("Server started");
   logger.info(`Auth service running on port ${PORT}`);
 
   // Register EventBus fallback handler AFTER server is listening
