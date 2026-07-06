@@ -184,7 +184,7 @@ export async function registerWorkerHandlers() {
           await prisma.actionItem.createMany({
             data: actionItems.map((item) => ({
               emailId: email.id,
-              taskDescription: item.taskDescription,
+              taskDescription: item.taskDescription || '',
               isCompleted: false,
               deadline: item.deadline ? new Date(item.deadline) : null,
             })),
