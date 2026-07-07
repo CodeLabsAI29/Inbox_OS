@@ -33,11 +33,13 @@ export class EmailSenderService {
     // ── GMAIL OUTBOUND (GMAIL API) ───────────────────────────────────────────
     if (account.provider === 'gmail') {
       const tokens = JSON.parse(decrypt(account.encryptedTokens));
+      const redirectUri = process.env.GMAIL_REDIRECT_URI || 
+        (process.env.RENDER_EXTERNAL_URL ? `${process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '')}/api/integrations/gmail/callback` : 'http://localhost:8000/api/integrations/gmail/callback');
+
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        process.env.GMAIL_REDIRECT_URI ||
-          'http://localhost:8000/api/integrations/gmail/callback'
+        redirectUri
       );
       oauth2Client.setCredentials(tokens);
 
