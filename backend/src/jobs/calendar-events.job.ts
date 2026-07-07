@@ -16,6 +16,7 @@ const getRedisConnectionOptions = (): ConnectionOptions => {
         ? parseInt(parsed.pathname.substring(1) || '0', 10)
         : 0,
       maxRetriesPerRequest: null,
+      tls: parsed.protocol === 'rediss:' ? { rejectUnauthorized: false } : undefined,
     };
   } catch (error) {
     console.error(

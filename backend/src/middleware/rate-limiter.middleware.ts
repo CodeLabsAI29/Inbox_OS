@@ -11,6 +11,12 @@ const redisClient = !isTest
   ? new Redis(process.env.REDIS_URL || 'redis://redis:6379/0')
   : null;
 
+if (redisClient) {
+  redisClient.on('error', (err) => {
+    console.error('Rate Limiter Redis client error:', err.message || err);
+  });
+}
+
 /**
  * Global rate-limiting middleware for all /api endpoints.
  * Integrates with Redis to store request count across service restarts and scale-outs.
