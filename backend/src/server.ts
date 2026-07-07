@@ -52,15 +52,32 @@ const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 8000;
 
+const allowedOrigins = [
+  'http://localhost',
+  'http://127.0.0.1',
+  'https://inbox-os-frontend.vercel.app'
+];
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL.replace(/\/$/, ''));
+}
+if (process.env.ALLOWED_ORIGINS) {
+  process.env.ALLOWED_ORIGINS.split(',').forEach(o => allowedOrigins.push(o.trim().replace(/\/$/, '')));
+}
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && (
-    origin === 'http://localhost' ||
-    origin.startsWith('http://localhost:') ||
-    origin === 'http://127.0.0.1' ||
-    origin.startsWith('http://127.0.0.1:')
-  )) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
+  if (origin) {
+    const originClean = origin.replace(/\/$/, '');
+    const isVercelPreview = originClean.startsWith('https://inbox-os-frontend') && originClean.endsWith('.vercel.app');
+    const isAllowed = isVercelPreview || allowedOrigins.some(o => 
+      originClean === o || 
+      (o.startsWith('http://localhost') && originClean.startsWith('http://localhost:')) ||
+      (o.startsWith('http://127.0.0.1') && originClean.startsWith('http://127.0.0.1:'))
+    );
+    if (isAllowed) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    }
   }
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
@@ -71,6 +88,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+
 
 /**
  * @swagger
@@ -2363,7 +2381,18 @@ const server = app.listen(PORT, () => {
 const io = new SocketIoServer(server, {
   cors: {
     origin: (origin: any, callback: any) => {
-      if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      const originClean = origin.replace(/\/$/, '');
+      const isVercelPreview = originClean.startsWith('https://inbox-os-frontend') && originClean.endsWith('.vercel.app');
+      const isAllowed = isVercelPreview || allowedOrigins.some(o => 
+        originClean === o || 
+        (o.startsWith('http://localhost') && originClean.startsWith('http://localhost:')) ||
+        (o.startsWith('http://127.0.0.1') && originClean.startsWith('http://127.0.0.1:'))
+      );
+      if (isAllowed) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
