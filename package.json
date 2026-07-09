@@ -9,5 +9,8 @@
   ],
   "dependencies": {
     "firebase": "^12.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1"
   }
 }
