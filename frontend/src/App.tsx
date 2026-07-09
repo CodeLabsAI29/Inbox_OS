@@ -88,6 +88,7 @@ const DashboardContent: React.FC = () => {
   const [settingsSubTab, setSettingsSubTab] = useState('profile');
   const [profileName, setProfileName] = useState('');
   const [profileEmail, setProfileEmail] = useState('');
+  const [userId, setUserId] = useState('');
   const [aiProvider, setAiProvider] = useState('openai');
   const [openaiKey, setOpenaiKey] = useState('sk-proj-••••••••••••••••••••');
   const [geminiKey, setGeminiKey] = useState('');
@@ -302,6 +303,7 @@ const DashboardContent: React.FC = () => {
           setDigestSchedule(data.digestSchedule || 'daily');
           setProfileName(data.username || '');
           setProfileEmail(data.email || '');
+          setUserId(data.userId || '');
         }
       } catch (err) {
         console.error('Failed to load user settings:', err);
@@ -879,17 +881,47 @@ const DashboardContent: React.FC = () => {
                       </div>
 
                       {telegramConnected && (
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-gray-700 font-bold uppercase tracking-wider block">
-                            Bot Token
-                          </label>
-                          <input
-                            type="password"
-                            value={telegramToken}
-                            onChange={(e) => setTelegramToken(e.target.value)}
-                            className="neu-input w-full px-4 py-2.5 text-xs transition-all"
-                            placeholder="Enter Telegram bot token"
-                          />
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-700 font-bold uppercase tracking-wider block">
+                              Bot Token
+                            </label>
+                            <input
+                              type="password"
+                              value={telegramToken}
+                              onChange={(e) => setTelegramToken(e.target.value)}
+                              className="neu-input w-full px-4 py-2.5 text-xs transition-all"
+                              placeholder="Enter Telegram bot token"
+                            />
+                          </div>
+
+                          {/* Telegram Linking Instruction Card */}
+                          <div className="p-4 bg-amber-50 border-2 border-black rounded-xl space-y-2.5 shadow-[2px_2px_0_0_#111]">
+                            <p className="text-xs font-bold text-black flex items-center gap-1.5">
+                              💬 Link Your Chat ID
+                            </p>
+                            <p className="text-[10px] leading-relaxed text-gray-700 font-medium">
+                              To sync alerts with your Telegram, message your bot and send the start command with your unique Workspace User ID:
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <code className="bg-white border border-black px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold select-all w-full text-center">
+                                /start {userId || 'Loading...'}
+                              </code>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (userId) {
+                                    navigator.clipboard.writeText(`/start ${userId}`);
+                                    setToastMessage('Link command copied to clipboard!');
+                                    setTimeout(() => setToastMessage(null), 3000);
+                                  }
+                                }}
+                                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-black border-2 border-black font-black rounded-lg text-[10px] uppercase shadow-[2px_2px_0_0_#111] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[3px_3px_0_0_#111]"
+                              >
+                                Copy
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </div>

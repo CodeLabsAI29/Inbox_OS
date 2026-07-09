@@ -935,6 +935,7 @@ app.get('/api/users/me/settings', requireAuth, async (req: AuthenticatedRequest,
       autoReply: settings?.autoReply ?? false,
       username: user?.username ?? null,
       email: user?.email ?? '',
+      userId,
     });
   } catch (error) {
     console.error('Fetch settings error:', error);
