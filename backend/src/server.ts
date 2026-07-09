@@ -28,6 +28,8 @@ import { getAuth as firebaseGetAuth } from 'firebase-admin/auth';
 
 import { setupSwagger } from './config/swagger';
 import { GmailSyncService } from './services/gmail-sync.service';
+import { TelegramBotService } from './services/telegram-bot.service';
+import { TelegramConfig } from './config/telegram.config';
 
 // ── Firebase Admin SDK Initialization ────────────────────────────────────────
 // Only initialize once; guard against hot-reload double-init in dev mode.
@@ -860,6 +862,28 @@ app.post('/api/webhooks/incoming', async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.post('/api/telegram/webhook', async (req: Request, res: Response) => {
+  try {
+    // Verify Telegram secret token if configured
+    const secretHeader = req.headers['x-telegram-bot-api-secret-token'];
+    if (TelegramConfig.webhookSecret && secretHeader !== TelegramConfig.webhookSecret) {
+      logger.warn('[TelegramBot] Rejected webhook request with invalid secret token.');
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    // Process the update asynchronously to respond to Telegram immediately (with 200 OK)
+    TelegramBotService.handleUpdate(req.body).catch((err) => {
+      logger.error('[TelegramBot] Webhook update handling error:', err);
+    });
+
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    logger.error('Telegram webhook endpoint error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 /**
  * @swagger
@@ -2398,6 +2422,11 @@ app.get('/api/auth/google', (req: Request, res: Response) => {
 
 const server = app.listen(PORT, () => {
   logger.info(`Auth service running on port ${PORT}`);
+
+  // Initialize Telegram Bot Service
+  TelegramBotService.init().catch((err) => {
+    logger.error('Failed to initialize Telegram Bot Service:', err);
+  });
   
   // Register EventBus fallback handler AFTER server is listening
   // to avoid blocking startup if Redis is slow or unavailable.
