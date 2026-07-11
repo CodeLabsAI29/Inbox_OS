@@ -937,6 +937,7 @@ app.get('/api/users/me/settings', requireAuth, async (req: AuthenticatedRequest,
       whatsappNumber: settings?.whatsappNumber ?? null,
       username: user?.username ?? null,
       email: user?.email ?? '',
+      userId,
     });
   } catch (error) {
     console.error('Fetch settings error:', error);
