@@ -227,7 +227,7 @@ export const EmailList: React.FC<EmailListProps> = ({
       {/* ── Filter Tabs & Options Header ───────────────────────────────────── */}
       <div className="flex flex-row items-center justify-between gap-4 w-full overflow-x-auto scrollbar-none pb-2 shrink-0">
         {/* Horizontal Category Tabs */}
-        <div className="flex flex-row items-center gap-1.5 shrink-0">
+        <div className="flex flex-row items-center gap-2 shrink-0">
           {CATEGORIES.map((cat) => {
             const isActive = categoryFilter === cat.id;
             return (

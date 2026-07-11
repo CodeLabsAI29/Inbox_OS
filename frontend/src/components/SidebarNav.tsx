@@ -153,6 +153,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                   backgroundColor: active ? 'rgba(93,107,47,.10)' : 'transparent',
                   color: active ? 'var(--color-primary)' : 'var(--color-muted)',
                   fontFamily: 'var(--font-body)',
+                  borderLeft: active ? '3px solid var(--color-primary)' : '3px solid transparent',
+                  fontWeight: active ? '600' : '400',
                 }}
                 onMouseEnter={e => {
                   if (!active) {

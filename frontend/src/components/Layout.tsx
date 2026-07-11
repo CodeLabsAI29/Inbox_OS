@@ -57,7 +57,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           className="px-4 md:px-8 py-3 flex items-center justify-between sticky top-0 z-20"
           style={{
             backgroundColor: 'var(--color-surface)',
-            borderBottom: '1px solid var(--color-border)',
+            borderBottom: '1px solid var(--color-primary)',
             boxShadow: '0 1px 0 rgba(0,0,0,.04)',
           }}
         >
@@ -119,10 +119,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               aria-label="Notifications"
             >
               <Bell size={15} />
-              <span
-                className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full"
-                style={{ backgroundColor: 'var(--color-danger)' }}
-              />
+                <span
+                  className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full pulse"
+                  style={{ backgroundColor: 'var(--color-danger)' }}
+                />
             </button>
 
             {/* Divider */}

@@ -304,7 +304,7 @@ const DashboardContent: React.FC = () => {
           setDigestSchedule(data.digestSchedule || 'daily');
           setProfileName(data.username || '');
           setProfileEmail(data.email || '');
-          setWhatsappEnabled(data.whatsappEnabled ?? false);
+          setWhatsappAlerts(data.whatsappEnabled ?? false);
           setWhatsappNumber(data.whatsappNumber || '');
         }
       } catch (err) {
@@ -429,7 +429,7 @@ const DashboardContent: React.FC = () => {
           timezone,
           digestSchedule,
           username: profileName || undefined,
-          whatsappEnabled,
+          whatsappAlerts,
           whatsappNumber: whatsappNumber || undefined,
         }),
         credentials: 'include',
@@ -760,11 +760,10 @@ const DashboardContent: React.FC = () => {
                         )}
                         <button
                           onClick={gmailConnected ? handleDisconnectGmail : handleConnectGmail}
-                          className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                            gmailConnected
+                          className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${gmailConnected
                               ? 'bg-white border border-black hover:bg-gray-50 shadow-[2px_2px_0_0_#111] text-gray-800'
                               : 'bg-indigo-600 hover:bg-indigo-500 text-white border-transparent'
-                          }`}
+                            }`}
                         >
                           {gmailConnected ? 'Disconnect' : 'Connect Gmail'}
                         </button>
@@ -788,11 +787,10 @@ const DashboardContent: React.FC = () => {
                       </div>
                       <button
                         onClick={() => setOutlookConnected(!outlookConnected)}
-                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                          outlookConnected
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${outlookConnected
                             ? 'bg-white border border-black hover:bg-white border border-black shadow-[2px_2px_0_0_#111] text-gray-800 font-bold border-black'
                             : 'bg-indigo-600 hover:bg-indigo-500 text-black font-black border-transparent'
-                        }`}
+                          }`}
                       >
                         {outlookConnected ? 'Disconnect' : 'Connect'}
                       </button>
@@ -809,11 +807,10 @@ const DashboardContent: React.FC = () => {
                             Google Calendar
                           </p>
                           <p
-                            className={`text-[10px] flex items-center gap-1 font-medium ${
-                              calendarStatus?.connected
+                            className={`text-[10px] flex items-center gap-1 font-medium ${calendarStatus?.connected
                                 ? 'text-emerald-400'
                                 : 'text-gray-600 font-bold'
-                            }`}
+                              }`}
                           >
                             {calendarStatus?.connected ? (
                               <>
@@ -832,11 +829,10 @@ const DashboardContent: React.FC = () => {
                             ? handleDisconnectCalendar
                             : handleConnectCalendar
                         }
-                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                          calendarStatus?.connected
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${calendarStatus?.connected
                             ? 'bg-white border border-black hover:bg-white border border-black shadow-[2px_2px_0_0_#111] text-gray-800 font-bold border-black'
                             : 'bg-indigo-600 hover:bg-indigo-500 text-black font-black border-transparent'
-                        }`}
+                          }`}
                       >
                         {calendarStatus?.connected ? 'Disconnect' : 'Connect'}
                       </button>
@@ -857,9 +853,9 @@ const DashboardContent: React.FC = () => {
                               WhatsApp Integration
                             </p>
                             <p
-                              className={`text-[10px] flex items-center gap-1 font-medium ${whatsappEnabled ? 'text-emerald-400' : 'text-gray-600 font-bold'}`}
+                              className={`text-[10px] flex items-center gap-1 font-medium ${whatsappAlerts ? 'text-emerald-400' : 'text-gray-600 font-bold'}`}
                             >
-                              {whatsappEnabled ? (
+                              {whatsappAlerts ? (
                                 <>
                                   <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse" />{' '}
                                   Active ({whatsappNumber})
@@ -871,18 +867,17 @@ const DashboardContent: React.FC = () => {
                           </div>
                         </div>
                         <button
-                          onClick={() => setWhatsappEnabled(!whatsappEnabled)}
-                          className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                            whatsappEnabled
+                          onClick={() => setWhatsappAlerts(!whatsappAlerts)}
+                          className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${whatsappAlerts
                               ? 'bg-white border border-black hover:bg-white border border-black shadow-[2px_2px_0_0_#111] text-gray-800 font-bold border-black'
                               : 'bg-indigo-600 hover:bg-indigo-500 text-black font-black border-transparent'
-                          }`}
+                            }`}
                         >
-                          {whatsappEnabled ? 'Disconnect' : 'Connect'}
+                          {whatsappAlerts ? 'Disconnect' : 'Connect'}
                         </button>
                       </div>
-                      
-                      {whatsappEnabled && (
+
+                      {whatsappAlerts && (
                         <div className="flex flex-col gap-2 mt-2">
                           <label className="text-[10px] font-bold text-gray-700">Phone Number (with Country Code)</label>
                           <input
@@ -928,11 +923,10 @@ const DashboardContent: React.FC = () => {
                           onClick={() =>
                             setTelegramConnected(!telegramConnected)
                           }
-                          className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                            telegramConnected
+                          className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${telegramConnected
                               ? 'bg-white border border-black hover:bg-white border border-black shadow-[2px_2px_0_0_#111] text-gray-800 font-bold border-black'
                               : 'bg-indigo-600 hover:bg-indigo-500 text-black font-black border-transparent'
-                          }`}
+                            }`}
                         >
                           {telegramConnected ? 'Deactivate' : 'Activate'}
                         </button>
@@ -983,11 +977,10 @@ const DashboardContent: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setPushEnabled(!pushEnabled)}
-                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                          pushEnabled
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${pushEnabled
                             ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                             : 'bg-white border border-black border-black text-gray-600 font-bold'
-                        }`}
+                          }`}
                       >
                         {pushEnabled ? 'Enabled' : 'Disabled'}
                       </button>
@@ -1007,11 +1000,10 @@ const DashboardContent: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setTelegramAlerts(!telegramAlerts)}
-                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                          telegramAlerts
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${telegramAlerts
                             ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                             : 'bg-white border border-black border-black text-gray-600 font-bold'
-                        }`}
+                          }`}
                       >
                         {telegramAlerts ? 'Enabled' : 'Disabled'}
                       </button>
@@ -1031,11 +1023,10 @@ const DashboardContent: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setWhatsappAlerts(!whatsappAlerts)}
-                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${
-                          whatsappAlerts
+                        className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all uppercase tracking-wider ${whatsappAlerts
                             ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                             : 'bg-white border border-black border-black text-gray-600 font-bold'
-                        }`}
+                          }`}
                       >
                         {whatsappAlerts ? 'Enabled' : 'Disabled'}
                       </button>

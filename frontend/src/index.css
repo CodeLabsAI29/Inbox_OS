@@ -6,47 +6,58 @@
 @layer base {
   :root {
     /* Colors */
-    --color-bg:       #F8F6F1;   /* warm off-white page background */
-    --color-surface:  #FFFFFF;   /* white card / panel surface */
-    --color-border:   #E9E4D8;   /* subtle warm border */
-    --color-ink:      #1E1E1E;   /* primary text */
-    --color-muted:    #707070;   /* secondary / helper text */
+    --color-bg: #F8F6F1;
+    /* warm off-white page background */
+    --color-surface: #FFFFFF;
+    /* white card / panel surface */
+    --color-border: #E9E4D8;
+    /* subtle warm border */
+    --color-ink: #1E1E1E;
+    /* primary text */
+    --color-muted: #707070;
+    /* secondary / helper text */
 
     /* Brand */
-    --color-primary:  #5D6B2F;   /* Olive Green — CTAs, active states */
-    --color-accent:   #E4B85C;   /* Warm Gold — badges, highlights */
+    --color-primary: #5D6B2F;
+    /* Olive Green — CTAs, active states */
+    --color-accent: #E4B85C;
+    /* Warm Gold — badges, highlights */
 
     /* Semantic */
-    --color-success:  #3FA76A;   /* green */
-    --color-warning:  #D9A441;   /* amber */
-    --color-danger:   #D96857;   /* red */
-    --color-info:     #5B72B8;   /* blue-violet */
+    --color-success: #3FA76A;
+    /* green */
+    --color-warning: #D9A441;
+    /* amber */
+    --color-danger: #D96857;
+    /* red */
+    --color-info: #5B72B8;
+    /* blue-violet */
 
     /* Typography */
     --font-display: 'Inter', sans-serif;
-    --font-body:    'Inter', sans-serif;
-    --font-mono:    'JetBrains Mono', 'Courier New', monospace;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 
     /* Geometry */
-    --radius-card:  22px;
+    --radius-card: 22px;
     --radius-panel: 16px;
-    --radius-btn:   10px;
+    --radius-btn: 10px;
     --radius-input: 10px;
     --radius-badge: 100px;
 
     /* Shadows */
-    --shadow-card:     0 4px 24px rgba(0,0,0,.06);
-    --shadow-hover:    0 12px 40px rgba(0,0,0,.10);
-    --shadow-sm:       0 2px 12px rgba(0,0,0,.05);
-    --shadow-inset:    inset 0 1px 3px rgba(0,0,0,.04);
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, .06);
+    --shadow-hover: 0 12px 40px rgba(0, 0, 0, .10);
+    --shadow-sm: 0 2px 12px rgba(0, 0, 0, .05);
+    --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, .04);
 
     /* Legacy aliases kept to avoid breaking anything still using them */
-    --shadow-offset:       none;
-    --shadow-offset-sm:    none;
+    --shadow-offset: none;
+    --shadow-offset-sm: none;
     --shadow-offset-hover: none;
-    --shadow-offset-xs:    none;
-    --color-accent-cta:    #5D6B2F;
-    --color-pending:       #D9A441;
+    --shadow-offset-xs: none;
+    --color-accent-cta: #5D6B2F;
+    --color-pending: #D9A441;
   }
 
   body {
@@ -78,10 +89,24 @@
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: #F0EDE6; border-radius: 99px; }
-::-webkit-scrollbar-thumb { background: #C9C2B2; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #9E9585; }
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F0EDE6;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C9C2B2;
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9E9585;
+}
 
 /* ── Component Classes ──────────────────────────────────────────────────── */
 @layer components {
@@ -93,6 +118,7 @@
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
   }
+
   .neu-card-sm {
     background-color: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -112,10 +138,12 @@
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
+
   .neu-input:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(93,107,47,.10);
+    box-shadow: 0 0 0 3px rgba(93, 107, 47, .10);
   }
+
   .neu-input::placeholder {
     color: #B5AFA4;
   }
@@ -134,6 +162,7 @@
     transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
     cursor: pointer;
   }
+
   .neu-btn:hover {
     border-color: var(--color-primary);
     box-shadow: var(--shadow-card);
@@ -149,12 +178,13 @@
     font-weight: 600;
     font-size: 13px;
     letter-spacing: 0.01em;
-    box-shadow: 0 4px 14px rgba(93,107,47,.25);
+    box-shadow: 0 4px 14px rgba(93, 107, 47, .25);
     transition: box-shadow 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
     cursor: pointer;
   }
+
   .neu-btn-accent:hover {
-    box-shadow: 0 6px 20px rgba(93,107,47,.35);
+    box-shadow: 0 6px 20px rgba(93, 107, 47, .35);
     transform: translateY(-1px);
   }
 
@@ -166,12 +196,13 @@
     font-family: var(--font-body);
     font-weight: 600;
     font-size: 13px;
-    box-shadow: 0 4px 14px rgba(93,107,47,.25);
+    box-shadow: 0 4px 14px rgba(93, 107, 47, .25);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
     cursor: pointer;
   }
+
   .neu-btn-cta:hover {
-    box-shadow: 0 6px 20px rgba(93,107,47,.35);
+    box-shadow: 0 6px 20px rgba(93, 107, 47, .35);
     transform: translateY(-1px);
   }
 
@@ -196,7 +227,7 @@
   .glass,
   .glass-panel,
   .glass-hover {
-    background: rgba(255,255,255,0.7) !important;
+    background: rgba(255, 255, 255, 0.7) !important;
     backdrop-filter: blur(12px) !important;
     -webkit-backdrop-filter: blur(12px) !important;
   }
@@ -204,16 +235,18 @@
   /* Glow — olive glow for primary actions */
   .glow-accent,
   .glow-accent-hover:hover {
-    box-shadow: 0 4px 18px rgba(93,107,47,.30) !important;
+    box-shadow: 0 4px 18px rgba(93, 107, 47, .30) !important;
   }
 
   /* Prose */
   .prose {
     color: var(--color-ink) !important;
   }
+
   .prose a {
     color: var(--color-primary) !important;
   }
+
   .prose strong {
     color: var(--color-ink) !important;
   }
@@ -221,27 +254,73 @@
 
 /* ── Animations ─────────────────────────────────────────────────────────── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .animate-fadeIn {
-  animation: fadeIn 0.3s cubic-bezier(0.2,0.8,0.3,1) forwards;
+  animation: fadeIn 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
 }
 
 @keyframes scaleUp {
-  from { opacity: 0; transform: scale(0.96) translateY(8px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
+
 .animate-scaleUp {
-  animation: scaleUp 0.25s cubic-bezier(0.2,0.8,0.3,1) forwards;
+  animation: scaleUp 0.25s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
 }
 
 @keyframes slideIn {
-  from { opacity: 0; transform: translateX(16px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
+
 .animate-slideIn {
-  animation: slideIn 0.25s cubic-bezier(0.2,0.8,0.3,1) forwards;
+  animation: slideIn 0.25s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+/* ── Pulse Animation ─────────────────────────────────────────────────────── */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pulse {
+  animation: pulse 1s ease-in-out infinite;
 }
 
 /* ── Form Elements ──────────────────────────────────────────────────────── */
@@ -249,6 +328,7 @@ input[type="checkbox"] {
   accent-color: var(--color-primary);
   border-radius: 4px;
 }
+
 select {
   background-color: var(--color-surface) !important;
   border: 1px solid var(--color-border) !important;
@@ -259,7 +339,8 @@ select {
   padding: 8px 12px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+
 select:focus {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 3px rgba(93,107,47,.10) !important;
+  box-shadow: 0 0 0 3px rgba(93, 107, 47, .10) !important;
 }
