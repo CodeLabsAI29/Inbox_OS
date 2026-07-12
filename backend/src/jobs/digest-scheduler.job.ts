@@ -1,4 +1,4 @@
-import { Queue, Worker, Job, ConnectionOptions } from 'bullmq';
+import { Queue, Worker, Job, ConnectionOptions } from '../utils/bullmq-wrapper';
 import { PrismaClient } from '@prisma/client';
 import { DigestGeneratorService } from '../services/actions/digest-generator.service';
 import { EmailDigestAdapter } from '../services/outputs/email-digest.adapter';

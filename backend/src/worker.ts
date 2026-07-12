@@ -1,9 +1,10 @@
+import './utils/redis-patch';
 import { EventBus } from './services/event-bus.service';
 import { PrismaClient } from '@prisma/client';
 import { AIService } from './services/ai.service';
 import { indexEmailsWorker } from './jobs/index-emails.job';
 import { calendarEventsWorker } from './jobs/calendar-events.job';
-import { digestWorker } from './jobs/digest-scheduler.job';
+import { digestWorker, syncDigestSchedule } from './jobs/digest-scheduler.job';
 import { reminderWorker } from './jobs/reminder.job';
 import { logger } from './utils/logger';
 import { emailsProcessedCounter } from './utils/metrics';
@@ -129,8 +130,6 @@ export async function registerWorkerHandlers() {
               .map((d) => new Date(d))
               .filter((d) => !isNaN(d.getTime()));
             if (deadlineDates.length > 0) {
-              const { ReminderSchedulerService } =
-                await import('./services/actions/reminder-scheduler.service');
               await ReminderSchedulerService.scheduleReminders(
                 email.id,
                 deadlineDates
@@ -336,7 +335,6 @@ export async function registerWorkerHandlers() {
     const users = await prisma.user.findMany({
       select: { id: true },
     });
-    const { syncDigestSchedule } = await import('./jobs/digest-scheduler.job');
     for (const user of users) {
       await syncDigestSchedule(user.id);
     }

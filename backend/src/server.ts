@@ -4,6 +4,7 @@ import * as path from 'path';
 // Load environment variables
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
+import './utils/redis-patch';
 import express, { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
@@ -30,6 +31,18 @@ import { setupSwagger } from './config/swagger';
 import { GmailSyncService } from './services/gmail-sync.service';
 import { TelegramBotService } from './services/telegram-bot.service';
 import { TelegramConfig } from './config/telegram.config';
+
+// Import route controllers
+import { aiRouter } from './routes/ai.routes';
+import { calendarRouter } from './routes/calendar.routes';
+import { digestsRouter } from './routes/digests.routes';
+import { expensesRouter } from './routes/expenses.routes';
+import { feedbackRouter } from './routes/feedback.routes';
+import { integrationsRouter } from './routes/integrations.routes';
+import { notificationsRouter } from './routes/notifications.routes';
+import { ragRouter } from './routes/rag.routes';
+import { remindersRouter } from './routes/reminders.routes';
+import { tasksRouter } from './routes/tasks.routes';
 
 // ── Firebase Admin SDK Initialization ────────────────────────────────────────
 // Only initialize once; guard against hot-reload double-init in dev mode.
@@ -151,6 +164,18 @@ app.use(express.json());
 app.use(cookieParser());
 app.use('/api', rateLimiter);
 setupSwagger(app);
+
+// Mount routes
+app.use(ragRouter);
+app.use('/api/actions/calendar/events', calendarRouter);
+app.use('/api/ai', aiRouter);
+app.use('/api/digests', digestsRouter);
+app.use('/api/expenses', expensesRouter);
+app.use('/api/feedback', feedbackRouter);
+app.use('/api/integrations', integrationsRouter);
+app.use('/api/notifications', notificationsRouter);
+app.use('/api/reminders', remindersRouter);
+app.use('/api/tasks', tasksRouter);
 
 /**
  * @swagger
@@ -950,6 +975,37 @@ app.get('/api/users/me/settings', requireAuth, async (req: AuthenticatedRequest,
     });
   } catch (error) {
     console.error('Fetch settings error:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * GET /api/users/me/ai-profile
+ * Retrieve user's AI profile from settings.
+ */
+app.get('/api/users/me/ai-profile', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const settings = await prisma.userSettings.findUnique({
+      where: { userId },
+    });
+
+    if (!settings || !settings.aiPreferenceProfile) {
+      return res.status(200).json({ weekly: {} });
+    }
+
+    try {
+      const parsed = JSON.parse(settings.aiPreferenceProfile);
+      return res.status(200).json(parsed);
+    } catch {
+      return res.status(200).json({ weekly: {} });
+    }
+  } catch (error) {
+    console.error('Fetch ai-profile error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -1873,6 +1929,58 @@ app.get('/api/emails', requireAuth, async (req: AuthenticatedRequest, res: Respo
  *       200:
  *         description: Email object
  */
+/**
+ * GET /api/emails/search
+ * Search emails by subject or body.
+ */
+app.get('/api/emails/search', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const q = req.query.q as string;
+    if (!q || !q.trim()) {
+      return res.status(400).json({ error: 'Query parameter "q" is required and cannot be empty' });
+    }
+
+    const rawLimit = parseInt(req.query.limit as string);
+    const limit = isNaN(rawLimit) || rawLimit <= 0 ? 20 : Math.min(rawLimit, 20);
+
+    const rawOffset = parseInt(req.query.offset as string);
+    const offset = isNaN(rawOffset) || rawOffset < 0 ? 0 : rawOffset;
+
+    const where = {
+      userId,
+      OR: [
+        { subject: { contains: q } },
+        { body: { contains: q } }
+      ]
+    };
+
+    const [emails, total] = await Promise.all([
+      prisma.email.findMany({
+        where,
+        take: limit,
+        skip: offset,
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.email.count({ where })
+    ]);
+
+    return res.json({
+      emails,
+      pagination: {
+        total,
+        limit,
+        offset
+      }
+    });
+  } catch (err: any) {
+    console.error('GET /api/emails/search error:', err);
+    return res.status(500).json({ error: 'Failed to search emails' });
+  }
+});
+
 app.get('/api/emails/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user?.userId;

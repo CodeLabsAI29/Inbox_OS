@@ -12,6 +12,9 @@ const mockApp = {
 // Mock initializeApp
 export const initializeApp = jest.fn(() => mockApp);
 
+// Mock getApps
+export const getApps = jest.fn(() => []);
+
 // Mock cert
 export const cert = jest.fn((config: any) => ({ ...config }));
 
@@ -28,4 +31,4 @@ export const getAuth = jest.fn(() => ({
   }),
 }));
 
-export default { initializeApp, cert, getAuth };
+export default { initializeApp, getApps, cert, getAuth };
