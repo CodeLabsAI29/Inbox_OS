@@ -20,7 +20,7 @@ describe('Feedback Collection API and Service', () => {
   });
 
   const mockUserId = 'user-123';
-  const mockEmailId = 'email-456';
+  const mockEmailId = 'e18b8de3-568b-4b13-8fb5-3f3604f86d88';
   const mockToken = AuthService.generateToken(mockUserId, 'user@example.com');
 
   describe('POST /api/feedback', () => {

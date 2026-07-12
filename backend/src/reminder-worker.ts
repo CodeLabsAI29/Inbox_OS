@@ -11,6 +11,7 @@ import * as path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
+import './utils/redis-patch';
 import { ReminderSchedulerService } from './services/actions/reminder-scheduler.service';
 import { logger } from './utils/logger';
 

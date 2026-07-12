@@ -1,4 +1,4 @@
-import { Queue, Worker, Job, ConnectionOptions } from 'bullmq';
+import { Queue, Worker, Job, ConnectionOptions } from '../utils/bullmq-wrapper';
 import { PrismaClient } from '@prisma/client';
 import { AIService } from '../services/ai.service';
 

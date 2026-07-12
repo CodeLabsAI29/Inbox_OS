@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { createRedisClient } from '../utils/redis-health';
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379/0';
 
@@ -7,7 +8,7 @@ export class RedisService {
 
   public static getClient(): Redis {
     if (!this.client) {
-      this.client = new Redis(REDIS_URL, {
+      this.client = createRedisClient(REDIS_URL, {
         maxRetriesPerRequest: 1, // keep retries low so we fallback fast
         connectTimeout: 1000, // 1s timeout to connect
         lazyConnect: true,

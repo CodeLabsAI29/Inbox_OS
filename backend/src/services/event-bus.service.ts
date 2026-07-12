@@ -2,7 +2,8 @@ import Redis from 'ioredis';
 import { EventEmitter } from 'events';
 import { PrismaClient } from '@prisma/client';
 import { WebhookDispatcher } from './webhook-dispatcher.service';
-import { Queue, Worker, Job } from 'bullmq';
+import { Queue, Worker, Job } from '../utils/bullmq-wrapper';
+import { createRedisClient, RedisHealth } from '../utils/redis-health';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
@@ -54,7 +55,7 @@ export class EventBus {
     }
   }
 
-  private static triggerFallback() {
+  public static triggerFallback() {
     if (!this.useLocalEmitter) {
       this.useLocalEmitter = true;
       console.warn(
@@ -80,9 +81,9 @@ export class EventBus {
       return null;
     }
     if (!this.pubClient) {
-      this.pubClient = new Redis(REDIS_URL, {
+      this.pubClient = createRedisClient(REDIS_URL, {
         maxRetriesPerRequest: null,
-        retryStrategy: (times) => {
+        retryStrategy: (times: number) => {
           if (times > 2) {
             // Allow up to 2 retries (total 3 attempts)
             this.triggerFallback();
@@ -94,7 +95,7 @@ export class EventBus {
 
       this.pubClient.on('error', (error: any) => {
         console.error('Redis Client Error:', error.message || error);
-        if (error.code === 'ECONNREFUSED') {
+        if (error.code === 'ECONNREFUSED' || RedisHealth.isDisabled()) {
           this.triggerFallback();
         }
       });
@@ -162,7 +163,8 @@ export class EventBus {
         },
       });
     } catch (error: any) {
-      if (error.code === 'ECONNREFUSED') {
+      RedisHealth.handleError(error);
+      if (error.code === 'ECONNREFUSED' || RedisHealth.isDisabled()) {
         this.triggerFallback();
         this.localEmitter.emit(topic, payload);
         return;
@@ -233,7 +235,8 @@ export class EventBus {
         );
       }
     } catch (error: any) {
-      if (error.code === 'ECONNREFUSED') {
+      RedisHealth.handleError(error);
+      if (error.code === 'ECONNREFUSED' || RedisHealth.isDisabled()) {
         this.triggerFallback();
         return;
       }
@@ -262,3 +265,8 @@ export class EventBus {
     this.localEmitter.removeAllListeners();
   }
 }
+
+// Automatically fallback if Redis is disabled globally
+RedisHealth.onDisable(() => {
+  EventBus.triggerFallback();
+});

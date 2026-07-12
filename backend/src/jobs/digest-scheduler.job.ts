@@ -1,4 +1,4 @@
-import { Queue, Worker, Job, ConnectionOptions } from 'bullmq';
+import { Queue, Worker, Job, ConnectionOptions } from '../utils/bullmq-wrapper';
 import { PrismaClient } from '@prisma/client';
 import { DigestGeneratorService } from '../services/actions/digest-generator.service';
 import { EmailDigestAdapter } from '../services/outputs/email-digest.adapter';
@@ -48,6 +48,25 @@ export const digestWorker = new Worker(
       `[DigestWorker] Executing digest job ${job.id} for user: ${userId}, type: ${type}`
     );
 
+    // ── Phase 2: Skip users whose Gmail token is dead ─────────────────────────
+    // EmailDigestAdapter marks syncState = 'needs_reauth' when a GmailAuthError
+    // occurs. Honour that flag here to avoid wasting Redis/API quota retrying
+    // a permanently broken token.
+    const gmailAccount = await prisma.emailAccount.findFirst({
+      where: { userId, provider: 'gmail' },
+      select: { id: true, syncState: true },
+    });
+
+    if (gmailAccount?.syncState === 'needs_reauth') {
+      logger.warn(
+        `[DigestWorker] Skipping digest job ${job.id} for user ${userId} — Gmail account requires re-authentication. ` +
+        `User has been notified via in-app notification.`
+      );
+      // Resolve without throwing: BullMQ marks job as completed (not failed),
+      // which prevents infinite retries and Redis quota drain.
+      return;
+    }
+
     try {
       // 1. Generate the digest (aggregates low-priority emails and compiles Handlebars template)
       const digest = await DigestGeneratorService.generateDigest(userId, type);
@@ -67,6 +86,7 @@ export const digestWorker = new Worker(
   },
   { connection }
 );
+
 
 /**
  * Synchronizes the BullMQ repeatable digest jobs for a specific user.

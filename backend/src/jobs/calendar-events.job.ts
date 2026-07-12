@@ -1,4 +1,4 @@
-import { Queue, Worker, Job, ConnectionOptions } from 'bullmq';
+import { Queue, Worker, Job, ConnectionOptions } from '../utils/bullmq-wrapper';
 import { CalendarCreatorService } from '../services/actions/calendar-creator.service';
 import { CalendarEventData } from '../services/actions/calendar-extractor.service';
 import { logger } from '../utils/logger';
