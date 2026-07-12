@@ -323,3 +323,64 @@ select:focus {
 .dark .illustration-element {
   filter: brightness(0.85) contrast(1.1) sepia(20%) !important;
 }
+
+/* ── Sunset/Cyber-Gold Theme overrides for variables ────────────────────── */
+.dark {
+  --color-ink: #ffffff; /* Primary text layers to pure white */
+  --color-muted: #decbb7; /* Support text/labels to muted champagne-sand */
+  --color-surface: #171513; /* Deep charcoal/obsidian background for card/panel surface */
+  --color-border: rgba(217, 119, 6, 0.35); /* Clear golden-copper borders */
+  --color-primary: #f59e0b; /* Headings/labels to cyber-gold accents */
+  --color-accent: #f59e0b; /* Headings/labels to cyber-gold accents */
+}
+
+/* 1. Map internal typography layout under dark mode */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6,
+.dark label,
+.dark th,
+.dark .heading,
+.dark .label,
+.dark .cyber-gold-accent,
+.dark [style*="color: var(--color-primary)"] {
+  color: #f59e0b !important; /* cyber-gold accents */
+}
+
+.dark .text-muted,
+.dark .text-gray-400,
+.dark .text-gray-500,
+.dark .text-gray-600,
+.dark [style*="color: #666"],
+.dark [style*="color: #888"],
+.dark [style*="color: var(--color-muted)"],
+.dark .support-text,
+.dark .helper-text {
+  color: #decbb7 !important; /* muted champagne-sand */
+}
+
+.dark p,
+.dark span,
+.dark div,
+.dark td,
+.dark input,
+.dark textarea {
+  /* Set color to white if not overridden by specific muted or gold accents */
+  color: inherit;
+}
+
+/* 2. Style internal card components & widgets in dark mode */
+.dark .neu-card,
+.dark .neu-card-sm,
+.dark #deadlines-widget > div,
+.dark [id^="reminder-card-"],
+.dark .email-row-card,
+.dark .modal-content,
+.dark .compose-modal-container {
+  background-color: #171513 !important;
+  border: 1px solid rgba(217, 119, 6, 0.35) !important;
+  box-shadow: inset 0 0 12px rgba(245, 158, 11, 0.15), var(--shadow-card, 0 4px 24px rgba(0,0,0,0.5)) !important;
+}
