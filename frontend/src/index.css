@@ -58,6 +58,15 @@
     --shadow-offset-xs: none;
     --color-accent-cta: #5d6b2f;
     --color-pending: #d9a441;
+
+    /* Shell / Layout Tokens */
+    --bg-primary: var(--color-bg);
+    --bg-secondary: var(--color-surface);
+    --text-primary: var(--color-ink);
+    --text-secondary: var(--color-muted);
+    --border-color: var(--color-border);
+    --nav-bg: var(--color-surface);
+    --footer-bg: #faf7f2;
   }
 
   html.dark {
@@ -84,8 +93,8 @@
   }
 
   body {
-    background-color: var(--color-bg);
-    color: var(--color-ink);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -107,9 +116,11 @@
       linear-gradient(to bottom, rgba(95, 107, 56, 0.04) 1px, transparent 1px);
     background-size: 40px 40px;
     mask-image: radial-gradient(ellipse at center, black, transparent 75%);
-    -webkit-mask-image: radial-gradient(ellipse at center,
-        black,
-        transparent 75%);
+    -webkit-mask-image: radial-gradient(
+      ellipse at center,
+      black,
+      transparent 75%
+    );
   }
 }
 
@@ -135,7 +146,6 @@
 
 /* ── Component Classes ──────────────────────────────────────────────────── */
 @layer components {
-
   /* ── Cards ── */
   .neu-card {
     background-color: var(--color-surface);
@@ -469,30 +479,38 @@ html.dark ::-webkit-scrollbar-thumb:hover {
    ========================================================================== */
 
 html.dark-theme {
-  --bg-base: #050505;
-  --bg-elevated: #0B0B0B;
-  --accent: #FF6A00;
-  --accent-hover: #FF8C32;
-  --accent-light: #FF8C32;
+  --bg-base: #0a0908;
+  --bg-elevated: #12100f;
+  --accent: #ff6a00;
+  --accent-hover: #ff8c32;
+  --accent-light: #ff8c32;
   --accent-glow: rgba(255, 106, 0, 0.35);
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-active: rgba(255, 140, 50, 0.30);
-  --text-primary: #FFFFFF;
-  --text-secondary: #C2C2C2;
-  --text-muted: #7A7A7A;
-  
+  --border-color: rgba(228, 184, 92, 0.08);
+  --border-active: rgba(255, 140, 50, 0.3);
+  --text-primary: #ffffff;
+  --text-secondary: #c2c2c2;
+  --text-muted: #7a7a7a;
+
   /* Core design variables mapping */
-  --color-bg: #050505;
-  --color-surface: #0B0B0B;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-ink: #FFFFFF;
-  --color-muted: #C2C2C2;
-  --color-primary: #FF6A00;
-  --color-accent: #FF8C32;
-  
+  --color-bg: #0a0908;
+  --color-surface: #12100f;
+  --color-border: rgba(228, 184, 92, 0.08);
+  --color-ink: #ffffff;
+  --color-muted: #c2c2c2;
+  --color-primary: #ff6a00;
+  --color-accent: #ff8c32;
+
+  /* Shell / Layout Tokens */
+  --bg-primary: #0a0908;
+  --bg-secondary: #12100f;
+  --nav-bg: #12100f;
+  --footer-bg: #0a0908;
+
   /* Ambient Orange Shadows */
-  --shadow-card: 0 4px 24px rgba(255, 106, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-hover: 0 12px 40px rgba(255, 106, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-card:
+    0 4px 24px rgba(255, 106, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-hover:
+    0 12px 40px rgba(255, 106, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.4);
   --shadow-sm: 0 2px 12px rgba(255, 106, 0, 0.05);
 
   color-scheme: dark;
@@ -500,27 +518,40 @@ html.dark-theme {
 
 /* Ambient Radial Glow Background */
 html.dark-theme body::before {
-  content: "";
+  content: '';
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle at 15% 15%, rgba(255, 106, 0, 0.04) 0%, transparent 55%),
-              radial-gradient(circle at 85% 85%, rgba(255, 140, 50, 0.03) 0%, transparent 60%);
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(255, 106, 0, 0.04) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 85% 85%,
+      rgba(255, 140, 50, 0.03) 0%,
+      transparent 60%
+    );
   pointer-events: none;
   z-index: -2;
 }
 
 /* Global Mouse Follow Orange Glow Background */
 html.dark-theme body::after {
-  content: "";
+  content: '';
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(600px circle at var(--global-mouse-x, -999px) var(--global-mouse-y, -999px), rgba(255, 106, 0, 0.05), transparent 50%);
+  background: radial-gradient(
+    600px circle at var(--global-mouse-x, -999px) var(--global-mouse-y, -999px),
+    rgba(255, 106, 0, 0.05),
+    transparent 50%
+  );
   pointer-events: none;
   z-index: -1;
 }
@@ -659,8 +690,12 @@ html.dark-theme .border-accent {
 
 /* Active navigation item gradient fill */
 html.dark-theme .bg-gradient-to-r.from-indigo-600\/30.to-purple-600\/20 {
-  background: linear-gradient(to right, rgba(255, 106, 0, 0.15), rgba(255, 140, 50, 0.05)) !important;
-  color: #FFFFFF !important;
+  background: linear-gradient(
+    to right,
+    rgba(255, 106, 0, 0.15),
+    rgba(255, 140, 50, 0.05)
+  ) !important;
+  color: #ffffff !important;
   border-left-color: var(--accent) !important;
 }
 
@@ -669,15 +704,23 @@ html.dark-theme .bg-indigo-600,
 html.dark-theme .bg-gradient-to-r.from-\[\#6D5DF6\].to-\[\#5B7CFF\],
 html.dark-theme .bg-gradient-to-tr.from-indigo-600.to-violet-600,
 html.dark-theme .bg-gradient-to-tr.from-indigo-500.to-purple-600 {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%) !important;
-  color: #FFFFFF !important;
+  background: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    var(--accent-hover) 100%
+  ) !important;
+  color: #ffffff !important;
 }
 
 html.dark-theme .hover\:bg-indigo-500:hover,
 html.dark-theme .bg-indigo-600:hover,
 html.dark-theme .bg-indigo-500:hover {
-  background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%) !important;
-  color: #FFFFFF !important;
+  background: linear-gradient(
+    135deg,
+    var(--accent-hover) 0%,
+    var(--accent) 100%
+  ) !important;
+  color: #ffffff !important;
 }
 
 /* Custom ambient glows in Landing Page & Auth Layout */
@@ -686,23 +729,33 @@ html.dark-theme .bg-gradient-to-tr.from-\[\#6D5DF6\]\/10.to-\[\#5B7CFF\]\/5,
 html.dark-theme .bg-\[\#5B7CFF\]\/5,
 html.dark-theme .bg-indigo-500\/5,
 html.dark-theme .bg-indigo-500\/10 {
-  background: radial-gradient(circle, rgba(255, 106, 0, 0.08) 0%, rgba(255, 140, 50, 0.02) 70%, transparent 100%) !important;
+  background: radial-gradient(
+    circle,
+    rgba(255, 106, 0, 0.08) 0%,
+    rgba(255, 140, 50, 0.02) 70%,
+    transparent 100%
+  ) !important;
 }
 
 /* Mouse follow radial glow inside AuthLayout */
-html.dark-theme [style*="radial-gradient(600px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(109, 93, 246, 0.07), transparent 40%)"] {
-  background: radial-gradient(600px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(255, 106, 0, 0.12), transparent 45%) !important;
+html.dark-theme
+  [style*='radial-gradient(600px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(109, 93, 246, 0.07), transparent 40%)'] {
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+    rgba(255, 106, 0, 0.12),
+    transparent 45%
+  ) !important;
 }
 
 /* Forms & Input Elements */
-html.dark-theme input[type="text"],
-html.dark-theme input[type="email"],
-html.dark-theme input[type="password"],
-html.dark-theme input[type="url"],
+html.dark-theme input[type='text'],
+html.dark-theme input[type='email'],
+html.dark-theme input[type='password'],
+html.dark-theme input[type='url'],
 html.dark-theme select,
 html.dark-theme textarea {
   background-color: rgba(18, 18, 18, 0.9) !important;
-  color: #FFFFFF !important;
+  color: #ffffff !important;
   border: 1px solid var(--border-color) !important;
 }
 
@@ -712,22 +765,24 @@ html.dark-theme textarea:focus,
 html.dark-theme .focus\:border-indigo-500\/40:focus,
 html.dark-theme .focus\:border-\[\#6D5DF6\]\/40:focus {
   border-color: var(--border-active) !important;
-  box-shadow: 0 0 0 1px var(--border-active), 0 0 8px var(--accent-glow) !important;
+  box-shadow:
+    0 0 0 1px var(--border-active),
+    0 0 8px var(--accent-glow) !important;
 }
 
 /* Select option background fix */
 html.dark-theme select option {
-  background-color: #0B0B0B !important;
-  color: #FFFFFF !important;
+  background-color: #0b0b0b !important;
+  color: #ffffff !important;
 }
 
 /* Checkboxes, Radios, Toggles & Range sliders */
-html.dark-theme input[type="checkbox"],
-html.dark-theme input[type="radio"] {
+html.dark-theme input[type='checkbox'],
+html.dark-theme input[type='radio'] {
   accent-color: var(--accent) !important;
 }
 
-html.dark-theme input[type="range"] {
+html.dark-theme input[type='range'] {
   accent-color: var(--accent) !important;
 }
 
@@ -753,7 +808,11 @@ html.dark-theme .hover\:bg-indigo-500:hover {
 
 /* Landing Page Navigation styling */
 html.dark-theme header.bg-white\/80 {
-  background-color: rgba(11, 11, 11, 0.8) !important;
+  background-color: var(--nav-bg) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+html.dark-theme header.bg-white\/65 {
+  background-color: rgba(10, 9, 8, 0.65) !important;
   border-bottom: 1px solid var(--border-color) !important;
 }
 
@@ -861,7 +920,7 @@ html.dark-theme .bg-indigo-600\/20,
 html.dark-theme .bg-indigo-600\/10 {
   background-color: var(--accent) !important;
   background-image: none !important;
-  color: #FFFFFF !important;
+  color: #ffffff !important;
 }
 
 /* Primary Green Borders -> Orange Active Border */
@@ -911,10 +970,12 @@ html.dark-theme .group:hover .group-hover\:text-\[\#5F6B38\] {
 
 /* Shadow Glows for Cards & Buttons */
 html.dark-theme .hover\:shadow-\[0_8px_25px_rgba\(95\,107\,56\,0\.25\)\]:hover,
-html.dark-theme .hover\:shadow-\[0_8px_25px_rgba\(255\,255\,255\,0\.25\)\]:hover,
+html.dark-theme
+  .hover\:shadow-\[0_8px_25px_rgba\(255\,255\,255\,0\.25\)\]:hover,
 html.dark-theme .shadow-\[0_8px_30px_rgba\(95\,107\,56\,0\.02\)\],
 html.dark-theme .hover\:shadow-\[0_15px_30px_rgba\(95\,107\,56\,0\.06\)\]:hover,
-html.dark-theme .hover\:shadow-\[0_20px_40px_rgba\(95\,107\,56\,0\.08\)\]:hover {
+html.dark-theme
+  .hover\:shadow-\[0_20px_40px_rgba\(95\,107\,56\,0\.08\)\]:hover {
   box-shadow: 0 4px 20px var(--accent-glow) !important;
 }
 
@@ -926,4 +987,7 @@ html.dark-theme .focus\:border-\[\#5F6B38\]:focus {
   border-color: var(--border-active) !important;
 }
 
-
+/* Footer Background Override under dark theme */
+html.dark-theme footer {
+  background-color: var(--footer-bg) !important;
+}
