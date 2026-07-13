@@ -1870,9 +1870,9 @@ export const LandingPage: React.FC = () => {
                   </div>
                   <div className="pl-6 flex items-center gap-2">
                     <span className="text-[#6B7280]">📁</span>
-                    <span className="text-[#1D1D1D]">web/</span>
+                    <span className="text-[#1D1D1D]">frontend/</span>
                     <span className="text-[#6B7280]/70 text-[10px] italic">
-                      (Next.js / Vite dashboard)
+                      (React client dashboard)
                     </span>
                   </div>
 
