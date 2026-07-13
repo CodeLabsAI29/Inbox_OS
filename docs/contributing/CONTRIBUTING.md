@@ -99,10 +99,10 @@ When you're ready, submit a Pull Request to merge your branch back into our `mai
    ```
 2. **Run Linting & Tests:** Ensure all tests pass and there are no compilation errors:
    ```bash
-   # In the server directory
+   # In the backend directory
    npm run typecheck
    
-   # In the client directory
+   # In the frontend directory
    npm run typecheck
    ```
 3. **Format Code:** Keep code styling consistent.

@@ -40,33 +40,33 @@ jobs:
       # Backend Jobs
       # ==========================================
       - name: Install Backend Dependencies
-        working-directory: ./server
+        working-directory: ./backend
         run: npm ci
 
       - name: Audit Backend Dependencies
-        working-directory: ./server
+        working-directory: ./backend
         run: npm audit --audit-level=high
 
       - name: Generate Prisma Client
-        working-directory: ./server
+        working-directory: ./backend
         run: npx prisma generate
 
       - name: Setup Test Database Schema
-        working-directory: ./server
+        working-directory: ./backend
         run: npx prisma db push
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/inboxos_test
 
       - name: Run Backend Lint
-        working-directory: ./server
+        working-directory: ./backend
         run: npm run lint
 
       - name: Run Backend Typecheck
-        working-directory: ./server
+        working-directory: ./backend
         run: npm run typecheck
 
       - name: Run Backend Tests
-        working-directory: ./server
+        working-directory: ./backend
         run: npm run test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/inboxos_test
@@ -75,21 +75,21 @@ jobs:
       # Frontend Jobs
       # ==========================================
       - name: Install Frontend Dependencies
-        working-directory: ./client
+        working-directory: ./frontend
         run: npm ci
 
       - name: Audit Frontend Dependencies
-        working-directory: ./client
+        working-directory: ./frontend
         run: npm audit --audit-level=high
 
       - name: Run Frontend Lint
-        working-directory: ./client
+        working-directory: ./frontend
         run: npm run lint
 
       - name: Run Frontend Typecheck
-        working-directory: ./client
+        working-directory: ./frontend
         run: npm run typecheck
 
       - name: Run Frontend Tests
-        working-directory: ./client
+        working-directory: ./frontend
         run: npm run test

@@ -352,8 +352,8 @@ This monorepo isolates individual layers and clients under clean folders. All sy
 ```text
 InboxOS/
 ├── .github/                    # Community files, PR templates, GitHub Actions
-├── client/                     # React frontend client (Vite)
-├── server/                     # Node.js backend server (Express + Prisma)
+├── frontend/                   # React frontend client (Vite)
+├── backend/                    # Node.js backend server (Express + Prisma)
 ├── packages/                   # Decoupled libraries and shared modules
 ├── scripts/                    # Build, setup, and deployment scripts
 ├── docs/                       # Developer manuals & architecture logs
@@ -395,11 +395,11 @@ cd inboxos
 cp scripts/config/env/.env.example scripts/config/env/.env
 # Edit scripts/config/env/.env with your secrets
 
-# 3. Spin up all services (PostgreSQL, Redis, Server, Client)
+# 3. Spin up all services (PostgreSQL, Redis, Backend, Frontend)
 docker compose up -d
 
 # 4. Execute database migrations
-docker compose exec server npx prisma db push
+docker compose exec backend npx prisma db push
 
 # 5. Open the Dashboard UI
 # Access the dashboard at http://localhost
@@ -413,15 +413,15 @@ For active local debugging of individual services without Docker containerizatio
 
 #### 1. Backend API Server
 ```bash
-cd server
+cd backend
 npm install
-# Configure server/.env or use scripts/config/env/.env
+# Configure backend/.env or use scripts/config/env/.env
 npm start
 ```
 
 #### 2. Frontend Dashboard UI (new terminal)
 ```bash
-cd client
+cd frontend
 npm install
 npm run dev
 ```
@@ -475,12 +475,12 @@ Create your configuration files inside `infrastructure/config/env/`.
 
 ### Backend Deploy (DigitalOcean App Platform / Render)
 1. Provision a managed **PostgreSQL 15** and **Redis** instance.
-2. Build the Dockerfile context from `server/` folder.
+2. Build the Dockerfile context from `backend/` folder.
 3. Bind the environment variables to point to production endpoints (ensure `NODE_ENV=production` is set).
 4. Run `npx prisma db push` or `npx prisma migrate deploy` to deploy the database schema.
 
 ### Frontend Deploy (Vercel)
-1. Connect the repository and configure target build directory to `client`.
+1. Connect the repository and configure target build directory to `frontend`.
 2. Configure build framework presets to **Vite**.
 3. Supply `VITE_API_BASE_URL` env parameter pointing to the live API backend server.
 

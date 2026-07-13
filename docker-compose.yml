@@ -41,7 +41,7 @@ services:
   # ==========================================
   backend:
     build:
-      context: ./server
+      context: ./backend
       dockerfile: Dockerfile
       target: dev
     restart: unless-stopped
@@ -62,7 +62,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - AI_PROVIDER=${AI_PROVIDER:-openai}
     volumes:
-      - ./server:/usr/src/app
+      - ./backend:/usr/src/app
       # Anonymous volume to preserve node_modules installed inside the container
       - /usr/src/app/node_modules
     depends_on:
@@ -78,7 +78,7 @@ services:
   # ==========================================
   frontend:
     build:
-      context: ./client
+      context: ./frontend
       dockerfile: Dockerfile
       target: dev
     restart: unless-stopped
@@ -87,7 +87,7 @@ services:
     environment:
       - VITE_API_BASE_URL=http://localhost:8000
     volumes:
-      - ./client:/app
+      - ./frontend:/app
       # Anonymous volume to preserve node_modules installed inside the container
       - /app/node_modules
     depends_on:
