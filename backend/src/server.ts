@@ -1127,12 +1127,6 @@ app.put('/api/users/me/settings', requireAuth, async (req: AuthenticatedRequest,
 });
 
 // OAuth2 & Encryption config
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GMAIL_CLIENT_ID,
-  process.env.GMAIL_CLIENT_SECRET,
-  process.env.GMAIL_REDIRECT_URI ||
-  'http://localhost:8000/api/integrations/gmail/callback'
-);
 const getOAuth2Client = (req?: Request) => {
   let redirectUri = process.env.GMAIL_REDIRECT_URI;
   if (!redirectUri && req) {
@@ -1437,38 +1431,12 @@ app.post('/api/integrations/gmail/sync', requireAuth, async (req: AuthenticatedR
       if (existing) continue;
 
       try {
-        const savedEvent = await CalendarCreatorService.createGoogleCalendarEvent(eventData, userId, emailId);
-        return res.status(201).json({ success: true, event: savedEvent });
-      } catch (err: any) {
-        if (err.message === 'MISSING_GOOGLE_CALENDAR_CREDENTIALS') {
-          logger.info(`[CalendarRoute] Missing credentials. Queueing calendar event creation for email: ${emailId}`);
-
-          // Save a placeholder event with 'pending' status in db
-          const pendingEvent = await prisma.calendarEvent.upsert({
-            where: {
-              googleEventId: 'failed_' + emailId,
-            },
-            update: {
-              status: 'pending',
-            },
-            create: {
-              userId,
-              emailId,
-              title: eventData.title,
-              startTime: eventData.startTime,
-              endTime: eventData.endTime,
-              location: eventData.location,
-              attendees: eventData.attendees,
-              meetingLink: eventData.meetingLink,
-              googleEventId: 'failed_' + emailId,
-              status: 'pending',
-            },
-          });
         const fullMsg = await gmail.users.messages.get({
           userId: 'me',
           id: msg.id,
           format: 'full',
         });
+
 
         const headers = fullMsg.data.payload?.headers || [];
         const getHeader = (name: string) =>
