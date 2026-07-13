@@ -23,15 +23,18 @@ export const Layout: React.FC<LayoutProps> = ({
 
   return (
     <div
-      className="flex min-h-screen font-sans dark:bg-zinc-950 dark:text-zinc-100"
-      style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-ink)' }}
+      className="flex min-h-screen font-sans"
+      style={{
+        backgroundColor: 'var(--bg-primary)',
+        color: 'var(--text-primary)',
+      }}
     >
       {/* ── Left Sidebar (Desktop) ────────────────────────────────────────── */}
       <aside
-        className="hidden md:flex flex-col w-[260px] h-screen sticky top-0 z-30 shrink-0 dark:bg-zinc-900 dark:border-zinc-800"
+        className="hidden md:flex flex-col w-[260px] h-screen sticky top-0 z-30 shrink-0"
         style={{
-          backgroundColor: 'var(--color-surface)',
-          borderRight: '1px solid var(--color-border)',
+          backgroundColor: 'var(--bg-secondary)',
+          borderRight: '1px solid var(--border-color)',
         }}
       >
         <SidebarNav />
@@ -46,10 +49,10 @@ export const Layout: React.FC<LayoutProps> = ({
           onClick={() => setIsMobileMenuOpen(false)}
         />
         <aside
-          className={`relative flex flex-col w-[260px] h-full p-4 z-50 transition-transform duration-300 ease-in-out dark:bg-zinc-900 dark:border-zinc-800 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          className={`relative flex flex-col w-[260px] h-full p-4 z-50 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
           style={{
-            backgroundColor: 'var(--color-surface)',
-            borderRight: '1px solid var(--color-border)',
+            backgroundColor: 'var(--bg-secondary)',
+            borderRight: '1px solid var(--border-color)',
           }}
         >
           <SidebarNav
@@ -63,10 +66,10 @@ export const Layout: React.FC<LayoutProps> = ({
       <div className="flex flex-col flex-1 min-w-0">
         {/* Header */}
         <header
-          className="px-4 md:px-8 py-3 flex items-center justify-between sticky top-0 z-20 dark:bg-zinc-900 dark:border-zinc-800"
+          className="px-4 md:px-8 py-3 flex items-center justify-between sticky top-0 z-20"
           style={{
-            backgroundColor: 'var(--color-surface)',
-            borderBottom: '1px solid var(--color-border)',
+            backgroundColor: 'var(--nav-bg)',
+            borderBottom: '1px solid var(--border-color)',
             boxShadow: '0 1px 0 rgba(0,0,0,.04)',
           }}
         >
