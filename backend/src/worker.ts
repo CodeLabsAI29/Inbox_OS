@@ -175,29 +175,36 @@ export async function registerWorkerHandlers() {
         }
 
         // 4. Extract and save actions
-        logger.info('[Worker] Extracting action items from email', { emailId });
-        const actionItems = await AIService.extractActionItems(
-          email.subject,
-          email.body
-        );
+        try {
+          logger.info('[Worker] Extracting action items from email', { emailId });
+          const actionItems = await AIService.extractActionItems(
+            email.subject,
+            email.body
+          );
 
-        if (actionItems && actionItems.length > 0) {
-          logger.info('[Worker] Saving extracted action items', {
+          if (actionItems && actionItems.length > 0) {
+            logger.info('[Worker] Saving extracted action items', {
+              emailId,
+              count: actionItems.length,
+            });
+            await prisma.actionItem.createMany({
+              data: actionItems.map((item) => ({
+                emailId: email.id,
+                taskDescription: item.taskDescription || '',
+                isCompleted: false,
+                deadline: item.deadline ? new Date(item.deadline) : null,
+              })),
+            });
+            logger.info('[Worker] Saved action items successfully', { emailId });
+          } else {
+            logger.info('[Worker] No action items extracted from email', {
+              emailId,
+            });
+          }
+        } catch (actionErr: any) {
+          logger.error('[Worker] Action item extraction failed (non-fatal)', {
             emailId,
-            count: actionItems.length,
-          });
-          await prisma.actionItem.createMany({
-            data: actionItems.map((item) => ({
-              emailId: email.id,
-              taskDescription: item.taskDescription || '',
-              isCompleted: false,
-              deadline: item.deadline ? new Date(item.deadline) : null,
-            })),
-          });
-          logger.info('[Worker] Saved action items successfully', { emailId });
-        } else {
-          logger.info('[Worker] No action items extracted from email', {
-            emailId,
+            error: actionErr.message || actionErr,
           });
         }
 

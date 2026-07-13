@@ -7,9 +7,16 @@ import * as chrono from 'chrono-node';
 import { OllamaProvider } from './ai-providers/ollama.provider';
 import { KeywordFilter } from './KeywordFilter';
 
-// Load environment variables from the shared configuration directory
+// Load environment variables
+dotenv.config();
 dotenv.config({
   path: path.resolve(__dirname, '../../../infrastructure/config/env/.env'),
+});
+dotenv.config({
+  path: path.resolve(__dirname, '../../../scripts/config/env/.env'),
+});
+dotenv.config({
+  path: path.resolve(__dirname, '../../.env'),
 });
 
 const prisma = new PrismaClient();
@@ -40,7 +47,8 @@ export interface ActionItemResult {
 
 export class AIService {
   private static openaiInstance: OpenAI | null = null;
-  private static geminiInstance: GoogleGenAI | null = null;
+  private static geminiKeys: string[] = [];
+  private static currentKeyIndex = 0;
 
   public static getOpenAI(): OpenAI {
     if (!this.openaiInstance) {
@@ -55,17 +63,73 @@ export class AIService {
     return this.openaiInstance;
   }
 
-  private static getGemini(): GoogleGenAI {
-    if (!this.geminiInstance) {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error(
-          'GEMINI_API_KEY is not defined in environment configuration.'
-        );
+  private static initGeminiKeys() {
+    if (this.geminiKeys.length === 0) {
+      const keysEnv = process.env.GEMINI_API_KEYS;
+      if (keysEnv) {
+        this.geminiKeys = keysEnv.split(',').map((k) => k.trim()).filter(Boolean);
+      } else {
+        const key1 = process.env.GEMINI_API_KEY || 'GEMINI_API_KEY_1_PLACEHOLDER';
+        const key2 = process.env.GEMINI_API_KEY_2 || 'GEMINI_API_KEY_2_PLACEHOLDER';
+        const key3 = process.env.GEMINI_API_KEY_3 || 'GEMINI_API_KEY_3_PLACEHOLDER';
+        this.geminiKeys = [key1, key2, key3];
       }
-      this.geminiInstance = new GoogleGenAI({ apiKey });
     }
-    return this.geminiInstance;
+  }
+
+  private static rotateGeminiKey() {
+    this.initGeminiKeys();
+    if (this.geminiKeys.length <= 1) return;
+    this.currentKeyIndex = (this.currentKeyIndex + 1) % this.geminiKeys.length;
+    console.warn(
+      `[AIService] Rotating to Gemini API key index ${this.currentKeyIndex} (Key: ${this.geminiKeys[this.currentKeyIndex].substring(0, 10)}...)`
+    );
+  }
+
+  private static getGemini(): GoogleGenAI {
+    this.initGeminiKeys();
+    const apiKey = this.geminiKeys[this.currentKeyIndex];
+    return new GoogleGenAI({ apiKey });
+  }
+
+  private static async runWithGeminiRotation<T>(
+    fn: (ai: GoogleGenAI) => Promise<T>
+  ): Promise<T> {
+    const maxAttempts = 5;
+    let attempt = 0;
+    let delay = 1000;
+
+    while (attempt < maxAttempts) {
+      try {
+        const ai = this.getGemini();
+        return await fn(ai);
+      } catch (error: any) {
+        attempt++;
+        const isRateLimit =
+          error.status === 429 ||
+          (error.message &&
+            (error.message.includes('429') ||
+              error.message.includes('ResourceExhausted') ||
+              error.message.includes('Quota exceeded') ||
+              error.message.includes('quota')));
+
+        if (isRateLimit && attempt < maxAttempts) {
+          console.warn(
+            `[AIService] Gemini API Rate limit hit (429/ResourceExhausted). Rotating API key and retrying in ${delay}ms... (Attempt ${attempt}/${maxAttempts})`
+          );
+          this.rotateGeminiKey();
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay = 500; // Reset retry delay since we rotated keys
+        } else {
+          if (attempt >= maxAttempts) {
+            throw error;
+          }
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          delay *= 2;
+        }
+      }
+    }
+    throw new Error('Unknown error during Gemini call execution.');
   }
 
   /**
@@ -92,7 +156,7 @@ export class AIService {
           const day = String(date.getDate()).padStart(2, '0');
           dateStr = `${year}-${month}-${day}T23:59:00Z`;
         } else {
-          dateStr = date.toISOString();
+          dateStr = date.toISOString().replace('.000Z', 'Z');
         }
         if (!seen.has(dateStr)) {
           seen.add(dateStr);
@@ -128,7 +192,36 @@ export class AIService {
     let result: ClassificationResult;
 
     if (provider === 'gemini') {
-      result = await this.classifyWithGemini(subject, body);
+      try {
+        result = await this.classifyWithGemini(subject, body);
+      } catch (error) {
+        console.warn(
+          `[AIService] Gemini classification failed. Falling back to OpenAI. Error:`,
+          error
+        );
+        try {
+          result = await this.classifyWithOpenAI(subject, body);
+        } catch (openAiError: any) {
+          console.warn(
+            `[AIService] OpenAI fallback classification failed. Falling back to Ollama. Error:`,
+            openAiError
+          );
+          try {
+            result = await OllamaProvider.classify(subject, body);
+          } catch (ollamaError: any) {
+            console.warn(
+              `[AIService] Ollama fallback classification failed. Falling back to heuristics. Error:`,
+              ollamaError
+            );
+            // Ultimate fallback: heuristic/default
+            result = {
+              category: 'personal',
+              confidence: 0.1,
+              deadlines: this.extractDatesWithChrono(subject, body),
+            };
+          }
+        }
+      }
     } else if (provider === 'ollama') {
       try {
         result = await OllamaProvider.classify(subject, body);
@@ -137,10 +230,42 @@ export class AIService {
           `[AIService] Ollama classification failed or unreachable. Falling back to OpenAI. Error:`,
           error
         );
-        result = await this.classifyWithOpenAI(subject, body);
+        try {
+          result = await this.classifyWithOpenAI(subject, body);
+        } catch (openAiError: any) {
+          console.warn(
+            `[AIService] OpenAI fallback classification failed. Falling back to heuristics. Error:`,
+            openAiError
+          );
+          result = {
+            category: 'personal',
+            confidence: 0.1,
+            deadlines: this.extractDatesWithChrono(subject, body),
+          };
+        }
       }
     } else {
-      result = await this.classifyWithOpenAI(subject, body);
+      try {
+        result = await this.classifyWithOpenAI(subject, body);
+      } catch (error) {
+        console.warn(
+          `[AIService] OpenAI classification failed. Falling back to Gemini. Error:`,
+          error
+        );
+        try {
+          result = await this.classifyWithGemini(subject, body);
+        } catch (geminiError: any) {
+          console.warn(
+            `[AIService] Gemini fallback classification failed. Falling back to heuristics. Error:`,
+            geminiError
+          );
+          result = {
+            category: 'personal',
+            confidence: 0.1,
+            deadlines: this.extractDatesWithChrono(subject, body),
+          };
+        }
+      }
     }
 
     // Chrono-node fallback if LLM misses dates
@@ -279,8 +404,6 @@ Provide a confidence score between 0.0 and 1.0. Also, extract all deadlines ment
     subject: string,
     body: string
   ): Promise<ClassificationResult> {
-    const ai = this.getGemini();
-
     const systemInstruction = `You are an expert AI email classification assistant. Your task is to analyze the email's subject line and body text, and classify it into exactly one of the following categories:
 - urgent: Requires immediate attention, system alerts, outages, or critical action.
 - finance: Financial reports, bills, receipts, bank updates, invoices, or transactions.
@@ -297,90 +420,55 @@ Provide a confidence score between 0.0 and 1.0. Also, extract all deadlines ment
 
     const userContent = `Subject: ${subject}\nBody:\n${body}`;
 
-    const maxAttempts = 5;
-    let attempt = 0;
-    let delay = 1000;
-
-    while (attempt < maxAttempts) {
-      try {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: userContent,
-          config: {
-            systemInstruction: systemInstruction,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: 'OBJECT',
-              properties: {
-                category: {
+    const rawContent = await this.runWithGeminiRotation(async (ai) => {
+      const response = await ai.models.generateContent({
+        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+        contents: userContent,
+        config: {
+          systemInstruction: systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'OBJECT',
+            properties: {
+              category: {
+                type: 'STRING',
+                enum: [
+                  'urgent',
+                  'finance',
+                  'job',
+                  'otp',
+                  'meeting',
+                  'newsletter',
+                  'academic',
+                  'personal',
+                  'work',
+                  'spam',
+                ],
+              },
+              confidence: {
+                type: 'NUMBER',
+              },
+              deadlines: {
+                type: 'ARRAY',
+                items: {
                   type: 'STRING',
-                  enum: [
-                    'urgent',
-                    'finance',
-                    'job',
-                    'otp',
-                    'meeting',
-                    'newsletter',
-                    'academic',
-                    'personal',
-                    'work',
-                    'spam',
-                  ],
-                },
-                confidence: {
-                  type: 'NUMBER',
-                },
-                deadlines: {
-                  type: 'ARRAY',
-                  items: {
-                    type: 'STRING',
-                  },
                 },
               },
-              required: ['category', 'confidence', 'deadlines'],
             },
+            required: ['category', 'confidence', 'deadlines'],
           },
-        });
+        },
+      });
 
-        const rawContent = response.text;
-        if (!rawContent) {
-          throw new Error('Gemini returned an empty classification response.');
-        }
-
-        const result = JSON.parse(rawContent) as ClassificationResult;
-        return result;
-      } catch (error: any) {
-        attempt++;
-        const isRateLimit =
-          error.status === 429 ||
-          (error.message &&
-            (error.message.includes('429') ||
-              error.message.includes('ResourceExhausted') ||
-              error.message.includes('Quota exceeded') ||
-              error.message.includes('quota')));
-
-        if (isRateLimit && attempt < maxAttempts) {
-          console.warn(
-            `[AIService] Gemini Rate limit hit (429/ResourceExhausted). Retrying in ${delay}ms... (Attempt ${attempt}/${maxAttempts})`
-          );
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          delay *= 2;
-        } else {
-          console.error(
-            `[AIService] Gemini classification failed on attempt ${attempt}:`,
-            error
-          );
-          if (attempt >= maxAttempts) {
-            throw new Error(
-              `Failed to classify email via Gemini after ${maxAttempts} attempts: ${error.message || error}`
-            );
-          }
-          throw error;
-        }
+      const text = response.text;
+      if (!text) {
+        throw new Error('Gemini returned an empty classification response.');
       }
-    }
+      return text;
+    });
 
-    throw new Error('Unknown error during Gemini email classification.');
+    const result = JSON.parse(rawContent) as ClassificationResult;
+    return result;
   }
 
   /**
@@ -414,7 +502,31 @@ Provide a confidence score between 0.0 and 1.0. Also, extract all deadlines ment
     let summary = '';
 
     if (provider === 'gemini') {
-      summary = await this.summarizeWithGemini(truncatedText);
+      try {
+        summary = await this.summarizeWithGemini(truncatedText);
+      } catch (error) {
+        console.warn(
+          `[AIService] Gemini thread summarization failed. Falling back to OpenAI. Error:`,
+          error
+        );
+        try {
+          summary = await this.summarizeWithOpenAI(truncatedText);
+        } catch (openAiError: any) {
+          console.warn(
+            `[AIService] OpenAI fallback thread summarization failed. Falling back to Ollama. Error:`,
+            openAiError
+          );
+          try {
+            summary = await OllamaProvider.generateSummary([truncatedText]);
+          } catch (ollamaError: any) {
+            console.warn(
+              `[AIService] Ollama fallback thread summarization failed. Returning fallback summary. Error:`,
+              ollamaError
+            );
+            summary = 'Thread summary generation failed due to service limits.';
+          }
+        }
+      }
     } else if (provider === 'ollama') {
       try {
         summary = await OllamaProvider.generateSummary([truncatedText]);
@@ -423,10 +535,34 @@ Provide a confidence score between 0.0 and 1.0. Also, extract all deadlines ment
           `[AIService] Ollama thread summarization failed or unreachable. Falling back to OpenAI. Error:`,
           error
         );
-        summary = await this.summarizeWithOpenAI(truncatedText);
+        try {
+          summary = await this.summarizeWithOpenAI(truncatedText);
+        } catch (openAiError: any) {
+          console.warn(
+            `[AIService] OpenAI fallback thread summarization failed. Returning fallback summary. Error:`,
+            openAiError
+          );
+          summary = 'Thread summary generation failed due to service limits.';
+        }
       }
     } else {
-      summary = await this.summarizeWithOpenAI(truncatedText);
+      try {
+        summary = await this.summarizeWithOpenAI(truncatedText);
+      } catch (error) {
+        console.warn(
+          `[AIService] OpenAI thread summarization failed. Falling back to Gemini. Error:`,
+          error
+        );
+        try {
+          summary = await this.summarizeWithGemini(truncatedText);
+        } catch (geminiError: any) {
+          console.warn(
+            `[AIService] Gemini fallback thread summarization failed. Returning fallback summary. Error:`,
+            geminiError
+          );
+          summary = 'Thread summary generation failed due to service limits.';
+        }
+      }
     }
 
     // 5. Save the summary to the Thread model
@@ -508,62 +644,25 @@ Provide a confidence score between 0.0 and 1.0. Also, extract all deadlines ment
   private static async summarizeWithGemini(
     threadContent: string
   ): Promise<string> {
-    const ai = this.getGemini();
     const systemInstruction =
       'Summarize the following email thread in 2-3 sentences. Focus on the main outcome or required action.';
 
-    const maxAttempts = 5;
-    let attempt = 0;
-    let delay = 1000;
+    return this.runWithGeminiRotation(async (ai) => {
+      const response = await ai.models.generateContent({
+        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+        contents: threadContent,
+        config: {
+          systemInstruction: systemInstruction,
+        },
+      });
 
-    while (attempt < maxAttempts) {
-      try {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: threadContent,
-          config: {
-            systemInstruction: systemInstruction,
-          },
-        });
-
-        const summary = response.text?.trim();
-        if (!summary) {
-          throw new Error('Gemini returned an empty summary response.');
-        }
-
-        return summary;
-      } catch (error: any) {
-        attempt++;
-        const isRateLimit =
-          error.status === 429 ||
-          (error.message &&
-            (error.message.includes('429') ||
-              error.message.includes('ResourceExhausted') ||
-              error.message.includes('Quota exceeded') ||
-              error.message.includes('quota')));
-
-        if (isRateLimit && attempt < maxAttempts) {
-          console.warn(
-            `[AIService] Gemini Rate limit hit (429/ResourceExhausted). Retrying in ${delay}ms... (Attempt ${attempt}/${maxAttempts})`
-          );
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          delay *= 2;
-        } else {
-          console.error(
-            `[AIService] Gemini summarization failed on attempt ${attempt}:`,
-            error
-          );
-          if (attempt >= maxAttempts) {
-            throw new Error(
-              `Failed to summarize thread via Gemini after ${maxAttempts} attempts: ${error.message || error}`
-            );
-          }
-          throw error;
-        }
+      const summary = response.text?.trim();
+      if (!summary) {
+        throw new Error('Gemini returned an empty summary response.');
       }
-    }
 
-    throw new Error('Unknown error during Gemini thread summarization.');
+      return summary;
+    });
   }
 
   /**
@@ -577,19 +676,67 @@ Provide a confidence score between 0.0 and 1.0. Also, extract all deadlines ment
     let items: ActionItemResult[] = [];
 
     if (provider === 'gemini') {
-      items = await this.extractActionItemsWithGemini(subject, body);
+      try {
+        items = await this.extractActionItemsWithGemini(subject, body);
+      } catch (error) {
+        console.warn(
+          `[AIService] Gemini action items extraction failed. Falling back to OpenAI. Error:`,
+          error
+        );
+        try {
+          items = await this.extractActionItemsWithOpenAI(subject, body);
+        } catch (openAiError: any) {
+          console.warn(
+            `[AIService] OpenAI fallback action items extraction failed. Falling back to Ollama. Error:`,
+            openAiError
+          );
+          try {
+            items = await OllamaProvider.extractActionItems(subject, body);
+          } catch (ollamaError: any) {
+            console.warn(
+              `[AIService] Ollama fallback action items extraction failed. Returning empty list. Error:`,
+              ollamaError
+            );
+            items = [];
+          }
+        }
+      }
     } else if (provider === 'ollama') {
       try {
         items = await OllamaProvider.extractActionItems(subject, body);
       } catch (error) {
         console.warn(
-          `[AIService] Ollama action items extraction failed or unreachable. Falling back to OpenAI. Error:`,
+          `[AIService] Ollama action items extraction failed. Falling back to OpenAI. Error:`,
           error
         );
-        items = await this.extractActionItemsWithOpenAI(subject, body);
+        try {
+          items = await this.extractActionItemsWithOpenAI(subject, body);
+        } catch (openAiError: any) {
+          console.warn(
+            `[AIService] OpenAI fallback action items extraction failed. Returning empty list. Error:`,
+            openAiError
+          );
+          items = [];
+        }
       }
     } else {
-      items = await this.extractActionItemsWithOpenAI(subject, body);
+      try {
+        items = await this.extractActionItemsWithOpenAI(subject, body);
+      } catch (error) {
+        console.warn(
+          `[AIService] OpenAI action items extraction failed. Falling back to Gemini. Error:`,
+          error
+        );
+        try {
+          items = await this.extractActionItemsWithGemini(subject, body);
+        } catch (geminiError: any) {
+          console.warn(
+            `[AIService] Gemini fallback action items extraction failed. Returning empty list. Error:`,
+            geminiError
+          );
+          items = [];
+        }
+      }
     }
 
     // Chrono-node fallback for missing deadlines on action items
@@ -660,7 +807,7 @@ Provide a confidence score between 0.0 and 1.0. Also, extract all deadlines ment
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}T23:59:00Z`;
       }
-      return date.toISOString();
+      return date.toISOString().replace('.000Z', 'Z');
     } catch {
       return null;
     }
@@ -772,8 +919,6 @@ If there are no explicit, concrete tasks, return an empty array.`;
     subject: string,
     body: string
   ): Promise<ActionItemResult[]> {
-    const ai = this.getGemini();
-
     const systemInstruction = `You are an expert AI email task extraction assistant. Your job is to analyze the email subject line and body text, and extract all explicit, concrete tasks (e.g., 'Send the report by Friday') mentioned.
 For each task, also extract any mentioned deadline as an ISO 8601 string (e.g., '2026-07-15T23:59:00Z'). If no deadline is mentioned, return an empty string for the deadline.
 Populate both the 'task' and 'taskDescription' properties with the description of the task.
@@ -782,88 +927,51 @@ If there are no explicit, concrete tasks, return an empty array.`;
 
     const userContent = `Subject: ${subject}\nBody:\n${body}`;
 
-    const maxAttempts = 5;
-    let attempt = 0;
-    let delay = 1000;
-
-    while (attempt < maxAttempts) {
-      try {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: userContent,
-          config: {
-            systemInstruction: systemInstruction,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: 'OBJECT',
-              properties: {
-                actionItems: {
-                  type: 'ARRAY',
-                  items: {
-                    type: 'OBJECT',
-                    properties: {
-                      task: {
-                        type: 'STRING',
-                      },
-                      taskDescription: {
-                        type: 'STRING',
-                      },
-                      deadline: {
-                        type: 'STRING',
-                      },
+    const rawContent = await this.runWithGeminiRotation(async (ai) => {
+      const response = await ai.models.generateContent({
+        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+        contents: userContent,
+        config: {
+          systemInstruction: systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'OBJECT',
+            properties: {
+              actionItems: {
+                type: 'ARRAY',
+                items: {
+                  type: 'OBJECT',
+                  properties: {
+                    task: {
+                      type: 'STRING',
                     },
-                    required: ['task', 'taskDescription', 'deadline'],
+                    taskDescription: {
+                      type: 'STRING',
+                    },
+                    deadline: {
+                      type: 'STRING',
+                    },
                   },
+                  required: ['task', 'taskDescription', 'deadline'],
                 },
               },
-              required: ['actionItems'],
             },
+            required: ['actionItems'],
           },
-        });
+        },
+      });
 
-        const rawContent = response.text;
-        if (!rawContent) {
-          throw new Error(
-            'Gemini returned an empty action extraction response.'
-          );
-        }
-
-        const result = JSON.parse(rawContent) as {
-          actionItems: ActionItemResult[];
-        };
-        return result.actionItems || [];
-      } catch (error: any) {
-        attempt++;
-        const isRateLimit =
-          error.status === 429 ||
-          (error.message &&
-            (error.message.includes('429') ||
-              error.message.includes('ResourceExhausted') ||
-              error.message.includes('Quota exceeded') ||
-              error.message.includes('quota')));
-
-        if (isRateLimit && attempt < maxAttempts) {
-          console.warn(
-            `[AIService] Gemini Rate limit hit (429/ResourceExhausted) during action extraction. Retrying in ${delay}ms... (Attempt ${attempt}/${maxAttempts})`
-          );
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          delay *= 2;
-        } else {
-          console.error(
-            `[AIService] Gemini action extraction failed on attempt ${attempt}:`,
-            error
-          );
-          if (attempt >= maxAttempts) {
-            throw new Error(
-              `Failed to extract actions via Gemini after ${maxAttempts} attempts: ${error.message || error}`
-            );
-          }
-          throw error;
-        }
+      const text = response.text;
+      if (!text) {
+        throw new Error('Gemini returned an empty action extraction response.');
       }
-    }
+      return text;
+    });
 
-    throw new Error('Unknown error during Gemini action extraction.');
+    const result = JSON.parse(rawContent) as {
+      actionItems: ActionItemResult[];
+    };
+    return result.actionItems || [];
   }
 
   /**
@@ -905,7 +1013,31 @@ If there are no explicit, concrete tasks, return an empty array.`;
     let embedding: number[] = [];
 
     if (provider === 'gemini') {
-      embedding = await this.generateEmbeddingWithGemini(textToEmbed);
+      try {
+        embedding = await this.generateEmbeddingWithGemini(textToEmbed);
+      } catch (error) {
+        console.warn(
+          `[AIService] Gemini embedding generation failed. Falling back to OpenAI. Error:`,
+          error
+        );
+        try {
+          embedding = await this.generateEmbeddingWithOpenAI(textToEmbed);
+        } catch (openAiError: any) {
+          console.warn(
+            `[AIService] OpenAI fallback embedding generation failed. Falling back to Ollama. Error:`,
+            openAiError
+          );
+          try {
+            embedding = await OllamaProvider.generateEmbedding(textToEmbed);
+          } catch (ollamaError: any) {
+            console.warn(
+              `[AIService] Ollama fallback embedding generation failed. Returning empty list. Error:`,
+              ollamaError
+            );
+            embedding = [];
+          }
+        }
+      }
     } else if (provider === 'ollama') {
       try {
         embedding = await OllamaProvider.generateEmbedding(textToEmbed);
@@ -914,10 +1046,34 @@ If there are no explicit, concrete tasks, return an empty array.`;
           `[AIService] Ollama embedding generation failed or unreachable. Falling back to OpenAI. Error:`,
           error
         );
-        embedding = await this.generateEmbeddingWithOpenAI(textToEmbed);
+        try {
+          embedding = await this.generateEmbeddingWithOpenAI(textToEmbed);
+        } catch (openAiError: any) {
+          console.warn(
+            `[AIService] OpenAI fallback embedding generation failed. Returning empty list. Error:`,
+            openAiError
+          );
+          embedding = [];
+        }
       }
     } else {
-      embedding = await this.generateEmbeddingWithOpenAI(textToEmbed);
+      try {
+        embedding = await this.generateEmbeddingWithOpenAI(textToEmbed);
+      } catch (error) {
+        console.warn(
+          `[AIService] OpenAI embedding generation failed. Falling back to Gemini. Error:`,
+          error
+        );
+        try {
+          embedding = await this.generateEmbeddingWithGemini(textToEmbed);
+        } catch (geminiError: any) {
+          console.warn(
+            `[AIService] Gemini fallback embedding generation failed. Returning empty list. Error:`,
+            geminiError
+          );
+          embedding = [];
+        }
+      }
     }
 
     const isPostgres =
@@ -996,56 +1152,19 @@ If there are no explicit, concrete tasks, return an empty array.`;
   private static async generateEmbeddingWithGemini(
     text: string
   ): Promise<number[]> {
-    const ai = this.getGemini();
-    const maxAttempts = 5;
-    let attempt = 0;
-    let delay = 1000;
+    return this.runWithGeminiRotation(async (ai) => {
+      const response = await ai.models.embedContent({
+        model: process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001',
+        contents: text,
+      });
 
-    while (attempt < maxAttempts) {
-      try {
-        const response = await ai.models.embedContent({
-          model: 'gemini-embedding-001',
-          contents: text,
-        });
-
-        const embedding = response.embeddings?.[0]?.values;
-        if (!embedding || embedding.length === 0) {
-          throw new Error('Gemini returned an empty embedding.');
-        }
-
-        return embedding;
-      } catch (error: any) {
-        attempt++;
-        const isRateLimit =
-          error.status === 429 ||
-          (error.message &&
-            (error.message.includes('429') ||
-              error.message.includes('ResourceExhausted') ||
-              error.message.includes('Quota exceeded') ||
-              error.message.includes('quota')));
-
-        if (isRateLimit && attempt < maxAttempts) {
-          console.warn(
-            `[AIService] Gemini embedding rate limit hit (429/ResourceExhausted). Retrying in ${delay}ms... (Attempt ${attempt}/${maxAttempts})`
-          );
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          delay *= 2;
-        } else {
-          console.error(
-            `[AIService] Gemini embedding failed on attempt ${attempt}:`,
-            error
-          );
-          if (attempt >= maxAttempts) {
-            throw new Error(
-              `Failed to generate Gemini embedding after ${maxAttempts} attempts: ${error.message || error}`
-            );
-          }
-          throw error;
-        }
+      const embedding = response.embeddings?.[0]?.values;
+      if (!embedding || embedding.length === 0) {
+        throw new Error('Gemini returned an empty embedding.');
       }
-    }
 
-    throw new Error('Unknown error during Gemini embedding generation.');
+      return embedding;
+    });
   }
 
   /**
@@ -1174,12 +1293,13 @@ If there are no explicit, concrete tasks, return an empty array.`;
 
     try {
       if (provider === 'gemini') {
-        const gemini = this.getGemini();
-        const response = await gemini.models.generateContent({
-          model: 'gemini-1.5-flash',
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        return this.runWithGeminiRotation(async (ai) => {
+          const response = await ai.models.generateContent({
+            model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          });
+          return response.text || '';
         });
-        return response.text || '';
       } else if (provider === 'ollama') {
         try {
           return await OllamaProvider.generate(prompt);
@@ -1233,33 +1353,39 @@ Provide the result as a JSON object with a single field 'category'.`;
 
     try {
       if (provider === 'gemini') {
-        const gemini = this.getGemini();
-        const response = await gemini.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: userPrompt,
-          config: {
-            systemInstruction: systemPrompt,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: 'OBJECT',
-              properties: {
-                category: {
-                  type: 'STRING',
-                  enum: [
-                    'unsubscribe',
-                    'confirm',
-                    'download',
-                    'meeting',
-                    'payment',
-                    'other',
-                  ],
+        const rawContent = await this.runWithGeminiRotation(async (ai) => {
+          const response = await ai.models.generateContent({
+            model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+            contents: userPrompt,
+            config: {
+              systemInstruction: systemPrompt,
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: 'OBJECT',
+                properties: {
+                  category: {
+                    type: 'STRING',
+                    enum: [
+                      'unsubscribe',
+                      'confirm',
+                      'download',
+                      'meeting',
+                      'payment',
+                      'other',
+                    ],
+                  },
                 },
+                required: ['category'],
               },
-              required: ['category'],
             },
-          },
+          });
+          const text = response.text;
+          if (!text) {
+            throw new Error('Gemini returned an empty link categorization response.');
+          }
+          return text;
         });
-        const parsed = JSON.parse(response.text || '{}');
+        const parsed = JSON.parse(rawContent || '{}');
         return parsed.category || 'other';
       } else if (provider === 'ollama') {
         try {
@@ -1343,9 +1469,41 @@ Provide the result as a JSON object with a single field 'category'.`;
   ): Promise<string[]> {
     const provider = process.env.AI_PROVIDER || 'gemini';
     if (provider === 'gemini') {
-      return this.extractDeadlinesWithGemini(subject, body);
+      try {
+        return await this.extractDeadlinesWithGemini(subject, body);
+      } catch (error) {
+        console.warn(
+          `[AIService] Gemini deadline extraction failed. Falling back to OpenAI. Error:`,
+          error
+        );
+        try {
+          return await this.extractDeadlinesWithOpenAI(subject, body);
+        } catch (openAiError: any) {
+          console.warn(
+            `[AIService] OpenAI fallback deadline extraction failed. Returning empty list. Error:`,
+            openAiError
+          );
+          return [];
+        }
+      }
     } else {
-      return this.extractDeadlinesWithOpenAI(subject, body);
+      try {
+        return await this.extractDeadlinesWithOpenAI(subject, body);
+      } catch (error) {
+        console.warn(
+          `[AIService] OpenAI deadline extraction failed. Falling back to Gemini. Error:`,
+          error
+        );
+        try {
+          return await this.extractDeadlinesWithGemini(subject, body);
+        } catch (geminiError: any) {
+          console.warn(
+            `[AIService] Gemini fallback deadline extraction failed. Returning empty list. Error:`,
+            geminiError
+          );
+          return [];
+        }
+      }
     }
   }
 
@@ -1433,74 +1591,42 @@ Do NOT infer or fabricate deadlines. Only return dates explicitly stated.`;
     subject: string,
     body: string
   ): Promise<string[]> {
-    const ai = this.getGemini();
-
     const systemInstruction = `You are an expert at extracting deadlines from emails.
 Extract ALL explicit deadline dates and times mentioned in the email subject or body.
-Convert them to ISO 8601 format in UTC (e.g. "2026-07-10T04:59:00.000Z").
-If a timezone is mentioned (e.g. "EST", "PST", "IST"), convert to UTC correctly.
-"EST" = UTC-5, "EDT" = UTC-4, "PST" = UTC-8, "PDT" = UTC-7, "IST" = UTC+5:30.
+Convert them to ISO 8601 format in UTC (e.g. "2026-07-10T04:59:00Z").
 If no explicit deadline is present, return an empty array.
 Do NOT infer or fabricate deadlines. Only return dates explicitly stated.`;
 
     const userContent = `Subject: ${subject}\nBody:\n${body}`;
-    const maxAttempts = 5;
-    let attempt = 0;
-    let delay = 1000;
 
-    while (attempt < maxAttempts) {
-      try {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: userContent,
-          config: {
-            systemInstruction,
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: 'OBJECT',
-              properties: {
-                deadlines: {
-                  type: 'ARRAY',
-                  items: { type: 'STRING' },
-                },
+    const rawContent = await this.runWithGeminiRotation(async (ai) => {
+      const response = await ai.models.generateContent({
+        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+        contents: userContent,
+        config: {
+          systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'OBJECT',
+            properties: {
+              deadlines: {
+                type: 'ARRAY',
+                items: { type: 'STRING' },
               },
-              required: ['deadlines'],
             },
+            required: ['deadlines'],
           },
-        });
+        },
+      });
 
-        const rawContent = response.text;
-        if (!rawContent) {
-          throw new Error(
-            'Gemini returned an empty deadline extraction response.'
-          );
-        }
-        const result = JSON.parse(rawContent) as { deadlines: string[] };
-        return result.deadlines || [];
-      } catch (error: any) {
-        attempt++;
-        const isRateLimit =
-          error.status === 429 ||
-          (error.message &&
-            (error.message.includes('429') ||
-              error.message.includes('ResourceExhausted') ||
-              error.message.includes('quota')));
-        if (isRateLimit && attempt < maxAttempts) {
-          console.warn(
-            `[AIService] Gemini Rate limit hit during deadline extraction. Retrying in ${delay}ms...`
-          );
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          delay *= 2;
-        } else {
-          console.error(
-            '[AIService] Deadline extraction (Gemini) failed:',
-            error
-          );
-          if (attempt >= maxAttempts) return [];
-          throw error;
-        }
+      const text = response.text;
+      if (!text) {
+        throw new Error('Gemini returned an empty deadline extraction response.');
       }
-    }
-    return [];
+      return text;
+    });
+
+    const result = JSON.parse(rawContent) as { deadlines: string[] };
+    return result.deadlines || [];
   }
 }

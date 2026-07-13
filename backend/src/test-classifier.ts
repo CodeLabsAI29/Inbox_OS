@@ -76,9 +76,15 @@ async function runClassifierTests() {
   // If it falls back to LLM, it will throw an error because API keys are unset/invalidated.
   const originalOpenAIKey = process.env.OPENAI_API_KEY;
   const originalGeminiKey = process.env.GEMINI_API_KEY;
+  const originalGeminiKeys = process.env.GEMINI_API_KEYS;
+  const originalGeminiKey2 = process.env.GEMINI_API_KEY_2;
+  const originalGeminiKey3 = process.env.GEMINI_API_KEY_3;
 
   process.env.OPENAI_API_KEY = 'sk-placeholder-nonexistent';
   process.env.GEMINI_API_KEY = '';
+  process.env.GEMINI_API_KEYS = '';
+  process.env.GEMINI_API_KEY_2 = '';
+  process.env.GEMINI_API_KEY_3 = '';
 
   console.log('Test Case 5 (AIService Integration - Avoiding LLM):');
   try {
@@ -107,6 +113,9 @@ async function runClassifierTests() {
     // Restore environment keys
     process.env.OPENAI_API_KEY = originalOpenAIKey;
     process.env.GEMINI_API_KEY = originalGeminiKey;
+    process.env.GEMINI_API_KEYS = originalGeminiKeys;
+    process.env.GEMINI_API_KEY_2 = originalGeminiKey2;
+    process.env.GEMINI_API_KEY_3 = originalGeminiKey3;
   }
 
   // --- DEADLINE EXTRACTION TESTS ---
