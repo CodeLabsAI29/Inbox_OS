@@ -228,7 +228,8 @@ describe('Feedback Collection API and Service', () => {
 
       expect(settingsUpdateSpy).toHaveBeenCalled();
       const updatedData = JSON.parse(
-        (settingsUpdateSpy as any).mock.calls[0][0].data.aiPreferenceProfile as string
+        (settingsUpdateSpy as any).mock.calls[0][0].data
+          .aiPreferenceProfile as string
       );
 
       const weekKey = FeedbackCollectorService.getStartOfWeek();
@@ -274,7 +275,8 @@ describe('Feedback Collection API and Service', () => {
 
       expect(settingsUpdateSpy).toHaveBeenCalled();
       const updatedData = JSON.parse(
-        (settingsUpdateSpy as any).mock.calls[0][0].data.aiPreferenceProfile as string
+        (settingsUpdateSpy as any).mock.calls[0][0].data
+          .aiPreferenceProfile as string
       );
 
       const weekKey = FeedbackCollectorService.getStartOfWeek();
