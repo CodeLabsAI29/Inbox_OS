@@ -4,6 +4,7 @@ jest.mock('../worker', () => ({
 }));
 
 const mockPrisma = {
+  $disconnect: jest.fn(),
   calendarEvent: {
     findMany: jest.fn(),
   },

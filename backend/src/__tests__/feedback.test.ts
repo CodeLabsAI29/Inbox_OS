@@ -4,6 +4,7 @@ jest.mock('../worker', () => ({
 }));
 
 const mockPrisma = {
+  $disconnect: jest.fn(),
   email: {
     findFirst: jest.fn(),
     findUnique: jest.fn(),
@@ -111,8 +112,7 @@ describe('Feedback Collection API and Service', () => {
       expect(recordFeedbackSpy).toHaveBeenCalledWith(
         mockUserId,
         mockEmailId,
-        'thumbs_up',
-        undefined
+        'thumbs_up'
       );
     });
   });
