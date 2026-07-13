@@ -26,7 +26,7 @@ All tasks completed so far have been verified and committed to the `refine` bran
 * **Stack:** npm, GitHub Actions
 * **Task:** Enforce dependency security in the CI pipeline.
 * **Step-by-Step Instructions:**
-  1. Open the existing CI workflow file: [ci.yml](file:///c:/project/inboxos/InboxOS/infrastructure/github/workflows/ci.yml).
+  1. Open the existing CI workflow file: [ci.yml](file:///c:/project/inboxos/InboxOS/.github/workflows/ci.yml).
   2. Add steps for backend dependency audit:
      ```yaml
      - name: Audit Backend Dependencies

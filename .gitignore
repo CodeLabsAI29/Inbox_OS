@@ -65,6 +65,7 @@ lerna-debug.log*
 
 # Database
 *.db
+*.db-journal
 *.sqlite
 *.sqlite3
 

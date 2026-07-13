@@ -13,7 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./scripts/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d inboxos" ]
       interval: 5s
@@ -41,7 +41,7 @@ services:
   # ==========================================
   backend:
     build:
-      context: ../../backend
+      context: ./server
       dockerfile: Dockerfile
       target: dev
     restart: unless-stopped
@@ -62,7 +62,7 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - AI_PROVIDER=${AI_PROVIDER:-openai}
     volumes:
-      - ../../backend:/usr/src/app
+      - ./server:/usr/src/app
       # Anonymous volume to preserve node_modules installed inside the container
       - /usr/src/app/node_modules
     depends_on:
@@ -78,7 +78,7 @@ services:
   # ==========================================
   frontend:
     build:
-      context: ../../frontend
+      context: ./client
       dockerfile: Dockerfile
       target: dev
     restart: unless-stopped
@@ -87,7 +87,7 @@ services:
     environment:
       - VITE_API_BASE_URL=http://localhost:8000
     volumes:
-      - ../../frontend:/app
+      - ./client:/app
       # Anonymous volume to preserve node_modules installed inside the container
       - /app/node_modules
     depends_on:
