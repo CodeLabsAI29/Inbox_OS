@@ -6,6 +6,7 @@ import {
 } from '../middleware/auth.middleware';
 import { logger } from '../utils/logger';
 import { z } from 'zod';
+import { FeedbackCollectorService } from '../services/ai/feedback-collector.service';
 
 export const feedbackRouter = Router();
 const prisma = new PrismaClient();
@@ -41,6 +42,25 @@ feedbackRouter.post(
 
       const { feedbackType, feature, emailId, comment } = validation.data;
 
+      // Rate limit check: max 100 feedbacks per day per user
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const count = await prisma.userFeedback.count({
+        where: {
+          userId,
+          createdAt: {
+            gte: startOfDay,
+          },
+        },
+      });
+
+      if (count >= 100) {
+        return res.status(429).json({
+          error: 'Rate limit exceeded: 100 feedbacks per day',
+        });
+      }
+
       // Verify emailId belongs to user if provided
       if (emailId) {
         const email = await prisma.email.findFirst({
@@ -51,19 +71,30 @@ feedbackRouter.post(
         }
       }
 
-      const feedback = await prisma.userFeedback.create({
-        data: { userId, feedbackType, feature, emailId, comment },
-      });
+      let feedbackId = '';
+      if (emailId) {
+        const feedback = await FeedbackCollectorService.recordFeedback(
+          userId,
+          emailId,
+          feedbackType
+        );
+        feedbackId = feedback?.id || '';
+      } else {
+        const feedback = await prisma.userFeedback.create({
+          data: { userId, feedbackType, feature, emailId, comment },
+        });
+        feedbackId = feedback.id;
+      }
 
       logger.info('[Feedback] Recorded', {
-        id: feedback.id,
+        id: feedbackId,
         userId,
         feedbackType,
         feature,
       });
       return res
         .status(201)
-        .json({ message: 'Feedback recorded', id: feedback.id });
+        .json({ message: 'Feedback recorded', id: feedbackId });
     } catch (err: any) {
       logger.error('[Feedback] POST / error:', err.message);
       return res.status(500).json({ error: 'Failed to record feedback' });

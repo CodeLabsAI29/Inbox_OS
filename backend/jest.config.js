@@ -1,4 +1,6 @@
 process.env.PORT = '0';
+process.env.DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/inboxos_test';
+process.env.NODE_ENV = 'test';
 
 module.exports = {
   preset: 'ts-jest',

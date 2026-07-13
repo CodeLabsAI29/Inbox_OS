@@ -27,11 +27,17 @@ jest.mock('@prisma/client', () => {
 });
 
 // Mock EmailSenderService
-jest.mock('../services/email-sender.service', () => ({
-  EmailSenderService: {
-    send: jest.fn(),
-  },
-}));
+jest.mock('../services/email-sender.service', () => {
+  class MockGmailAuthError extends Error {
+    name = 'GmailAuthError';
+  }
+  return {
+    EmailSenderService: {
+      send: jest.fn(),
+    },
+    GmailAuthError: MockGmailAuthError,
+  };
+});
 
 const prisma = new PrismaClient();
 

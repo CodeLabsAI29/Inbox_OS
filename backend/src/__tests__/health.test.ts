@@ -1,4 +1,7 @@
 import request from 'supertest';
+jest.mock('../worker', () => ({
+  registerWorkerHandlers: () => Promise.resolve(),
+}));
 import { app, server, prisma } from '../server';
 import { EventBus } from '../services/event-bus.service';
 

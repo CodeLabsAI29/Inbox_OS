@@ -1,4 +1,18 @@
 import request from 'supertest';
+jest.mock('../worker', () => ({
+  registerWorkerHandlers: () => Promise.resolve(),
+}));
+
+const mockPrisma = {
+  calendarEvent: {
+    findMany: jest.fn(),
+  },
+};
+
+jest.mock('@prisma/client', () => ({
+  PrismaClient: jest.fn().mockImplementation(() => mockPrisma),
+}));
+
 import { app, server, prisma } from '../server';
 import { AuthService } from '../services/auth.service';
 import { EventBus } from '../services/event-bus.service';

@@ -32,8 +32,8 @@ export class FeedbackCollectorService {
       | 'category_correction'
       | 'priority_adjustment',
     correctedValue?: string
-  ): Promise<void> {
-    // 1. Fetch email by emailId
+  ): Promise<any> {
+    // 1. Find email
     const email = await this.prisma.email.findUnique({
       where: { id: emailId },
     });
@@ -43,14 +43,14 @@ export class FeedbackCollectorService {
       console.warn(
         `[FeedbackCollector] Email not found for feedback (emailId: ${emailId}). Ignoring feedback.`
       );
-      return;
+      return null;
     }
 
     // 3. Determine original value
     const originalValue = email.category || 'unclassified';
 
     // 4. Save feedback in the database
-    await this.prisma.userFeedback.create({
+    const feedback = await this.prisma.userFeedback.create({
       data: {
         userId,
         emailId,
@@ -137,5 +137,7 @@ export class FeedbackCollectorService {
         aiPreferenceProfile: JSON.stringify(profile),
       },
     });
+
+    return feedback;
   }
 }

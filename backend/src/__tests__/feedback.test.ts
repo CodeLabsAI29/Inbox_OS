@@ -1,4 +1,27 @@
 import request from 'supertest';
+jest.mock('../worker', () => ({
+  registerWorkerHandlers: () => Promise.resolve(),
+}));
+
+const mockPrisma = {
+  email: {
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+  },
+  userFeedback: {
+    count: jest.fn(),
+    create: jest.fn(),
+  },
+  userSettings: {
+    findUnique: jest.fn(),
+    update: jest.fn(),
+  },
+};
+
+jest.mock('@prisma/client', () => ({
+  PrismaClient: jest.fn().mockImplementation(() => mockPrisma),
+}));
+
 import { app, server, prisma } from '../server';
 import { AuthService } from '../services/auth.service';
 import { EventBus } from '../services/event-bus.service';
@@ -24,6 +47,13 @@ describe('Feedback Collection API and Service', () => {
   const mockToken = AuthService.generateToken(mockUserId, 'user@example.com');
 
   describe('POST /api/feedback', () => {
+    beforeEach(() => {
+      jest.spyOn(prisma.email, 'findFirst').mockResolvedValue({
+        id: mockEmailId,
+        userId: mockUserId,
+      } as any);
+    });
+
     it('should return 401 if unauthorized', async () => {
       await request(app)
         .post('/api/feedback')
@@ -198,7 +228,7 @@ describe('Feedback Collection API and Service', () => {
 
       expect(settingsUpdateSpy).toHaveBeenCalled();
       const updatedData = JSON.parse(
-        settingsUpdateSpy.mock.calls[0][0].data.aiPreferenceProfile as string
+        (settingsUpdateSpy as any).mock.calls[0][0].data.aiPreferenceProfile as string
       );
 
       const weekKey = FeedbackCollectorService.getStartOfWeek();
@@ -244,7 +274,7 @@ describe('Feedback Collection API and Service', () => {
 
       expect(settingsUpdateSpy).toHaveBeenCalled();
       const updatedData = JSON.parse(
-        settingsUpdateSpy.mock.calls[0][0].data.aiPreferenceProfile as string
+        (settingsUpdateSpy as any).mock.calls[0][0].data.aiPreferenceProfile as string
       );
 
       const weekKey = FeedbackCollectorService.getStartOfWeek();
