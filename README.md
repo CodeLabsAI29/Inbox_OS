@@ -351,27 +351,21 @@ This monorepo isolates individual layers and clients under clean folders. All sy
 
 ```text
 InboxOS/
-├── assets/                     # Logos, screenshots, and branding assets
-├── backend/                    # Node.js backend server (Express + Prisma)
-├── frontend/                   # React frontend client (Vite)
+├── .github/                    # Community files, PR templates, GitHub Actions
+├── client/                     # React frontend client (Vite)
+├── server/                     # Node.js backend server (Express + Prisma)
 ├── packages/                   # Decoupled libraries and shared modules
+├── scripts/                    # Build, setup, and deployment scripts
 ├── docs/                       # Developer manuals & architecture logs
 │   ├── api/                    # API specifications and Postman config
 │   ├── architecture/           # Architecture design records and schema docs
 │   ├── contributing/           # Contribution guidelines
 │   ├── setup/                  # Setup instructions
 │   └── workflows/              # Workflow definitions
-├── development/                # Developer-only workspace
-│   ├── prompts/                # AI prompt definitions
-│   ├── scratch/                # Local scratch scripts and dumps
-│   └── scripts/                # Development utility scripts
-├── infrastructure/             # Configurations for running the application
-│   ├── docker/                 # Docker Compose configurations
-│   ├── terraform/              # Terraform scripts for cloud provisioning
-│   ├── postgres/               # PostgreSQL initialization scripts
-│   ├── config/                 # Env and gitignore template configurations
-│   └── github/                 # GitHub actions configurations
 ├── .gitignore                  # Git tracking rules
+├── .firebaserc                 # Firebase CLI target configs (required for deployment)
+├── firebase.json               # Firebase rules and routing (required for deployment)
+├── docker-compose.yml          # Local full-stack orchestration
 ├── package.json                # Root package workspace definition
 └── README.md                   # Repository Hero and Reference manual (this file)
 ```
@@ -398,14 +392,14 @@ git clone https://github.com/inboxos/inboxos.git
 cd inboxos
 
 # 2. Copy and configure variables
-cp infrastructure/config/env/.env.example infrastructure/config/env/.env
-# Edit infrastructure/config/env/.env with your secrets
+cp scripts/config/env/.env.example scripts/config/env/.env
+# Edit scripts/config/env/.env with your secrets
 
-# 3. Spin up all services (PostgreSQL, Redis, Backend, Frontend)
-docker compose -f infrastructure/docker/docker-compose.yml up -d
+# 3. Spin up all services (PostgreSQL, Redis, Server, Client)
+docker compose up -d
 
 # 4. Execute database migrations
-docker compose -f infrastructure/docker/docker-compose.yml exec backend npx prisma db push
+docker compose exec server npx prisma db push
 
 # 5. Open the Dashboard UI
 # Access the dashboard at http://localhost
@@ -419,15 +413,15 @@ For active local debugging of individual services without Docker containerizatio
 
 #### 1. Backend API Server
 ```bash
-cd backend
+cd server
 npm install
-# Configure backend/.env or use infrastructure/config/env/.env
+# Configure server/.env or use scripts/config/env/.env
 npm start
 ```
 
 #### 2. Frontend Dashboard UI (new terminal)
 ```bash
-cd frontend
+cd client
 npm install
 npm run dev
 ```
@@ -481,12 +475,12 @@ Create your configuration files inside `infrastructure/config/env/`.
 
 ### Backend Deploy (DigitalOcean App Platform / Render)
 1. Provision a managed **PostgreSQL 15** and **Redis** instance.
-2. Build the Dockerfile context from `backend/` folder.
+2. Build the Dockerfile context from `server/` folder.
 3. Bind the environment variables to point to production endpoints (ensure `NODE_ENV=production` is set).
 4. Run `npx prisma db push` or `npx prisma migrate deploy` to deploy the database schema.
 
 ### Frontend Deploy (Vercel)
-1. Connect the repository and configure target build directory to `frontend`.
+1. Connect the repository and configure target build directory to `client`.
 2. Configure build framework presets to **Vite**.
 3. Supply `VITE_API_BASE_URL` env parameter pointing to the live API backend server.
 
