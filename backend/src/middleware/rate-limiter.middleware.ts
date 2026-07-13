@@ -57,7 +57,7 @@ const memoryStore = {
   resetKey: async (key: string) => {
     memoryStore.hits.delete(key);
     memoryStore.resetTimes.delete(key);
-  }
+  },
 };
 
 class HybridStore {
@@ -72,7 +72,7 @@ class HybridStore {
             throw new Error('Redis is disabled');
           }
           return redisClient.call(args[0], ...args.slice(1));
-        }
+        },
       });
     }
   }
@@ -119,7 +119,7 @@ class HybridStore {
  * Integrates with Redis to store request count across service restarts and scale-outs.
  */
 export const rateLimiter = rateLimit({
-  store: !isTest ? new HybridStore() as any : undefined, // Use default memory store in test env
+  store: !isTest ? (new HybridStore() as any) : undefined, // Use default memory store in test env
   validate: false, // Suppress validations for custom configuration
   windowMs: 15 * 60 * 1000, // 15-minute window
   limit: async (req: Request) => {

@@ -122,9 +122,13 @@ async function runClassifierTests() {
   console.log('- Extracted Deadlines:', resultD1.deadlines);
   const expectedDeadline = '2026-07-15T23:59:00Z';
   if (resultD1.deadlines.includes(expectedDeadline)) {
-    console.log('✅ PASSED: Correctly extracted July 15, 2026 deadline as 2026-07-15T23:59:00Z!\n');
+    console.log(
+      '✅ PASSED: Correctly extracted July 15, 2026 deadline as 2026-07-15T23:59:00Z!\n'
+    );
   } else {
-    console.error(`❌ FAILED: Expected deadline ${expectedDeadline} not found in result.\n`);
+    console.error(
+      `❌ FAILED: Expected deadline ${expectedDeadline} not found in result.\n`
+    );
     process.exit(1);
   }
 
@@ -138,7 +142,9 @@ async function runClassifierTests() {
   if (resultD2.deadlines.length > 0) {
     console.log('✅ PASSED: Relative date ("Tomorrow") parsed successfully!\n');
   } else {
-    console.error('❌ FAILED: No deadline extracted for relative date "Tomorrow".\n');
+    console.error(
+      '❌ FAILED: No deadline extracted for relative date "Tomorrow".\n'
+    );
     process.exit(1);
   }
 
@@ -150,9 +156,13 @@ async function runClassifierTests() {
   );
   console.log('- Extracted Deadlines:', resultD3.deadlines);
   if (resultD3.deadlines.length > 0) {
-    console.log('✅ PASSED: Relative date ("Next Monday") parsed successfully!\n');
+    console.log(
+      '✅ PASSED: Relative date ("Next Monday") parsed successfully!\n'
+    );
   } else {
-    console.error('❌ FAILED: No deadline extracted for relative date "Next Monday".\n');
+    console.error(
+      '❌ FAILED: No deadline extracted for relative date "Next Monday".\n'
+    );
     process.exit(1);
   }
 
@@ -163,11 +173,15 @@ async function runClassifierTests() {
     'Reminder: Submit by July 15, 2026.'
   );
   console.log('- Extracted Deadlines:', resultD4.deadlines);
-  const occurrences = resultD4.deadlines.filter(d => d === expectedDeadline).length;
+  const occurrences = resultD4.deadlines.filter(
+    (d) => d === expectedDeadline
+  ).length;
   if (occurrences === 1) {
     console.log('✅ PASSED: Deadlines correctly deduplicated!\n');
   } else {
-    console.error(`❌ FAILED: Expected 1 occurrence of ${expectedDeadline}, got ${occurrences}.\n`);
+    console.error(
+      `❌ FAILED: Expected 1 occurrence of ${expectedDeadline}, got ${occurrences}.\n`
+    );
     process.exit(1);
   }
 
@@ -177,11 +191,22 @@ async function runClassifierTests() {
     'DBMS Project Code',
     'Submit DBMS report by July 15, 2026'
   );
-  console.log('- Extracted Action Items:', JSON.stringify(actionItems, null, 2));
-  if (actionItems.length > 0 && actionItems[0].task && actionItems[0].taskDescription) {
-    console.log('✅ PASSED: Action items extraction returned both task and taskDescription fields!\n');
+  console.log(
+    '- Extracted Action Items:',
+    JSON.stringify(actionItems, null, 2)
+  );
+  if (
+    actionItems.length > 0 &&
+    actionItems[0].task &&
+    actionItems[0].taskDescription
+  ) {
+    console.log(
+      '✅ PASSED: Action items extraction returned both task and taskDescription fields!\n'
+    );
   } else {
-    console.error('❌ FAILED: Action items extraction output is missing required fields.\n');
+    console.error(
+      '❌ FAILED: Action items extraction output is missing required fields.\n'
+    );
     process.exit(1);
   }
 

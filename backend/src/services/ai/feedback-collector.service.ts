@@ -26,7 +26,11 @@ export class FeedbackCollectorService {
   public static async recordFeedback(
     userId: string,
     emailId: string,
-    feedbackType: 'thumbs_up' | 'thumbs_down' | 'category_correction' | 'priority_adjustment',
+    feedbackType:
+      | 'thumbs_up'
+      | 'thumbs_down'
+      | 'category_correction'
+      | 'priority_adjustment',
     correctedValue?: string
   ): Promise<void> {
     // 1. Fetch email by emailId
@@ -36,12 +40,14 @@ export class FeedbackCollectorService {
 
     // 2. If email is not found, handle gracefully (ignore, don't crash)
     if (!email) {
-      console.warn(`[FeedbackCollector] Email not found for feedback (emailId: ${emailId}). Ignoring feedback.`);
+      console.warn(
+        `[FeedbackCollector] Email not found for feedback (emailId: ${emailId}). Ignoring feedback.`
+      );
       return;
     }
 
     // 3. Determine original value
-    let originalValue = email.category || 'unclassified';
+    const originalValue = email.category || 'unclassified';
 
     // 4. Save feedback in the database
     await this.prisma.userFeedback.create({
@@ -76,7 +82,10 @@ export class FeedbackCollectorService {
       try {
         profile = JSON.parse(settings.aiPreferenceProfile);
       } catch (e) {
-        console.error('[FeedbackCollector] Failed to parse aiPreferenceProfile JSON, reinitializing profile.', e);
+        console.error(
+          '[FeedbackCollector] Failed to parse aiPreferenceProfile JSON, reinitializing profile.',
+          e
+        );
       }
     }
 
@@ -103,18 +112,22 @@ export class FeedbackCollectorService {
     // Incremental update based on feedback type
     if (feedbackType === 'category_correction' && correctedValue) {
       const correctionKey = `${originalValue}->${correctedValue}`;
-      weekProfile.categoryCorrections[correctionKey] = (weekProfile.categoryCorrections[correctionKey] || 0) + 1;
+      weekProfile.categoryCorrections[correctionKey] =
+        (weekProfile.categoryCorrections[correctionKey] || 0) + 1;
     } else if (feedbackType === 'thumbs_up') {
       if (email.sender) {
-        weekProfile.preferredSenders[email.sender] = (weekProfile.preferredSenders[email.sender] || 0) + 1;
+        weekProfile.preferredSenders[email.sender] =
+          (weekProfile.preferredSenders[email.sender] || 0) + 1;
       }
     } else if (feedbackType === 'thumbs_down') {
       if (originalValue) {
-        weekProfile.ignoredCategories[originalValue] = (weekProfile.ignoredCategories[originalValue] || 0) + 1;
+        weekProfile.ignoredCategories[originalValue] =
+          (weekProfile.ignoredCategories[originalValue] || 0) + 1;
       }
     } else if (feedbackType === 'priority_adjustment' && correctedValue) {
       const adjustmentKey = `${originalValue}->${correctedValue}`;
-      weekProfile.priorityAdjustments[adjustmentKey] = (weekProfile.priorityAdjustments[adjustmentKey] || 0) + 1;
+      weekProfile.priorityAdjustments[adjustmentKey] =
+        (weekProfile.priorityAdjustments[adjustmentKey] || 0) + 1;
     }
 
     // 7. Save updated profile as JSON string

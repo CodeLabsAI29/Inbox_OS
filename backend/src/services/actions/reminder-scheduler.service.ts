@@ -236,7 +236,9 @@ export class ReminderSchedulerService {
   }
 
   public static initWorker(): void {
-    logger.info('[ReminderScheduler] initWorker stub called (delegated to separate worker process)');
+    logger.info(
+      '[ReminderScheduler] initWorker stub called (delegated to separate worker process)'
+    );
   }
 
   public static async shutdown(): Promise<void> {

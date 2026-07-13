@@ -15,7 +15,8 @@ const prisma = new PrismaClient();
 //   'access_revoked'  → User explicitly revoked app access.
 //   'unknown'         → Any other OAuth-family 401/403 error.
 export class GmailAuthError extends Error {
-  public readonly gmailCause: 'token_expired' | 'client_mismatch' | 'access_revoked' | 'unknown';
+  public readonly gmailCause:
+    'token_expired' | 'client_mismatch' | 'access_revoked' | 'unknown';
   public readonly userId: string;
   public readonly accountId: string;
   public readonly originalCode: string | number | undefined;
@@ -51,7 +52,9 @@ function classifyGoogleAuthError(
 
   // invalid_grant → refresh token rejected; most often redirect_uri or client rotation
   if (errorStr === 'invalid_grant' || errMessage.includes('invalid_grant')) {
-    const gmailCause = errMessage.includes('revoked') ? 'access_revoked' : 'token_expired';
+    const gmailCause = errMessage.includes('revoked')
+      ? 'access_revoked'
+      : 'token_expired';
     logger.error('[GmailAuth] Token invalid/expired (invalid_grant)', {
       gmailCause,
       userId,
@@ -63,15 +66,27 @@ function classifyGoogleAuthError(
   }
 
   // unauthorized_client → OAuth client ID/secret mismatch or redirect_uri mismatch at token exchange
-  if (errorStr === 'unauthorized_client' || errMessage.includes('unauthorized_client')) {
-    logger.error('[GmailAuth] Unauthorized client — likely redirect_uri or client ID change', {
-      gmailCause: 'client_mismatch',
+  if (
+    errorStr === 'unauthorized_client' ||
+    errMessage.includes('unauthorized_client')
+  ) {
+    logger.error(
+      '[GmailAuth] Unauthorized client — likely redirect_uri or client ID change',
+      {
+        gmailCause: 'client_mismatch',
+        userId,
+        accountId,
+        errorCode: code,
+        details: err.message,
+      }
+    );
+    return new GmailAuthError(
+      err.message,
+      'client_mismatch',
       userId,
       accountId,
-      errorCode: code,
-      details: err.message,
-    });
-    return new GmailAuthError(err.message, 'client_mismatch', userId, accountId, code);
+      code
+    );
   }
 
   // access_denied → explicit user revocation
@@ -82,7 +97,13 @@ function classifyGoogleAuthError(
       accountId,
       errorCode: code,
     });
-    return new GmailAuthError(err.message, 'access_revoked', userId, accountId, code);
+    return new GmailAuthError(
+      err.message,
+      'access_revoked',
+      userId,
+      accountId,
+      code
+    );
   }
 
   // Generic 401/403 or token-shaped error
@@ -124,8 +145,11 @@ export class EmailSenderService {
     // ── GMAIL OUTBOUND (GMAIL API) ───────────────────────────────────────────
     if (account.provider === 'gmail') {
       const tokens = JSON.parse(decrypt(account.encryptedTokens));
-      const redirectUri = process.env.GMAIL_REDIRECT_URI ||
-        (process.env.RENDER_EXTERNAL_URL ? `${process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '')}/api/integrations/gmail/callback` : 'http://localhost:8000/api/integrations/gmail/callback');
+      const redirectUri =
+        process.env.GMAIL_REDIRECT_URI ||
+        (process.env.RENDER_EXTERNAL_URL
+          ? `${process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '')}/api/integrations/gmail/callback`
+          : 'http://localhost:8000/api/integrations/gmail/callback');
 
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,

@@ -27,7 +27,11 @@ export class AuthService {
   /**
    * Generates a JWT token containing the user's ID, email, and username.
    */
-  public static generateToken(userId: string, email: string, username?: string | null): string {
+  public static generateToken(
+    userId: string,
+    email: string,
+    username?: string | null
+  ): string {
     return jwt.sign({ userId, email, username: username || null }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });

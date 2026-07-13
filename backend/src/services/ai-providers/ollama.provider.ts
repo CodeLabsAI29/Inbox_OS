@@ -245,11 +245,16 @@ Summary:`;
 
       const embedding = response.data.embedding;
       if (!embedding || !Array.isArray(embedding)) {
-        throw new Error('[Ollama] Response did not contain a valid embedding array.');
+        throw new Error(
+          '[Ollama] Response did not contain a valid embedding array.'
+        );
       }
       return embedding;
     } catch (error: any) {
-      console.error('[Ollama] Embedding generation failed:', error.message || error);
+      console.error(
+        '[Ollama] Embedding generation failed:',
+        error.message || error
+      );
       throw error;
     }
   }

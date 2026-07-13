@@ -15,8 +15,10 @@ export const RedisHealth = {
     if (val !== redisDisabled) {
       redisDisabled = val;
       if (val) {
-        logger.warn('⚠️ [RedisHealth] Redis has been disabled (unreachable or rate limited). Falling back to in-memory mode.');
-        disableListeners.forEach(listener => {
+        logger.warn(
+          '⚠️ [RedisHealth] Redis has been disabled (unreachable or rate limited). Falling back to in-memory mode.'
+        );
+        disableListeners.forEach((listener) => {
           try {
             listener(true);
           } catch (err) {
@@ -52,7 +54,7 @@ export const RedisHealth = {
     ) {
       this.setDisabled(true);
     }
-  }
+  },
 };
 
 export class MockRedisClient {
@@ -102,7 +104,9 @@ export class MockRedisClient {
 
 export function createRedisClient(url: string, options?: any): Redis {
   if (RedisHealth.isDisabled()) {
-    logger.info('[RedisHealth] Redis disabled at startup. Creating Mock Redis Client.');
+    logger.info(
+      '[RedisHealth] Redis disabled at startup. Creating Mock Redis Client.'
+    );
     return new MockRedisClient() as any;
   }
 
@@ -119,7 +123,11 @@ export function createRedisClient(url: string, options?: any): Redis {
       }
 
       if (prop === 'on' || prop === 'addListener') {
-        return function(this: any, event: string, handler: (...args: any[]) => void) {
+        return function (
+          this: any,
+          event: string,
+          handler: (...args: any[]) => void
+        ) {
           const wrappedHandler = (...args: any[]) => {
             if (event === 'error') {
               RedisHealth.handleError(args[0]);
@@ -133,8 +141,12 @@ export function createRedisClient(url: string, options?: any): Redis {
       const orig = Reflect.get(target, prop, receiver);
       if (typeof orig === 'function') {
         const bound = orig.bind(target);
-        return function(this: any, ...args: any[]) {
-          if (RedisHealth.isDisabled() && prop !== 'quit' && prop !== 'disconnect') {
+        return function (this: any, ...args: any[]) {
+          if (
+            RedisHealth.isDisabled() &&
+            prop !== 'quit' &&
+            prop !== 'disconnect'
+          ) {
             const mock = new MockRedisClient() as any;
             if (typeof mock[prop] === 'function') {
               return mock[prop](...args);
@@ -148,7 +160,9 @@ export function createRedisClient(url: string, options?: any): Redis {
               return result.catch((err: any) => {
                 RedisHealth.handleError(err);
                 if (RedisHealth.isDisabled()) {
-                  logger.warn(`[RedisHealth] Command "${String(prop)}" failed on Redis. Falling back.`);
+                  logger.warn(
+                    `[RedisHealth] Command "${String(prop)}" failed on Redis. Falling back.`
+                  );
                   return null;
                 }
                 throw err;
@@ -165,7 +179,7 @@ export function createRedisClient(url: string, options?: any): Redis {
         };
       }
       return orig;
-    }
+    },
   });
 
   return proxy as any;

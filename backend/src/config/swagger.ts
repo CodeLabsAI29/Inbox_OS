@@ -11,7 +11,10 @@ const swaggerDefinition = {
   },
   servers: [
     { url: 'http://localhost:8000', description: 'Local development' },
-    { url: process.env.BASE_URL ?? 'https://api.inboxos.com', description: 'Production' },
+    {
+      url: process.env.BASE_URL ?? 'https://api.inboxos.com',
+      description: 'Production',
+    },
   ],
   components: {
     securitySchemes: {

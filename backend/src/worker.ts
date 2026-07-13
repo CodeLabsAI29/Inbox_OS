@@ -215,16 +215,21 @@ export async function registerWorkerHandlers() {
               .filter((d) => !isNaN(d.getTime()));
 
             if (deadlineDates.length > 0) {
-              logger.info('[Worker] Scheduling reminders for extracted deadlines', {
-                emailId,
-                count: deadlineDates.length,
-                deadlines: deadlineDates.map((d) => d.toISOString()),
-              });
+              logger.info(
+                '[Worker] Scheduling reminders for extracted deadlines',
+                {
+                  emailId,
+                  count: deadlineDates.length,
+                  deadlines: deadlineDates.map((d) => d.toISOString()),
+                }
+              );
               await ReminderSchedulerService.scheduleReminders(
                 email.id,
                 deadlineDates
               );
-              logger.info('[Worker] Reminders scheduled successfully', { emailId });
+              logger.info('[Worker] Reminders scheduled successfully', {
+                emailId,
+              });
             }
           } else {
             logger.info('[Worker] No deadlines found in email', { emailId });

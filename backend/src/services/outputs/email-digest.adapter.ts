@@ -93,8 +93,8 @@ export class EmailDigestAdapter {
             err.gmailCause === 'client_mismatch'
               ? 'Your Gmail connection was invalidated by a server configuration change. Please reconnect your Gmail account in Settings → Integrations.'
               : err.gmailCause === 'access_revoked'
-              ? 'It looks like you revoked InboxOS access to your Gmail account. Please reconnect in Settings → Integrations to resume email digests.'
-              : 'Your Gmail connection has expired. Please reconnect your Gmail account in Settings → Integrations to resume email digests.';
+                ? 'It looks like you revoked InboxOS access to your Gmail account. Please reconnect in Settings → Integrations to resume email digests.'
+                : 'Your Gmail connection has expired. Please reconnect your Gmail account in Settings → Integrations to resume email digests.';
 
           await prisma.notification.create({
             data: {
@@ -123,7 +123,9 @@ export class EmailDigestAdapter {
             where: { id: digest.id },
             data: { status: 'failed' },
           });
-        } catch (_) { /* best effort */ }
+        } catch (_) {
+          /* best effort */
+        }
 
         // DO NOT re-throw — suppresses BullMQ retry for dead tokens
         return;

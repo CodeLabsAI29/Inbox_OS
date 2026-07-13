@@ -236,7 +236,12 @@ export class TelegramBotService {
       if (response.status === 429) {
         const retryAfterHeader = response.headers['retry-after'];
         const retryAfterSeconds = retryAfterHeader
-          ? parseInt(Array.isArray(retryAfterHeader) ? retryAfterHeader[0] : retryAfterHeader, 10)
+          ? parseInt(
+              Array.isArray(retryAfterHeader)
+                ? retryAfterHeader[0]
+                : retryAfterHeader,
+              10
+            )
           : Math.pow(2, attempt);
         logger.warn(
           `[TelegramBot] Rate limited (429) on API call "${method}". Retrying in ${retryAfterSeconds}s...`

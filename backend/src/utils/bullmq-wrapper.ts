@@ -1,4 +1,9 @@
-import { Queue as RealQueue, Worker as RealWorker, Job, ConnectionOptions } from 'bullmq';
+import {
+  Queue as RealQueue,
+  Worker as RealWorker,
+  Job,
+  ConnectionOptions,
+} from 'bullmq';
 import { RedisHealth } from './redis-health';
 import { logger } from './logger';
 
@@ -12,7 +17,10 @@ export class Queue {
   private realQueue: RealQueue | null = null;
   private name: string;
   private connectionOpts: any;
-  private localRepeatJobs = new Map<string, { pattern: string; tz?: string; data: any; intervalId?: NodeJS.Timeout }>();
+  private localRepeatJobs = new Map<
+    string,
+    { pattern: string; tz?: string; data: any; intervalId?: NodeJS.Timeout }
+  >();
 
   constructor(name: string, options: any) {
     this.name = name;
@@ -26,7 +34,10 @@ export class Queue {
           RedisHealth.handleError(err);
         });
       } catch (err) {
-        logger.error(`[BullMQ Wrapper] Failed to instantiate real Queue "${name}":`, err);
+        logger.error(
+          `[BullMQ Wrapper] Failed to instantiate real Queue "${name}":`,
+          err
+        );
         RedisHealth.handleError(err);
       }
     }
@@ -34,7 +45,9 @@ export class Queue {
     // If Redis becomes disabled, clean up the real queue if it exists
     RedisHealth.onDisable(() => {
       if (this.realQueue) {
-        logger.info(`[BullMQ Wrapper] Closing real Queue "${this.name}" due to Redis disable.`);
+        logger.info(
+          `[BullMQ Wrapper] Closing real Queue "${this.name}" due to Redis disable.`
+        );
         this.realQueue.close().catch(() => {});
         this.realQueue = null;
       }
@@ -43,7 +56,9 @@ export class Queue {
 
   async add(jobName: string, data: any, options?: any): Promise<any> {
     if (RedisHealth.isDisabled() || !this.realQueue) {
-      logger.warn(`[BullMQ Wrapper] Redis disabled. Executing job "${jobName}" in-memory fallback.`);
+      logger.warn(
+        `[BullMQ Wrapper] Redis disabled. Executing job "${jobName}" in-memory fallback.`
+      );
 
       const jobId = `mock-${this.name}-${Math.random().toString(36).substring(7)}`;
 
@@ -88,7 +103,10 @@ export class Queue {
               log: async () => {},
             };
             processor(repeatJob).catch((err) => {
-              logger.error(`[BullMQ Wrapper] Mock repeat job "${jobName}" failed:`, err);
+              logger.error(
+                `[BullMQ Wrapper] Mock repeat job "${jobName}" failed:`,
+                err
+              );
             });
           }
         };
@@ -111,21 +129,31 @@ export class Queue {
       if (processor) {
         const delay = options?.delay || 0;
         if (delay > 0) {
-          logger.info(`[BullMQ Wrapper] Scheduling job "${jobName}" with delay ${delay}ms`);
+          logger.info(
+            `[BullMQ Wrapper] Scheduling job "${jobName}" with delay ${delay}ms`
+          );
           setTimeout(() => {
             processor(mockJob).catch((err) => {
-              logger.error(`[BullMQ Wrapper] Mock job "${jobName}" failed:`, err);
+              logger.error(
+                `[BullMQ Wrapper] Mock job "${jobName}" failed:`,
+                err
+              );
             });
           }, delay);
         } else {
           setImmediate(() => {
             processor(mockJob).catch((err) => {
-              logger.error(`[BullMQ Wrapper] Mock job "${jobName}" failed:`, err);
+              logger.error(
+                `[BullMQ Wrapper] Mock job "${jobName}" failed:`,
+                err
+              );
             });
           });
         }
       } else {
-        logger.warn(`[BullMQ Wrapper] No worker/processor registered for queue "${this.name}".`);
+        logger.warn(
+          `[BullMQ Wrapper] No worker/processor registered for queue "${this.name}".`
+        );
       }
 
       return mockJob;
@@ -134,7 +162,10 @@ export class Queue {
     try {
       return await this.realQueue.add(jobName, data, options);
     } catch (err) {
-      logger.error(`[BullMQ Wrapper] Queue.add failed for "${this.name}":`, err);
+      logger.error(
+        `[BullMQ Wrapper] Queue.add failed for "${this.name}":`,
+        err
+      );
       RedisHealth.handleError(err);
       // Fallback inline execution
       return this.add(jobName, data, options);
@@ -153,7 +184,10 @@ export class Queue {
     try {
       return await this.realQueue.getRepeatableJobs();
     } catch (err) {
-      logger.error(`[BullMQ Wrapper] getRepeatableJobs failed for "${this.name}":`, err);
+      logger.error(
+        `[BullMQ Wrapper] getRepeatableJobs failed for "${this.name}":`,
+        err
+      );
       RedisHealth.handleError(err);
       return [];
     }
@@ -222,14 +256,19 @@ export class Worker {
         });
         this.setupRealEvents();
       } catch (err) {
-        logger.error(`[BullMQ Wrapper] Failed to instantiate real Worker "${name}":`, err);
+        logger.error(
+          `[BullMQ Wrapper] Failed to instantiate real Worker "${name}":`,
+          err
+        );
         RedisHealth.handleError(err);
       }
     }
 
     RedisHealth.onDisable(() => {
       if (this.realWorker) {
-        logger.info(`[BullMQ Wrapper] Redis disabled. Closing real Worker "${this.name}" to prevent error loop.`);
+        logger.info(
+          `[BullMQ Wrapper] Redis disabled. Closing real Worker "${this.name}" to prevent error loop.`
+        );
         this.realWorker.close().catch(() => {});
         this.realWorker = null;
       }
@@ -240,11 +279,11 @@ export class Worker {
     if (!this.realWorker) return;
 
     const events = ['completed', 'failed', 'error', 'active', 'progress'];
-    events.forEach(event => {
+    events.forEach((event) => {
       this.realWorker!.on(event as any, (...args: any[]) => {
         const handlers = this.eventHandlers.get(event);
         if (handlers) {
-          handlers.forEach(h => h(...args));
+          handlers.forEach((h) => h(...args));
         }
       });
     });

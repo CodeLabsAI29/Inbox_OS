@@ -149,9 +149,12 @@ export class TelegramNotificationService {
       ? `*Email:* ${emailSubject}\n*Deadline:* ${deadlineFormatted}\n\n_This deadline has passed. Please follow up._`
       : `*Email:* ${emailSubject}\n*Deadline:* ${deadlineFormatted}\n*Alert:* ${offsetLabel} reminder`;
 
-    const priority = isOverdue ? 'high' : offsetLabel === 'at deadline' ? 'high' : 'normal';
+    const priority = isOverdue
+      ? 'high'
+      : offsetLabel === 'at deadline'
+        ? 'high'
+        : 'normal';
 
     return this.sendNotification(chatId, title, content, priority);
   }
 }
-

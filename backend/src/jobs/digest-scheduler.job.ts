@@ -19,7 +19,10 @@ const getRedisConnectionOptions = (): ConnectionOptions => {
         ? parseInt(parsed.pathname.substring(1) || '0', 10)
         : 0,
       maxRetriesPerRequest: null,
-      tls: parsed.protocol === 'rediss:' ? { rejectUnauthorized: false } : undefined,
+      tls:
+        parsed.protocol === 'rediss:'
+          ? { rejectUnauthorized: false }
+          : undefined,
     };
   } catch (error) {
     console.error(
@@ -60,7 +63,7 @@ export const digestWorker = new Worker(
     if (gmailAccount?.syncState === 'needs_reauth') {
       logger.warn(
         `[DigestWorker] Skipping digest job ${job.id} for user ${userId} — Gmail account requires re-authentication. ` +
-        `User has been notified via in-app notification.`
+          `User has been notified via in-app notification.`
       );
       // Resolve without throwing: BullMQ marks job as completed (not failed),
       // which prevents infinite retries and Redis quota drain.
@@ -86,7 +89,6 @@ export const digestWorker = new Worker(
   },
   { connection }
 );
-
 
 /**
  * Synchronizes the BullMQ repeatable digest jobs for a specific user.

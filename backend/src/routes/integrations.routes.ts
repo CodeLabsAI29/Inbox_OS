@@ -362,7 +362,10 @@ integrationsRouter.get(
 
       return res.json({ connected: !!integration });
     } catch (err: any) {
-      logger.error('[Integrations] GET /google_calendar/status error:', err.message);
+      logger.error(
+        '[Integrations] GET /google_calendar/status error:',
+        err.message
+      );
       return res.status(500).json({ error: 'Failed to fetch calendar status' });
     }
   }
@@ -383,7 +386,8 @@ integrationsRouter.get(
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        process.env.GOOGLE_CALENDAR_REDIRECT_URI || 'http://localhost:8000/api/integrations/google_calendar/callback'
+        process.env.GOOGLE_CALENDAR_REDIRECT_URI ||
+          'http://localhost:8000/api/integrations/google_calendar/callback'
       );
 
       const url = oauth2Client.generateAuthUrl({
@@ -395,8 +399,13 @@ integrationsRouter.get(
 
       return res.json({ url });
     } catch (err: any) {
-      logger.error('[Integrations] GET /google_calendar/auth error:', err.message);
-      return res.status(500).json({ error: 'Failed to generate calendar auth URL' });
+      logger.error(
+        '[Integrations] GET /google_calendar/auth error:',
+        err.message
+      );
+      return res
+        .status(500)
+        .json({ error: 'Failed to generate calendar auth URL' });
     }
   }
 );
@@ -419,7 +428,8 @@ integrationsRouter.get(
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        process.env.GOOGLE_CALENDAR_REDIRECT_URI || 'http://localhost:8000/api/integrations/google_calendar/callback'
+        process.env.GOOGLE_CALENDAR_REDIRECT_URI ||
+          'http://localhost:8000/api/integrations/google_calendar/callback'
       );
 
       const { tokens } = await oauth2Client.getToken(code);
@@ -443,14 +453,21 @@ integrationsRouter.get(
         },
       });
 
-      logger.info('[Integrations] Google Calendar connected successfully', { userId });
-      
+      logger.info('[Integrations] Google Calendar connected successfully', {
+        userId,
+      });
+
       // Redirect back to frontend settings integrations subtab
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       return res.redirect(`${frontendUrl}/`);
     } catch (err: any) {
-      logger.error('[Integrations] Google Calendar callback error:', err.message);
-      return res.status(500).send('Google Calendar integration failed. Please check backend logs.');
+      logger.error(
+        '[Integrations] Google Calendar callback error:',
+        err.message
+      );
+      return res
+        .status(500)
+        .send('Google Calendar integration failed. Please check backend logs.');
     }
   }
 );
@@ -479,9 +496,13 @@ integrationsRouter.delete(
       logger.info('[Integrations] Google Calendar disconnected', { userId });
       return res.json({ message: 'Google Calendar disconnected successfully' });
     } catch (err: any) {
-      logger.error('[Integrations] DELETE /google_calendar error:', err.message);
-      return res.status(500).json({ error: 'Failed to disconnect Google Calendar' });
+      logger.error(
+        '[Integrations] DELETE /google_calendar error:',
+        err.message
+      );
+      return res
+        .status(500)
+        .json({ error: 'Failed to disconnect Google Calendar' });
     }
   }
 );
-

@@ -1,12 +1,16 @@
 import { EventEmitter } from 'events';
 import { RedisHealth, MockRedisClient } from './redis-health';
 
-const ioredisModule = require('ioredis');
-const OriginalRedis = ioredisModule.default || ioredisModule;
+import Redis from 'ioredis';
+const OriginalRedis = Redis;
 
 // 1. Globally patch EventEmitter.prototype.emit to catch and swallow Redis-related unhandled errors
 const origEmit = EventEmitter.prototype.emit;
-EventEmitter.prototype.emit = function(this: any, event: string, ...args: any[]) {
+EventEmitter.prototype.emit = function (
+  this: any,
+  event: string,
+  ...args: any[]
+) {
   if (event === 'error') {
     const err = args[0];
     const className = this.constructor ? this.constructor.name : '';
@@ -24,7 +28,9 @@ EventEmitter.prototype.emit = function(this: any, event: string, ...args: any[])
 
       if (RedisHealth.isDisabled()) {
         // Swallowing the error event to prevent uncaught exception crashes
-        console.warn(`⚠️ [RedisPatch] Swallowed uncaught error on ${className}: ${err?.message || err}`);
+        console.warn(
+          `⚠️ [RedisPatch] Swallowed uncaught error on ${className}: ${err?.message || err}`
+        );
         return false;
       }
     }
@@ -34,7 +40,7 @@ EventEmitter.prototype.emit = function(this: any, event: string, ...args: any[])
 
 // 2. Patch connect method to bypass connection once disabled
 const origConnect = OriginalRedis.prototype.connect;
-OriginalRedis.prototype.connect = function(this: any, ...args: any[]) {
+OriginalRedis.prototype.connect = function (this: any, ...args: any[]) {
   if (RedisHealth.isDisabled()) {
     return Promise.resolve();
   }
@@ -43,7 +49,11 @@ OriginalRedis.prototype.connect = function(this: any, ...args: any[]) {
 
 // 3. Patch sendCommand to bypass command sending once disabled and return mock responses
 const origSendCommand = OriginalRedis.prototype.sendCommand;
-OriginalRedis.prototype.sendCommand = function(this: any, command: any, ...args: any[]) {
+OriginalRedis.prototype.sendCommand = function (
+  this: any,
+  command: any,
+  ...args: any[]
+) {
   const name = command?.name || '';
 
   if (RedisHealth.isDisabled() && name !== 'quit' && name !== 'disconnect') {
@@ -77,8 +87,12 @@ OriginalRedis.prototype.sendCommand = function(this: any, command: any, ...args:
 };
 
 // 4. Patch status getter/setter safely
-const statusDesc = Object.getOwnPropertyDescriptor(OriginalRedis.prototype, 'status')
-  || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(OriginalRedis.prototype), 'status');
+const statusDesc =
+  Object.getOwnPropertyDescriptor(OriginalRedis.prototype, 'status') ||
+  Object.getOwnPropertyDescriptor(
+    Object.getPrototypeOf(OriginalRedis.prototype),
+    'status'
+  );
 
 if (statusDesc) {
   Object.defineProperty(OriginalRedis.prototype, 'status', {
@@ -95,8 +109,10 @@ if (statusDesc) {
         this._status = val;
       }
     },
-    configurable: true
+    configurable: true,
   });
 }
 
-console.log('✅ [RedisPatch] Globally patched EventEmitter and ioredis safely.');
+console.log(
+  '✅ [RedisPatch] Globally patched EventEmitter and ioredis safely.'
+);

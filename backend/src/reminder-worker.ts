@@ -19,7 +19,9 @@ logger.info('[ReminderWorker] Starting dedicated reminder worker process...');
 
 ReminderSchedulerService.initWorker();
 
-logger.info('[ReminderWorker] Worker registered. Listening for reminder.fire jobs on queue: inboxos-reminders');
+logger.info(
+  '[ReminderWorker] Worker registered. Listening for reminder.fire jobs on queue: inboxos-reminders'
+);
 
 // Graceful shutdown
 const gracefulShutdown = async () => {

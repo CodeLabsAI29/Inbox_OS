@@ -57,12 +57,14 @@ describe('Feedback Collection API and Service', () => {
         })
         .expect(429);
 
-      expect(res.body).toEqual({ error: 'Rate limit exceeded: 100 feedbacks per day' });
+      expect(res.body).toEqual({
+        error: 'Rate limit exceeded: 100 feedbacks per day',
+      });
     });
 
     it('should successfully record feedback and return 201', async () => {
       jest.spyOn(prisma.userFeedback, 'count').mockResolvedValue(45);
-      
+
       const recordFeedbackSpy = jest
         .spyOn(FeedbackCollectorService, 'recordFeedback')
         .mockResolvedValue(undefined);
@@ -76,15 +78,18 @@ describe('Feedback Collection API and Service', () => {
         })
         .expect(201);
 
-      expect(recordFeedbackSpy).toHaveBeenCalledWith(mockUserId, mockEmailId, 'thumbs_up', undefined);
+      expect(recordFeedbackSpy).toHaveBeenCalledWith(
+        mockUserId,
+        mockEmailId,
+        'thumbs_up',
+        undefined
+      );
     });
   });
 
   describe('GET /api/users/me/ai-profile', () => {
     it('should return 401 if unauthorized', async () => {
-      await request(app)
-        .get('/api/users/me/ai-profile')
-        .expect(401);
+      await request(app).get('/api/users/me/ai-profile').expect(401);
     });
 
     it('should return empty weekly profile if settings do not exist', async () => {
@@ -130,11 +135,20 @@ describe('Feedback Collection API and Service', () => {
 
   describe('FeedbackCollectorService logic', () => {
     it('should handle deleted emails gracefully without crashing', async () => {
-      jest.spyOn(FeedbackCollectorService.prisma.email, 'findUnique').mockResolvedValue(null);
-      const userFeedbackCreateSpy = jest.spyOn(FeedbackCollectorService.prisma.userFeedback, 'create');
+      jest
+        .spyOn(FeedbackCollectorService.prisma.email, 'findUnique')
+        .mockResolvedValue(null);
+      const userFeedbackCreateSpy = jest.spyOn(
+        FeedbackCollectorService.prisma.userFeedback,
+        'create'
+      );
 
       await expect(
-        FeedbackCollectorService.recordFeedback(mockUserId, 'non-existent-email', 'thumbs_up')
+        FeedbackCollectorService.recordFeedback(
+          mockUserId,
+          'non-existent-email',
+          'thumbs_up'
+        )
       ).resolves.not.toThrow();
 
       expect(userFeedbackCreateSpy).not.toHaveBeenCalled();
@@ -162,18 +176,35 @@ describe('Feedback Collection API and Service', () => {
         }),
       };
 
-      jest.spyOn(FeedbackCollectorService.prisma.email, 'findUnique').mockResolvedValue(mockEmail as any);
-      jest.spyOn(FeedbackCollectorService.prisma.userFeedback, 'create').mockResolvedValue({} as any);
-      jest.spyOn(FeedbackCollectorService.prisma.userSettings, 'findUnique').mockResolvedValue(mockSettings as any);
-      const settingsUpdateSpy = jest.spyOn(FeedbackCollectorService.prisma.userSettings, 'update').mockResolvedValue({} as any);
+      jest
+        .spyOn(FeedbackCollectorService.prisma.email, 'findUnique')
+        .mockResolvedValue(mockEmail as any);
+      jest
+        .spyOn(FeedbackCollectorService.prisma.userFeedback, 'create')
+        .mockResolvedValue({} as any);
+      jest
+        .spyOn(FeedbackCollectorService.prisma.userSettings, 'findUnique')
+        .mockResolvedValue(mockSettings as any);
+      const settingsUpdateSpy = jest
+        .spyOn(FeedbackCollectorService.prisma.userSettings, 'update')
+        .mockResolvedValue({} as any);
 
-      await FeedbackCollectorService.recordFeedback(mockUserId, mockEmailId, 'category_correction', 'urgent');
+      await FeedbackCollectorService.recordFeedback(
+        mockUserId,
+        mockEmailId,
+        'category_correction',
+        'urgent'
+      );
 
       expect(settingsUpdateSpy).toHaveBeenCalled();
-      const updatedData = JSON.parse(settingsUpdateSpy.mock.calls[0][0].data.aiPreferenceProfile as string);
-      
+      const updatedData = JSON.parse(
+        settingsUpdateSpy.mock.calls[0][0].data.aiPreferenceProfile as string
+      );
+
       const weekKey = FeedbackCollectorService.getStartOfWeek();
-      expect(updatedData.weekly[weekKey].categoryCorrections['newsletter->urgent']).toBe(2);
+      expect(
+        updatedData.weekly[weekKey].categoryCorrections['newsletter->urgent']
+      ).toBe(2);
     });
 
     it('should incrementally update preferred senders on thumbs_up', async () => {
@@ -192,18 +223,34 @@ describe('Feedback Collection API and Service', () => {
         aiPreferenceProfile: null,
       };
 
-      jest.spyOn(FeedbackCollectorService.prisma.email, 'findUnique').mockResolvedValue(mockEmail as any);
-      jest.spyOn(FeedbackCollectorService.prisma.userFeedback, 'create').mockResolvedValue({} as any);
-      jest.spyOn(FeedbackCollectorService.prisma.userSettings, 'findUnique').mockResolvedValue(mockSettings as any);
-      const settingsUpdateSpy = jest.spyOn(FeedbackCollectorService.prisma.userSettings, 'update').mockResolvedValue({} as any);
+      jest
+        .spyOn(FeedbackCollectorService.prisma.email, 'findUnique')
+        .mockResolvedValue(mockEmail as any);
+      jest
+        .spyOn(FeedbackCollectorService.prisma.userFeedback, 'create')
+        .mockResolvedValue({} as any);
+      jest
+        .spyOn(FeedbackCollectorService.prisma.userSettings, 'findUnique')
+        .mockResolvedValue(mockSettings as any);
+      const settingsUpdateSpy = jest
+        .spyOn(FeedbackCollectorService.prisma.userSettings, 'update')
+        .mockResolvedValue({} as any);
 
-      await FeedbackCollectorService.recordFeedback(mockUserId, mockEmailId, 'thumbs_up');
+      await FeedbackCollectorService.recordFeedback(
+        mockUserId,
+        mockEmailId,
+        'thumbs_up'
+      );
 
       expect(settingsUpdateSpy).toHaveBeenCalled();
-      const updatedData = JSON.parse(settingsUpdateSpy.mock.calls[0][0].data.aiPreferenceProfile as string);
-      
+      const updatedData = JSON.parse(
+        settingsUpdateSpy.mock.calls[0][0].data.aiPreferenceProfile as string
+      );
+
       const weekKey = FeedbackCollectorService.getStartOfWeek();
-      expect(updatedData.weekly[weekKey].preferredSenders['sender@example.com']).toBe(1);
+      expect(
+        updatedData.weekly[weekKey].preferredSenders['sender@example.com']
+      ).toBe(1);
     });
   });
 });
