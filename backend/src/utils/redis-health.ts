@@ -60,15 +60,15 @@ export const RedisHealth = {
 export class MockRedisClient {
   status = 'end';
 
-  async get(key: string): Promise<string | null> {
+  async get(_key: string): Promise<string | null> {
     return null;
   }
 
-  async setex(key: string, seconds: number, value: string): Promise<string> {
+  async setex(_key: string, _seconds: number, _value: string): Promise<string> {
     return 'OK';
   }
 
-  async del(key: string): Promise<number> {
+  async del(_key: string): Promise<number> {
     return 0;
   }
 
@@ -76,7 +76,7 @@ export class MockRedisClient {
     return 'PONG';
   }
 
-  async call(cmd: string, ...args: any[]): Promise<any> {
+  async call(_cmd: string, ..._args: any[]): Promise<any> {
     return null;
   }
 
@@ -87,11 +87,11 @@ export class MockRedisClient {
     return this;
   }
 
-  once(event: string, handler: (...args: any[]) => void): this {
+  once(_event: string, _handler: (...args: any[]) => void): this {
     return this;
   }
 
-  off(event: string, handler: (...args: any[]) => void): this {
+  off(_event: string, _handler: (...args: any[]) => void): this {
     return this;
   }
 

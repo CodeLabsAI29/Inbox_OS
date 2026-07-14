@@ -800,8 +800,6 @@ app.get(
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-      let newToken: string | undefined;
-
       const cacheKey = `user:profile:${userId}`;
 
       // Try fetching from Redis cache first
@@ -1026,8 +1024,6 @@ app.get(
       if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-      let newToken: string | undefined;
-
       const settings = await prisma.userSettings.findUnique({
         where: { userId },
       });
@@ -1236,8 +1232,6 @@ const getOAuth2Client = (req?: Request) => {
     redirectUri
   );
 };
-
-const oauth2Client = getOAuth2Client();
 
 /**
  * GET /api/integrations/gmail/auth

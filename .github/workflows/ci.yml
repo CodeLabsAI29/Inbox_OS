@@ -20,7 +20,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -29,10 +29,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js v22
+      - name: Setup Node.js v24
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: package-lock.json
 

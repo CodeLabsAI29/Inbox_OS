@@ -1426,7 +1426,14 @@ const DashboardContent: React.FC = () => {
     const pending = tasksList.filter((t) => !t.isCompleted);
     const completed = tasksList.filter((t) => t.isCompleted);
     return (
-      <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+      <Layout
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        theme={theme}
+        onToggleTheme={() =>
+          setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+        }
+      >
         {toastMessage && (
           <div
             className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 text-xs font-bold uppercase tracking-wider"
@@ -1670,7 +1677,14 @@ const DashboardContent: React.FC = () => {
 
   if (activeTab === 'rules') {
     return (
-      <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+      <Layout
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        theme={theme}
+        onToggleTheme={() =>
+          setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+        }
+      >
         {toastMessage && (
           <div
             className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 text-xs font-bold uppercase tracking-wider"

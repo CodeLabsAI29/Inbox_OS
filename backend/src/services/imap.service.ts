@@ -110,7 +110,7 @@ export class IMAPService {
     });
 
     f.on('message', (msg, seqno) => {
-      msg.on('body', (stream, info) => {
+      msg.on('body', (stream, _info) => {
         let rawEml = '';
         stream.on('data', (chunk) => {
           rawEml += chunk.toString('utf8');

@@ -1,8 +1,6 @@
 import { PrismaClient, Digest } from '@prisma/client';
 import * as Handlebars from 'handlebars';
 import { logger } from '../../utils/logger';
-import { AIService } from '../ai.service';
-
 const prisma = new PrismaClient();
 
 export interface DigestEmailData {

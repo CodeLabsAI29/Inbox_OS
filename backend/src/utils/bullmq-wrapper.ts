@@ -218,7 +218,7 @@ export class Queue {
       await this.realQueue.close();
       this.realQueue = null;
     }
-    for (const [key, value] of this.localRepeatJobs.entries()) {
+    for (const [, value] of this.localRepeatJobs.entries()) {
       if (value.intervalId) {
         clearInterval(value.intervalId);
       }

@@ -1,4 +1,4 @@
-import { PrismaClient, Rule, RuleCondition, RuleAction } from '@prisma/client';
+import { PrismaClient, RuleCondition, RuleAction } from '@prisma/client';
 import { WebhookDispatcher } from './webhook-dispatcher.service';
 import { EmailSenderService } from './email-sender.service';
 import { logger } from '../utils/logger';

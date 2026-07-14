@@ -113,7 +113,7 @@ describe('GET /api/emails/search', () => {
     const userId = 'test-user-id';
     const token = AuthService.generateToken(userId, 'test@example.com');
 
-    const countSpy = jest.spyOn(prisma.email, 'count').mockResolvedValue(50);
+    jest.spyOn(prisma.email, 'count').mockResolvedValue(50);
     const findManySpy = jest
       .spyOn(prisma.email, 'findMany')
       .mockResolvedValue([]);
@@ -144,10 +144,8 @@ describe('GET /api/emails/search', () => {
     const userId = 'test-user-id';
     const token = AuthService.generateToken(userId, 'test@example.com');
 
-    const countSpy = jest.spyOn(prisma.email, 'count').mockResolvedValue(10);
-    const findManySpy = jest
-      .spyOn(prisma.email, 'findMany')
-      .mockResolvedValue([]);
+    jest.spyOn(prisma.email, 'count').mockResolvedValue(10);
+    jest.spyOn(prisma.email, 'findMany').mockResolvedValue([]);
 
     const res = await request(app)
       .get('/api/emails/search?q=test&limit=-10&offset=invalid')

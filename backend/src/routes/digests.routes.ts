@@ -69,7 +69,7 @@ digestsRouter.post(
           details: validation.error.flatten(),
         });
       }
-      const { type, limit } = validation.data;
+      const { type } = validation.data;
 
       logger.info('[Digests] Generating digest', { userId, type });
       const digest = await DigestGeneratorService.generateDigest(userId, type);

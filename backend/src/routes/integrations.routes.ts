@@ -8,7 +8,6 @@ import { ImapService } from '../services/imap.service';
 import { encrypt } from '../utils/crypto';
 import { logger } from '../utils/logger';
 import { z } from 'zod';
-import crypto from 'crypto';
 import { google } from 'googleapis';
 
 export const integrationsRouter = Router();

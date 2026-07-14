@@ -67,18 +67,26 @@ export class AIService {
     if (this.geminiKeys.length === 0) {
       const keysEnv = process.env.GEMINI_API_KEYS;
       if (keysEnv) {
-        this.geminiKeys = keysEnv.split(',').map((k) => k.trim()).filter(Boolean);
+        this.geminiKeys = keysEnv
+          .split(',')
+          .map((k) => k.trim())
+          .filter(Boolean);
       } else {
-        const key1 = process.env.GEMINI_API_KEY || 'GEMINI_API_KEY_1_PLACEHOLDER';
-        const key2 = process.env.GEMINI_API_KEY_2 || 'GEMINI_API_KEY_2_PLACEHOLDER';
-        const key3 = process.env.GEMINI_API_KEY_3 || 'GEMINI_API_KEY_3_PLACEHOLDER';
-        const key4 = process.env.GEMINI_API_KEY_4 || 'GEMINI_API_KEY_4_PLACEHOLDER';
-        const key5 = process.env.GEMINI_API_KEY_5 || 'GEMINI_API_KEY_5_PLACEHOLDER';
-        
+        const key1 =
+          process.env.GEMINI_API_KEY || 'GEMINI_API_KEY_1_PLACEHOLDER';
+        const key2 =
+          process.env.GEMINI_API_KEY_2 || 'GEMINI_API_KEY_2_PLACEHOLDER';
+        const key3 =
+          process.env.GEMINI_API_KEY_3 || 'GEMINI_API_KEY_3_PLACEHOLDER';
+        const key4 =
+          process.env.GEMINI_API_KEY_4 || 'GEMINI_API_KEY_4_PLACEHOLDER';
+        const key5 =
+          process.env.GEMINI_API_KEY_5 || 'GEMINI_API_KEY_5_PLACEHOLDER';
+
         const filtered = [key1, key2, key3, key4, key5].filter(
           (k) => !k.includes('PLACEHOLDER')
         );
-        
+
         this.geminiKeys = filtered.length > 0 ? filtered : [key1];
       }
     }
@@ -1388,7 +1396,9 @@ Provide the result as a JSON object with a single field 'category'.`;
           });
           const text = response.text;
           if (!text) {
-            throw new Error('Gemini returned an empty link categorization response.');
+            throw new Error(
+              'Gemini returned an empty link categorization response.'
+            );
           }
           return text;
         });
@@ -1628,7 +1638,9 @@ Do NOT infer or fabricate deadlines. Only return dates explicitly stated.`;
 
       const text = response.text;
       if (!text) {
-        throw new Error('Gemini returned an empty deadline extraction response.');
+        throw new Error(
+          'Gemini returned an empty deadline extraction response.'
+        );
       }
       return text;
     });

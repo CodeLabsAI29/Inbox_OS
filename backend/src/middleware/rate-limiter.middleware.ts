@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
-import Redis from 'ioredis';
 import { AuthService } from '../services/auth.service';
 import { createRedisClient, RedisHealth } from '../utils/redis-health';
 

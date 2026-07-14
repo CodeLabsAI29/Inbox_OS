@@ -176,7 +176,9 @@ export async function registerWorkerHandlers() {
 
         // 4. Extract and save actions
         try {
-          logger.info('[Worker] Extracting action items from email', { emailId });
+          logger.info('[Worker] Extracting action items from email', {
+            emailId,
+          });
           const actionItems = await AIService.extractActionItems(
             email.subject,
             email.body
@@ -195,7 +197,9 @@ export async function registerWorkerHandlers() {
                 deadline: item.deadline ? new Date(item.deadline) : null,
               })),
             });
-            logger.info('[Worker] Saved action items successfully', { emailId });
+            logger.info('[Worker] Saved action items successfully', {
+              emailId,
+            });
           } else {
             logger.info('[Worker] No action items extracted from email', {
               emailId,
