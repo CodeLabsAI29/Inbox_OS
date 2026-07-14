@@ -20,6 +20,17 @@
 
 ---
 
+<div align="center">
+
+### 🌐 Live Website: https://inbox-os-frontend-lqrb.vercel.app/
+
+### 🤖 Telegram Bot: https://t.me/InboxOs_mail_bot
+
+</div>
+
+---
+
+
 ## Table of Contents 
 
 1. [Introduction & Problem Statement](#1-introduction--problem-statement)
