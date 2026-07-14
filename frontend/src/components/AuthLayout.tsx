@@ -126,12 +126,6 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
         {/* Internal Subtle grid pattern */}
         <div className="absolute inset-0 engineering-grid opacity-[0.06] pointer-events-none" />
 
-        {/* Floating abstract glass shapes */}
-        <motion.div
-          animate={{ y: [0, -12, 0], rotate: [0, 4, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-[18%] right-[8%] w-16 h-16 rounded-[16px] bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/10 backdrop-blur-sm shadow-[0_4px_24px_rgba(0,0,0,0.01)] pointer-events-none"
-        />
         <motion.div
           animate={{ y: [0, 16, 0], rotate: [0, -6, 0] }}
           transition={{
@@ -143,27 +137,24 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
           className="absolute bottom-[20%] left-[6%] w-24 h-24 rounded-[22px] bg-white/30 dark:bg-white/5 border border-white/40 dark:border-white/10 backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.01)] pointer-events-none"
         />
 
-        <div className="flex items-center justify-between z-10 relative">
-          <div className="flex items-center gap-3">
-            <Logo iconOnly size={34} className="shrink-0" />
-            <div>
-              <h2 
-                className="text-[17px] font-bold tracking-tight text-[#1D1D1D] dark:text-zinc-100 leading-none"
-                style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '-0.3px' }}
-              >
-                InboxOS
-              </h2>
-            </div>
-          </div>
-          <span className="text-[10px] font-bold px-3 py-1 bg-white dark:bg-zinc-800 border border-[#EAE5DA] dark:border-zinc-700 text-[#6B7280] dark:text-zinc-400 rounded-full shadow-sm">
-            Open Source
-          </span>
-        </div>
-
         {/* Main Content Area */}
         <div className="my-auto space-y-8 max-w-xl text-left z-10 relative">
+          {/* Logo Row */}
+          <div className="flex items-center gap-3.5 select-none">
+            <Logo iconOnly size={46} className="shrink-0" />
+            <h2
+              className="text-[24px] font-extrabold tracking-tight text-[#1D1D1D] dark:text-zinc-100 leading-none"
+              style={{
+                fontFamily: "'Oswald', sans-serif",
+                letterSpacing: '-0.3px',
+              }}
+            >
+              InboxOS
+            </h2>
+          </div>
+
           {/* Header */}
-          <h1 className="text-4xl md:text-[44px] font-extrabold tracking-tight text-[#1D1D1D] dark:text-zinc-100 leading-[1.1]">
+          <h1 className="text-4xl md:text-[44px] font-extrabold tracking-tight text-[#1D1D1D] dark:text-zinc-100 leading-[1.1] !mt-4">
             Your inbox should{' '}
             <span
               className="text-[#5F6B38]"

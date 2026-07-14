@@ -20,7 +20,6 @@ import {
   ShieldAlert,
   Smartphone,
   Calendar,
-  ChevronRight,
   TrendingUp,
   Lock,
   Check,
@@ -420,38 +419,24 @@ export const LandingPage: React.FC = () => {
             className="flex items-center gap-3 cursor-pointer select-none"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <Logo iconOnly size={34} className="shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95" />
-            <div className="flex flex-col justify-center">
-              <h1 
-                className="text-[17px] font-bold tracking-tight text-[#1D1D1D] leading-none"
-                style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '-0.3px' }}
-              >
-                InboxOS
-              </h1>
-            </div>
+            <Logo
+              iconOnly
+              size={42}
+              className="shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95"
+            />
+            <h1
+              className="text-[22px] font-extrabold tracking-tight text-[#1D1D1D] leading-none"
+              style={{
+                fontFamily: "'Oswald', sans-serif",
+                letterSpacing: '-0.3px',
+              }}
+            >
+              InboxOS
+            </h1>
           </div>
 
           {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center gap-9 text-[15px] font-medium text-[#6B7280]">
-            <a
-              href="#features"
-              className={`group relative py-1.5 transition-colors duration-200 hover:text-[#5F6B38] ${
-                activeSection === 'features'
-                  ? 'text-[#5F6B38] font-semibold'
-                  : ''
-              }`}
-            >
-              Features
-              {activeSection === 'features' ? (
-                <motion.span
-                  layoutId="activeUnderline"
-                  className="absolute left-0 right-0 bottom-0 h-0.5 bg-[#5F6B38]"
-                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                />
-              ) : (
-                <span className="absolute left-1/2 bottom-0 w-0 h-0.5 bg-[#5F6B38]/40 transition-all duration-200 group-hover:w-1/2 group-hover:-translate-x-1/2" />
-              )}
-            </a>
             <a
               href="#pipeline"
               className={`group relative py-1.5 transition-colors duration-200 hover:text-[#5F6B38] ${
@@ -462,6 +447,25 @@ export const LandingPage: React.FC = () => {
             >
               How it Works
               {activeSection === 'pipeline' ? (
+                <motion.span
+                  layoutId="activeUnderline"
+                  className="absolute left-0 right-0 bottom-0 h-0.5 bg-[#5F6B38]"
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              ) : (
+                <span className="absolute left-1/2 bottom-0 w-0 h-0.5 bg-[#5F6B38]/40 transition-all duration-200 group-hover:w-1/2 group-hover:-translate-x-1/2" />
+              )}
+            </a>
+            <a
+              href="#features"
+              className={`group relative py-1.5 transition-colors duration-200 hover:text-[#5F6B38] ${
+                activeSection === 'features'
+                  ? 'text-[#5F6B38] font-semibold'
+                  : ''
+              }`}
+            >
+              Features
+              {activeSection === 'features' ? (
                 <motion.span
                   layoutId="activeUnderline"
                   className="absolute left-0 right-0 bottom-0 h-0.5 bg-[#5F6B38]"
@@ -508,7 +512,7 @@ export const LandingPage: React.FC = () => {
               )}
             </a>
             <a
-              href="https://github.com"
+              href="https://github.com/CodeLabsAI29/Inbox_OS"
               target="_blank"
               rel="noopener noreferrer"
               className="group relative py-1.5 transition-colors duration-200 hover:text-[#5F6B38]"
@@ -580,17 +584,6 @@ export const LandingPage: React.FC = () => {
           >
             <nav className="flex flex-col gap-4 text-left">
               <a
-                href="#features"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={`text-sm font-medium py-1 transition-colors duration-200 ${
-                  activeSection === 'features'
-                    ? 'text-[#5F6B38] font-semibold'
-                    : 'text-[#6B7280]'
-                }`}
-              >
-                Features
-              </a>
-              <a
                 href="#pipeline"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`text-sm font-medium py-1 transition-colors duration-200 ${
@@ -600,6 +593,17 @@ export const LandingPage: React.FC = () => {
                 }`}
               >
                 How it Works
+              </a>
+              <a
+                href="#features"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`text-sm font-medium py-1 transition-colors duration-200 ${
+                  activeSection === 'features'
+                    ? 'text-[#5F6B38] font-semibold'
+                    : 'text-[#6B7280]'
+                }`}
+              >
+                Features
               </a>
               <a
                 href="#demo"
@@ -624,7 +628,7 @@ export const LandingPage: React.FC = () => {
                 InboxOS vs Standard
               </a>
               <a
-                href="https://github.com"
+                href="https://github.com/CodeLabsAI29/Inbox_OS"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -666,16 +670,11 @@ export const LandingPage: React.FC = () => {
         whileInView="visible"
         viewport={{ once: true, margin: '-100px' }}
         variants={sectionVariants}
-        className="relative pt-36 pb-20 md:pt-44 md:pb-28 px-6 max-w-[1280px] mx-auto z-10"
+        className="relative pt-28 pb-20 md:pt-36 md:pb-28 px-6 max-w-[1280px] mx-auto z-10"
       >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Text */}
           <div className="lg:col-span-6 space-y-7 text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#5F6B38]/5 border border-[#5F6B38]/10 rounded-full text-[#5F6B38] font-bold text-[10px] tracking-wider uppercase">
-              <Sparkles size={11} strokeWidth={1.5} />
-              <span>Introducing the Decision & Execution Layer</span>
-            </div>
-
             <h1 className="text-4xl md:text-5xl lg:text-[64px] font-bold tracking-tight text-[#1D1D1D] leading-[1.1] lg:max-w-2xl">
               Email that{' '}
               <span
@@ -713,22 +712,7 @@ export const LandingPage: React.FC = () => {
                   className="transition-transform duration-200 group-hover:translate-x-[5px]"
                 />
               </button>
-              <a
-                href="#demo"
-                className="group h-[48px] px-6 text-[15px] font-semibold text-[#5F6B38] bg-white border border-[#5F6B38] hover:bg-[#FAF7F2] rounded-[16px] transition-all duration-200 hover:-translate-y-0.5 active:scale-95 text-center flex items-center justify-center gap-2"
-              >
-                <span>Watch Live Demo</span>
-                <ChevronRight
-                  size={16}
-                  strokeWidth={2}
-                  className="transition-transform duration-200 group-hover:translate-x-[5px]"
-                />
-              </a>
             </div>
-
-            <p className="text-[10px] font-semibold text-[#6B7280]/60">
-              Open source & self-hostable. Supports local AI models via Ollama.
-            </p>
           </div>
 
           {/* Right Hero Visual: Living AI Pipeline Loop with animations & parallax */}
@@ -1834,7 +1818,7 @@ export const LandingPage: React.FC = () => {
 
               <div className="flex gap-3 pt-2">
                 <a
-                  href="https://github.com"
+                  href="https://github.com/CodeLabsAI29/Inbox_OS"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="h-[48px] px-6 text-[15px] font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-[16px] transition-all hover:-translate-y-0.5 active:translate-y-0 shadow-sm flex items-center justify-center gap-2"
@@ -2257,7 +2241,7 @@ export const LandingPage: React.FC = () => {
                 Get Started Free
               </button>
               <a
-                href="https://github.com"
+                href="https://github.com/CodeLabsAI29/Inbox_OS"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto h-[48px] px-6 text-[15px] font-semibold text-white bg-transparent border border-white/30 hover:bg-white/10 rounded-[16px] transition-all duration-200 hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-1.5"
@@ -2281,10 +2265,13 @@ export const LandingPage: React.FC = () => {
                 className="flex items-center gap-3 cursor-pointer select-none"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               >
-                <Logo iconOnly size={32} className="shrink-0" />
-                <h4 
-                  className="text-[17px] font-bold text-[#1D1D1D]"
-                  style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '-0.3px' }}
+                <Logo iconOnly size={38} className="shrink-0" />
+                <h4
+                  className="text-[20px] font-extrabold text-[#1D1D1D] leading-none"
+                  style={{
+                    fontFamily: "'Oswald', sans-serif",
+                    letterSpacing: '-0.3px',
+                  }}
                 >
                   InboxOS
                 </h4>
@@ -2299,7 +2286,10 @@ export const LandingPage: React.FC = () => {
 
               {/* Social Icons */}
               <div className="flex items-center gap-3 pt-2">
-                <SocialIcon href="https://github.com" ariaLabel="GitHub">
+                <SocialIcon
+                  href="https://github.com/CodeLabsAI29/Inbox_OS"
+                  ariaLabel="GitHub"
+                >
                   <GithubIcon size={16} />
                 </SocialIcon>
                 <SocialIcon href="https://discord.com" ariaLabel="Discord">
@@ -2362,7 +2352,7 @@ export const LandingPage: React.FC = () => {
               <ul className="space-y-3 text-[14px]">
                 <li>
                   <a
-                    href="https://github.com"
+                    href="https://github.com/CodeLabsAI29/Inbox_OS"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#6B7280] hover:text-[#5F6B38] hover:translate-x-[4px] duration-200 transition-all flex items-center"

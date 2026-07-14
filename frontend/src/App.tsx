@@ -359,7 +359,6 @@ const DashboardContent: React.FC = () => {
         );
         if (res.ok) {
           const data = await res.json();
-          setTheme(data.theme || 'dark');
           setSignature(data.signature || '');
           setAutoReply(!!data.autoReply);
           setTimezone(data.timezone || 'UTC');
@@ -373,7 +372,6 @@ const DashboardContent: React.FC = () => {
           'Failed to load user settings, using dev mock settings:',
           err
         );
-        setTheme('light');
         setSignature('Sent from InboxOS Dev');
         setAutoReply(true);
         setTimezone('UTC');
@@ -1090,8 +1088,16 @@ const DashboardContent: React.FC = () => {
                               💬 Link Your Chat ID
                             </p>
                             <p className="text-[10px] leading-relaxed text-amber-850 font-medium">
-                              To sync alerts with your Telegram, message your
-                              bot and send the start command with your unique
+                              To sync alerts with your Telegram, message{' '}
+                              <a
+                                href="https://t.me/InboxOs_mail_bot"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline text-amber-900 font-bold hover:text-amber-700 transition-colors"
+                              >
+                                your bot
+                              </a>{' '}
+                              and send the start command with your unique
                               Workspace User ID:
                             </p>
                             <div className="flex items-center gap-2">
@@ -1977,8 +1983,14 @@ export default function App() {
     }
 
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      document.documentElement.style.setProperty('--global-mouse-x', `${e.clientX}px`);
-      document.documentElement.style.setProperty('--global-mouse-y', `${e.clientY}px`);
+      document.documentElement.style.setProperty(
+        '--global-mouse-x',
+        `${e.clientX}px`
+      );
+      document.documentElement.style.setProperty(
+        '--global-mouse-y',
+        `${e.clientY}px`
+      );
     };
     window.addEventListener('mousemove', handleGlobalMouseMove);
     return () => {

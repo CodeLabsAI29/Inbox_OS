@@ -441,7 +441,9 @@ export const AnalyticsPage: React.FC = () => {
                   />
                   <XAxis
                     dataKey="date"
-                    tickFormatter={(tick: string) => format(parseISO(tick), 'MMM d')}
+                    tickFormatter={(tick: string) =>
+                      format(parseISO(tick), 'MMM d')
+                    }
                     stroke="rgba(0,0,0,0.8)"
                     tick={{ fill: '#9ca3af', fontSize: 9 }}
                   />

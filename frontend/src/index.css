@@ -570,6 +570,7 @@ html.dark-theme .bg-slate-50\/50,
 html.dark-theme .bg-slate-100,
 html.dark-theme .bg-slate-200,
 html.dark-theme .bg-gray-50,
+html.dark-theme .bg-gray-50\/50,
 html.dark-theme .bg-gray-100,
 html.dark-theme .bg-gray-200,
 html.dark-theme .bg-indigo-50,
@@ -581,6 +582,22 @@ html.dark-theme .bg-emerald-50,
 html.dark-theme .bg-\[\#09090F\] {
   background-color: var(--bg-elevated) !important;
   background-image: none !important;
+}
+
+/* Amber/Warning Dark Theme Overrides */
+html.dark-theme .bg-amber-50\/50 {
+  background-color: rgba(245, 158, 11, 0.1) !important;
+  background-image: none !important;
+}
+html.dark-theme .border-amber-200 {
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+html.dark-theme .text-amber-900,
+html.dark-theme .text-amber-850 {
+  color: #fbbf24 !important; /* amber-400 */
+}
+html.dark-theme .text-amber-900.hover\:text-amber-700:hover {
+  color: #f59e0b !important; /* amber-500 */
 }
 
 /* Glassmorphism Overrides */
