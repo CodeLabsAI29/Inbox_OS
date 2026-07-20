@@ -538,21 +538,6 @@ Increase efficiency inside the dark glassmorphism dashboard UI.
 
 ---
 
-## 14. Team & Contributing
-
-InboxOS is built by a distributed core team of open-source developers.
-
-| Name / Role | Scope | Experience | Core Focus |
-| :--- | :--- | :--- | :--- |
-| **Siddharth Mehta** (Lead Architect) | Core Engine | Advanced | Orchestration layer, async database flow |
-| **Elena Rostova** (AI Lead) | Intelligence | Advanced | Prompt templates, structured outputs |
-| **Marcus Vance** (DevOps Architect) | Infrastructure | Advanced | Celery, Redis scaling, Docker environments |
-| **Hana Tanaka** (Frontend Lead) | Web Client | Advanced | Next.js glassmorphism client, WebSockets |
-| **Lucas Dupont** (Connector Lead) | Integrations | Advanced | Gmail OAuth and Microsoft Graph sync |
-| **8 Community Contributors** | Extensions | Beginners | Webhook integrations, CLI scripts, translation templates |
-
----
-
 ### Contributing to InboxOS
 We welcome contributions to the pipeline connectors and adapters!
 1. Check the [Good First Issues](https://github.com/inboxos/inboxos/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) label—we currently maintain **102+ onboarding tasks**!
