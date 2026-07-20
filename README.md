@@ -586,13 +586,3 @@ We welcome contributions to the pipeline connectors and adapters!
 *   **RAG:** Retrieval-Augmented Generation. Used to provide context on previous mail history to the AI agent.
 *   **Conjunction:** Logical matching criteria (AND/OR operations) in the Rules Engine.
 *   **Orchestration:** Core server code running background pipelines and scheduling Celery queues.
-
----
-
-### Developer Resources
-*   [FastAPI Documentation](https://fastapi.tiangolo.com/)
-*   [Next.js App Router Guide](https://nextjs.org/docs)
-*   [Google API Gmail SDK](https://developers.google.com/gmail/api/guides)
-*   [Microsoft Graph SDK Reference](https://learn.microsoft.com/en-us/graph/use-the-api)
-*   [Celery Worker Queue Manual](https://docs.celeryq.dev/en/stable/)
-*   [Ollama Local LLM Quickstart](https://github.com/ollama/ollama)
